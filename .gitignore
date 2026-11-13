@@ -1,0 +1,9 @@
+/build/
+/*/build/
+/*/*/build/
+/*/*/run/
+.gradle/
+.kotlin/
+.omp/
+.idea/
+*.iml

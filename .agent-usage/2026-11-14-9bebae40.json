@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "chore: build setup",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 98, "cachedInput": 12843669, "cacheWrite": 292472, "output": 43629 },
+      "usd": 5.78
+    }
+  ]
+}
