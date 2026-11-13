@@ -15,7 +15,8 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.system.exitProcess
 
-private const val USAGE = "Usage: --main <main checkout> --api <Dokka HTML folder or none> --out <folder>"
+private const val USAGE = "Usage: --main <main checkout> --api <Dokka HTML folder or none> --out <folder> " +
+    "[--static <folder copied as is, such as clips/>]"
 private const val SKILL = "skills/minecraft-agent/SKILL.md"
 
 /**
@@ -25,7 +26,7 @@ private const val SKILL = "skills/minecraft-agent/SKILL.md"
  */
 fun main(args: Array<String>) {
     val options = args.toList().chunked(2).associate { it.first() to it.getOrNull(1) }
-    if (options.keys.any { it !in setOf("--main", "--api", "--out") } || null in options.values) usage()
+    if (options.keys.any { it !in setOf("--main", "--api", "--out", "--static") } || null in options.values) usage()
     val main = Path(options["--main"] ?: usage())
     val out = Path(options["--out"] ?: usage())
     val api = options["--api"]?.takeIf { it != "none" }?.let(::Path)
@@ -34,6 +35,15 @@ fun main(args: Array<String>) {
     writeApi(api, out)
     writeSkill(main, out)
     writeAiUsage(main, out)
+    options["--static"]?.let { copyStatic(Path(it), out) }
+}
+
+/** @agent claude-opus-5-5 */
+@OptIn(ExperimentalPathApi::class)
+private fun copyStatic(static: Path, out: Path) {
+    if (static.isDirectory()) {
+        static.copyToRecursively(out, followLinks = false, overwrite = true)
+    }
 }
 
 /** @agent claude-opus-5-5 */
