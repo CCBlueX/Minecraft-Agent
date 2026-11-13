@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-13",
+  "change": "feat(simulation): player movement",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 210, "cachedInput": 18630355, "cacheWrite": 497047, "output": 98894 },
+      "usd": 9.68
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 428, "cachedInput": 0, "cacheWrite": 0, "output": 4 },
+      "usd": 0.00
+    }
+  ]
+}

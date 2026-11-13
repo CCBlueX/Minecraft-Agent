@@ -8,3 +8,5 @@ pluginManagement {
 }
 
 rootProject.name = "minecraft-agent"
+
+include("common")

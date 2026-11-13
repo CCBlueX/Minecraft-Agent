@@ -7,6 +7,9 @@ Java.
 
 `net.ccbluex:minecraft-agent-<library>`. Each library brings the ones it builds on.
 
+- `common`: everything that runs on every game version
+  - `simulation`: player movement, tick by tick
+
 ## Agent usage
 
 Most of this code was written by AI models. Each declaration they wrote names its model in an `@agent` KDoc tag.

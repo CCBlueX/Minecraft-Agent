@@ -1,0 +1,201 @@
+public abstract interface annotation class net/ccbluex/agent/ExperimentalAgentApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class net/ccbluex/agent/InternalAgentApi : java/lang/annotation/Annotation {
+}
+
+public final class net/ccbluex/agent/math/InputExtensionsKt {
+	public static final field DIRECTION_FORWARDS Lnet/minecraft/world/entity/player/Input;
+	public static final fun copy (Lnet/minecraft/world/entity/player/Input;ZZZZZZZ)Lnet/minecraft/world/entity/player/Input;
+	public static synthetic fun copy$default (Lnet/minecraft/world/entity/player/Input;ZZZZZZZILjava/lang/Object;)Lnet/minecraft/world/entity/player/Input;
+	public static final fun directionalInput (ZZZZ)Lnet/minecraft/world/entity/player/Input;
+	public static final fun getDirectionalInputForYRot (IIFLjava/lang/Float;)Lnet/minecraft/world/entity/player/Input;
+	public static synthetic fun getDirectionalInputForYRot$default (IIFLjava/lang/Float;ILjava/lang/Object;)Lnet/minecraft/world/entity/player/Input;
+	public static final fun getDirectionalInputTowards (Lnet/minecraft/world/phys/Vec3;F)Lnet/minecraft/world/entity/player/Input;
+	public static final fun getInputYRot (FLnet/minecraft/world/entity/player/Input;)F
+	public static final fun getInputYRot (Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/player/Input;)F
+	public static final fun inputYRot (Lnet/minecraft/world/entity/player/Player;Ljava/lang/Float;)F
+	public static synthetic fun inputYRot$default (Lnet/minecraft/world/entity/player/Player;Ljava/lang/Float;ILjava/lang/Object;)F
+	public static final fun isMoving (Lnet/minecraft/world/entity/player/Input;)Z
+	public static final fun turned (Lnet/minecraft/world/entity/player/Input;FF)Lnet/minecraft/world/entity/player/Input;
+	public static final fun withDirection (Lnet/minecraft/world/entity/player/Input;Lnet/minecraft/world/entity/player/Input;)Lnet/minecraft/world/entity/player/Input;
+}
+
+public final class net/ccbluex/agent/math/NumberExtensionsKt {
+	public static final fun toDegrees (D)D
+}
+
+public final class net/ccbluex/agent/math/VectorExtensionsKt {
+	public static final fun component1 (Lnet/minecraft/core/Vec3i;)I
+	public static final fun component2 (Lnet/minecraft/core/Vec3i;)I
+	public static final fun component3 (Lnet/minecraft/core/Vec3i;)I
+	public static final fun copy (Lnet/minecraft/world/phys/Vec3;DDD)Lnet/minecraft/world/phys/Vec3;
+	public static synthetic fun copy$default (Lnet/minecraft/world/phys/Vec3;DDDILjava/lang/Object;)Lnet/minecraft/world/phys/Vec3;
+	public static final fun distSqr (Lnet/minecraft/core/Vec3i;III)J
+	public static final fun distanceToSegment (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)D
+	public static final fun fma (Lnet/minecraft/world/phys/Vec3;DLnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;
+	public static final fun getYRot (Lnet/minecraft/world/phys/Vec3;)F
+	public static final fun horizontalDistanceTo (Lnet/minecraft/world/phys/Vec3;DD)D
+	public static final fun horizontalDistanceTo (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/Vec3i;)D
+	public static final fun horizontalDistanceTo (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)D
+	public static final fun horizontalDistanceToSqr (Lnet/minecraft/world/phys/Vec3;DD)D
+	public static final fun horizontalDistanceToSqr (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/Vec3i;)D
+	public static final fun horizontalDistanceToSqr (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)D
+	public static final fun withLength (Lnet/minecraft/world/phys/Vec3;D)Lnet/minecraft/world/phys/Vec3;
+}
+
+public final class net/ccbluex/agent/math/ViewRotation {
+	public static final field Companion Lnet/ccbluex/agent/math/ViewRotation$Companion;
+	public static final field ZERO Lnet/ccbluex/agent/math/ViewRotation;
+	public fun <init> (FF)V
+	public final fun component1 ()F
+	public final fun component2 ()F
+	public final fun copy (FF)Lnet/ccbluex/agent/math/ViewRotation;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/math/ViewRotation;FFILjava/lang/Object;)Lnet/ccbluex/agent/math/ViewRotation;
+	public fun equals (Ljava/lang/Object;)Z
+	public static final fun fromVector (Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/math/ViewRotation;
+	public final fun getViewVector ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getXRot ()F
+	public final fun getYRot ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/math/ViewRotation$Companion {
+	public final fun fromVector (Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/math/ViewRotation;
+}
+
+public abstract interface class net/ccbluex/agent/simulation/BlockGrid {
+	public abstract fun shape (III)Lnet/minecraft/world/phys/shapes/VoxelShape;
+	public abstract fun state (III)Lnet/minecraft/world/level/block/state/BlockState;
+}
+
+public final class net/ccbluex/agent/simulation/ElytraMotion {
+	public static final field INSTANCE Lnet/ccbluex/agent/simulation/ElytraMotion;
+	public final fun updateFallFlyingMovement (Lnet/minecraft/world/phys/Vec3;FFZ)Lnet/minecraft/world/phys/Vec3;
+	public final fun xRotTowards (DD)F
+	public final fun yRotTowards (DD)F
+}
+
+public final class net/ccbluex/agent/simulation/MotionTraits {
+	public static final field Companion Lnet/ccbluex/agent/simulation/MotionTraits$Companion;
+	public static final field DEFAULT Lnet/ccbluex/agent/simulation/MotionTraits;
+	public fun <init> (FFF)V
+	public static final fun capture (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/simulation/MotionTraits;
+	public final fun getJumpBoostPower ()F
+	public final fun getJumpHeight ()D
+	public final fun getJumpPower ()D
+	public final fun getJumpStrength ()F
+	public final fun getWalkingSpeed ()F
+	public static final fun rise (D)D
+}
+
+public final class net/ccbluex/agent/simulation/MotionTraits$Companion {
+	public final fun capture (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/simulation/MotionTraits;
+	public final fun rise (D)D
+}
+
+public final class net/ccbluex/agent/simulation/PlayerMotion {
+	public static final field AIR_SPEED F
+	public static final field Companion Lnet/ccbluex/agent/simulation/PlayerMotion$Companion;
+	public static final field HALF_WIDTH D
+	public static final field INPUT_FRICTION F
+	public static final field PLAIN_FRICTION F
+	public static final field RESTING Lnet/minecraft/world/phys/Vec3;
+	public static final field SPRINT_AIR_SPEED F
+	public fun <init> (Lnet/ccbluex/agent/simulation/BlockGrid;Lnet/ccbluex/agent/simulation/MotionTraits;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/simulation/BlockGrid;Lnet/ccbluex/agent/simulation/MotionTraits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun copy ()Lnet/ccbluex/agent/simulation/PlayerMotion;
+	public final fun copyFrom (Lnet/ccbluex/agent/simulation/PlayerMotion;)V
+	public final fun footing (III)D
+	public final fun getBlockPosition ()Lnet/minecraft/core/BlockPos;
+	public final fun getDeltaMovement ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getDeltaX ()D
+	public final fun getDeltaY ()D
+	public final fun getDeltaZ ()D
+	public final fun getHorizontalCollision ()Z
+	public final fun getHorizontalSpeed ()D
+	public final fun getLandingFall ()D
+	public final fun getOnGround ()Z
+	public final fun getPosition ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getSupportingBlock ()Lnet/minecraft/core/BlockPos;
+	public final fun getX ()D
+	public final fun getY ()D
+	public final fun getZ ()D
+	public final fun isSprinting ()Z
+	public final fun reset (Lnet/minecraft/world/entity/player/Player;)V
+	public final fun reset (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;ZZI)V
+	public static synthetic fun reset$default (Lnet/ccbluex/agent/simulation/PlayerMotion;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;ZZIILjava/lang/Object;)V
+	public final fun standsOn (III)Z
+	public final fun tick (FIIZZZ)V
+	public static synthetic fun tick$default (Lnet/ccbluex/agent/simulation/PlayerMotion;FIIZZZILjava/lang/Object;)V
+}
+
+public final class net/ccbluex/agent/simulation/PlayerMotion$Companion {
+}
+
+public abstract interface class net/ccbluex/agent/simulation/PlayerSimulation {
+	public abstract fun getPos ()Lnet/minecraft/world/phys/Vec3;
+	public abstract fun tick ()V
+}
+
+public final class net/ccbluex/agent/simulation/SimulatedInput {
+	public fun <init> (Lnet/minecraft/world/entity/player/Input;)V
+	public fun <init> (Lnet/minecraft/world/entity/player/Input;Z)V
+	public fun <init> (Lnet/minecraft/world/entity/player/Input;ZZ)V
+	public synthetic fun <init> (Lnet/minecraft/world/entity/player/Input;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getForceStayOnGroundSurface ()Z
+	public final fun getIgnoresEdgeBackOff ()Z
+	public final fun getKeys ()Lnet/minecraft/world/entity/player/Input;
+	public final fun getMoveVector ()Lnet/minecraft/world/phys/Vec2;
+	public final fun hasForwardImpulse ()Z
+	public final fun setForceStayOnGroundSurface (Z)V
+	public final fun setIgnoresEdgeBackOff (Z)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/simulation/SimulatedPlayer : net/minecraft/world/entity/player/Player, net/ccbluex/agent/simulation/PlayerSimulation {
+	public static final field Companion Lnet/ccbluex/agent/simulation/SimulatedPlayer$Companion;
+	public fun aiStep ()V
+	public static final fun fromOtherPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public static final fun fromOtherPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;Lnet/ccbluex/agent/simulation/SimulationHooks;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public static final fun fromPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;Z)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public static final fun fromPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;ZLnet/ccbluex/agent/simulation/SimulationHooks;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public fun gameMode ()Lnet/minecraft/world/level/GameType;
+	public final fun getHasBackedOffEdge ()Z
+	public final fun getInput ()Lnet/ccbluex/agent/simulation/SimulatedInput;
+	public fun getPos ()Lnet/minecraft/world/phys/Vec3;
+	public fun isClientAuthoritative ()Z
+	public fun isCrouching ()Z
+	public fun isEffectiveAi ()Z
+	public fun isShiftKeyDown ()Z
+	public fun isSuppressingSlidingDownLadder ()Z
+	public static final fun isTicking ()Z
+	public fun isUnderWater ()Z
+	public fun move (Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V
+	public final fun setInput (Lnet/ccbluex/agent/simulation/SimulatedInput;)V
+	public fun tick ()V
+}
+
+public final class net/ccbluex/agent/simulation/SimulatedPlayer$Companion {
+	public final fun fromOtherPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public final fun fromOtherPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;Lnet/ccbluex/agent/simulation/SimulationHooks;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public static synthetic fun fromOtherPlayer$default (Lnet/ccbluex/agent/simulation/SimulatedPlayer$Companion;Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;Lnet/ccbluex/agent/simulation/SimulationHooks;ILjava/lang/Object;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public final fun fromPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;Z)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public final fun fromPlayer (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;ZLnet/ccbluex/agent/simulation/SimulationHooks;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public static synthetic fun fromPlayer$default (Lnet/ccbluex/agent/simulation/SimulatedPlayer$Companion;Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;ZLnet/ccbluex/agent/simulation/SimulationHooks;ILjava/lang/Object;)Lnet/ccbluex/agent/simulation/SimulatedPlayer;
+	public final fun isTicking ()Z
+}
+
+public abstract interface class net/ccbluex/agent/simulation/SimulationHooks {
+	public static final field Companion Lnet/ccbluex/agent/simulation/SimulationHooks$Companion;
+	public static final field VANILLA Lnet/ccbluex/agent/simulation/SimulationHooks;
+	public fun itemUseMultiplier (F)Lnet/minecraft/world/phys/Vec2;
+	public fun move (Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;
+	public fun slowedByItemUse ()Z
+	public fun sneakingSpeed (D)D
+}
+
+public final class net/ccbluex/agent/simulation/SimulationHooks$Companion {
+}
+
