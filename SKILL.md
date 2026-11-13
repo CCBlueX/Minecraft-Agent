@@ -9,10 +9,11 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`.
 
 | Artifact | Use it for |
 |---|---|
-| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body` |
+| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes |
 | `minecraft-agent-fabric` | The local player as a body (Fabric mod) |
 
-Each one brings what it builds on: `navigation` brings `pathfinder` and `simulation`, `fabric` brings `common`.
+Each one brings what it builds on: `navigation` brings `pathfinder` and `simulation`, `skills` brings `navigation`,
+`fabric` brings `common`.
 Everything public is callable from Java.
 
 ## Fabric mod
@@ -38,7 +39,7 @@ navigation.stop()
 
 ## Bots on your own host
 
-Implement `Body` (navigation) for whatever moves: keys, turning, digging, item use, inventory.
+Implement `Body` (navigation) or `AgentBody` (skills) for whatever moves: keys, turning, digging, item use, inventory.
 Conventions: inventory indices as in `Inventory` (0-8 hotbar, 36-39 armor feet to head, 40 offhand); the last `press`
 in a tick wins; `players()` returns every player the body can see, bots included, if your bots are not in the
 level's player list. Then:
@@ -55,3 +56,17 @@ draws (`routeSearching`, `routeFollowing`, `blocksAhead`, `routeDone`, `routeInv
 changes: `navigator.blockChanged`, `levelChanged`, `positionCorrected`, and `SectionCache.blockChanged`,
 `columnChanged`, `forget` for block and chunk updates. A client host calls `navigator.turnView()` after the movement
 packet, so the camera turns where the walk looks ahead.
+
+## Skills and game modes
+
+```kotlin
+val skills = Skills.builtIn(body, SkillLevel.NORMAL, Personality.BALANCED)
+val agent = Agent(body, navigator, skills)
+agent.game = SkyWars(senses)       // null: only the abilities run
+agent.tick()                       // once per tick, instead of navigator.navigate
+```
+
+Game modes take senses the host supplies (round state, teams, chests, beds): `SkyWars(skywars.Senses)`,
+`Blitz(blitz.Senses)`, `BedWars(bedwars.Senses)`, `Duels(duels.Senses)`. They are `@ExperimentalAgentApi`: game modes
+change while the bots get better; hosts opt in. A null ability in `Skills` leaves it to the host. Kits are never
+built in; bots use what they hold.

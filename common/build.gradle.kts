@@ -5,7 +5,12 @@ plugins {
     `java-test-fixtures`
 }
 
+kotlin {
+    compilerOptions.optIn.add("net.ccbluex.agent.ExperimentalAgentApi")
+}
+
 dependencies {
+    implementation(libs.kotlinx.coroutines.core)
     testFixturesImplementation(kotlin("test"))
 }
 

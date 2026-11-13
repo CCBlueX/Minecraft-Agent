@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-27",
+  "change": "feat(skills): abilities, game modes",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-fable-5-1",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 120,
+        "cachedInput": 8136121,
+        "cacheWrite": 231958,
+        "output": 66466
+      },
+      "usd": 10.0
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 472,
+        "cachedInput": 10499190,
+        "cacheWrite": 1883022,
+        "output": 412506
+      },
+      "usd": 0.69
+    },
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 3666,
+        "cachedInput": 503579423,
+        "cacheWrite": 5193748,
+        "output": 1464719
+      },
+      "usd": 171.57
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "provider": "github-copilot",
+      "tokens": {
+        "input": 0,
+        "cachedInput": 0,
+        "cacheWrite": 0,
+        "output": 0
+      },
+      "usd": 0.0
+    }
+  ]
+}

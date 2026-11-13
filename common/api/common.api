@@ -1203,3 +1203,921 @@ public abstract interface class net/ccbluex/agent/simulation/SimulationHooks {
 public final class net/ccbluex/agent/simulation/SimulationHooks$Companion {
 }
 
+public final class net/ccbluex/agent/skills/Agent {
+	public fun <init> (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/navigation/Navigator;Lnet/ccbluex/agent/skills/Skills;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/navigation/Navigator;Lnet/ccbluex/agent/skills/Skills;Lnet/ccbluex/agent/skills/Personality;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/navigation/Navigator;Lnet/ccbluex/agent/skills/Skills;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/SkillLevel;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/navigation/Navigator;Lnet/ccbluex/agent/skills/Skills;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/AgentListener;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/navigation/Navigator;Lnet/ccbluex/agent/skills/Skills;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/AgentListener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun damaged (Lnet/minecraft/world/entity/Entity;)V
+	public final fun getBody ()Lnet/ccbluex/agent/skills/AgentBody;
+	public final fun getGame ()Lnet/ccbluex/agent/skills/games/GameMode;
+	public final fun getListener ()Lnet/ccbluex/agent/skills/AgentListener;
+	public final fun getNavigator ()Lnet/ccbluex/agent/navigation/Navigator;
+	public final fun getPersonality ()Lnet/ccbluex/agent/skills/Personality;
+	public final fun getSenses ()Lnet/ccbluex/agent/skills/games/RoundSenses;
+	public final fun getSkillLevel ()Lnet/ccbluex/agent/skills/SkillLevel;
+	public final fun getSkills ()Lnet/ccbluex/agent/skills/Skills;
+	public final fun getTicks ()J
+	public final fun setGame (Lnet/ccbluex/agent/skills/games/GameMode;)V
+	public final fun stop ()V
+	public final fun takeMovement ()V
+	public final fun tick ()V
+	public final fun walkTo (Lnet/minecraft/world/phys/Vec3;D)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/AgentBody : net/ccbluex/agent/navigation/Body {
+	public abstract fun attack (Lnet/minecraft/world/entity/Entity;)V
+	public abstract fun clickContainer (IILnet/minecraft/world/inventory/ContainerInput;)V
+	public abstract fun closeContainer ()V
+	public abstract fun drop (IZ)V
+	public abstract fun getAttackStrength ()F
+	public abstract fun getContainerMenu ()Lnet/minecraft/world/inventory/AbstractContainerMenu;
+	public abstract fun getMaxAttackReach ()D
+	public abstract fun getMinAttackReach ()D
+	public abstract fun isCombat1_8 ()Z
+	public abstract fun isUsingItem ()Z
+	public fun players ()Ljava/util/List;
+	public abstract fun releaseUsingItem ()V
+	public abstract fun stab ()V
+	public abstract fun startUsingItem (Lnet/minecraft/world/InteractionHand;)Z
+	public abstract fun swapWithHotbar (II)V
+	public abstract fun swapWithOffhand (I)V
+	public abstract fun swing (Lnet/minecraft/world/InteractionHand;)V
+	public abstract fun takeFromContainer (I)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/AgentListener {
+	public static final field Companion Lnet/ccbluex/agent/skills/AgentListener$Companion;
+	public static final field NONE Lnet/ccbluex/agent/skills/AgentListener;
+	public fun ate (Lnet/minecraft/world/item/ItemStack;)V
+	public fun decision (Ljava/lang/String;DLjava/lang/String;)V
+	public fun died (Lnet/minecraft/world/entity/Entity;)V
+	public fun engaged (Lnet/minecraft/world/entity/LivingEntity;)V
+	public fun looted (Lnet/minecraft/core/BlockPos;)V
+	public fun phase (Ljava/lang/String;)V
+	public fun roundEnded (Z)V
+}
+
+public final class net/ccbluex/agent/skills/AgentListener$Companion {
+}
+
+public final class net/ccbluex/agent/skills/FightingStyle : java/lang/Enum {
+	public static final field AGGRESSIVE Lnet/ccbluex/agent/skills/FightingStyle;
+	public static final field DEFENSIVE Lnet/ccbluex/agent/skills/FightingStyle;
+	public static final field KITER Lnet/ccbluex/agent/skills/FightingStyle;
+	public static final field NONE Lnet/ccbluex/agent/skills/FightingStyle;
+	public static final field TRADER Lnet/ccbluex/agent/skills/FightingStyle;
+	public static final field TRICKSTER Lnet/ccbluex/agent/skills/FightingStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getHeal ()D
+	public final fun getHitBack ()Z
+	public final fun getRetreats ()Z
+	public final fun getStrafe ()D
+	public final fun getWtap ()D
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/FightingStyle;
+	public static fun values ()[Lnet/ccbluex/agent/skills/FightingStyle;
+}
+
+public abstract interface class net/ccbluex/agent/skills/ItemMatch {
+	public static final field Companion Lnet/ccbluex/agent/skills/ItemMatch$Companion;
+	public abstract fun matches (Lnet/minecraft/world/item/ItemStack;)Z
+	public static fun named (Ljava/lang/String;)Lnet/ccbluex/agent/skills/ItemMatch;
+	public static fun of ([Lnet/minecraft/world/item/Item;)Lnet/ccbluex/agent/skills/ItemMatch;
+	public static fun tag (Lnet/minecraft/tags/TagKey;)Lnet/ccbluex/agent/skills/ItemMatch;
+}
+
+public final class net/ccbluex/agent/skills/ItemMatch$Companion {
+	public final fun named (Ljava/lang/String;)Lnet/ccbluex/agent/skills/ItemMatch;
+	public final fun of ([Lnet/minecraft/world/item/Item;)Lnet/ccbluex/agent/skills/ItemMatch;
+	public final fun tag (Lnet/minecraft/tags/TagKey;)Lnet/ccbluex/agent/skills/ItemMatch;
+}
+
+public final class net/ccbluex/agent/skills/Personality {
+	public static final field BALANCED Lnet/ccbluex/agent/skills/Personality;
+	public static final field Companion Lnet/ccbluex/agent/skills/Personality$Companion;
+	public fun <init> (DDDDDDDLnet/ccbluex/agent/skills/FightingStyle;)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun component4 ()D
+	public final fun component5 ()D
+	public final fun component6 ()D
+	public final fun component7 ()D
+	public final fun component8 ()Lnet/ccbluex/agent/skills/FightingStyle;
+	public final fun copy (DDDDDDDLnet/ccbluex/agent/skills/FightingStyle;)Lnet/ccbluex/agent/skills/Personality;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/Personality;DDDDDDDLnet/ccbluex/agent/skills/FightingStyle;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/Personality;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAggression ()D
+	public final fun getCaution ()D
+	public final fun getFighting ()Lnet/ccbluex/agent/skills/FightingStyle;
+	public final fun getGreed ()D
+	public final fun getOpportunism ()D
+	public final fun getPatience ()D
+	public final fun getRanged ()D
+	public final fun getWhim ()D
+	public fun hashCode ()I
+	public static final fun roll (Ljava/util/Random;)Lnet/ccbluex/agent/skills/Personality;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/Personality$Companion {
+	public final fun roll (Ljava/util/Random;)Lnet/ccbluex/agent/skills/Personality;
+}
+
+public final class net/ccbluex/agent/skills/SkillLevel {
+	public static final field BEGINNER Lnet/ccbluex/agent/skills/SkillLevel;
+	public static final field Companion Lnet/ccbluex/agent/skills/SkillLevel$Companion;
+	public static final field EASY Lnet/ccbluex/agent/skills/SkillLevel;
+	public static final field HARD Lnet/ccbluex/agent/skills/SkillLevel;
+	public static final field NORMAL Lnet/ccbluex/agent/skills/SkillLevel;
+	public fun <init> (DDDDDDDDDDDLnet/ccbluex/agent/skills/SkillLevel$Use;Lnet/ccbluex/agent/skills/SkillLevel$Use;)V
+	public final fun component1 ()D
+	public final fun component10 ()D
+	public final fun component11 ()D
+	public final fun component12 ()Lnet/ccbluex/agent/skills/SkillLevel$Use;
+	public final fun component13 ()Lnet/ccbluex/agent/skills/SkillLevel$Use;
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun component4 ()D
+	public final fun component5 ()D
+	public final fun component6 ()D
+	public final fun component7 ()D
+	public final fun component8 ()D
+	public final fun component9 ()D
+	public final fun copy (DDDDDDDDDDDLnet/ccbluex/agent/skills/SkillLevel$Use;Lnet/ccbluex/agent/skills/SkillLevel$Use;)Lnet/ccbluex/agent/skills/SkillLevel;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/SkillLevel;DDDDDDDDDDDLnet/ccbluex/agent/skills/SkillLevel$Use;Lnet/ccbluex/agent/skills/SkillLevel$Use;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/SkillLevel;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAim ()D
+	public final fun getBlast ()Lnet/ccbluex/agent/skills/SkillLevel$Use;
+	public final fun getCps ()D
+	public final fun getDamage ()D
+	public final fun getMelee ()Lnet/ccbluex/agent/skills/SkillLevel$Use;
+	public final fun getMiss ()D
+	public final fun getNoise ()D
+	public final fun getReach ()D
+	public final fun getReaction ()D
+	public final fun getSpread ()D
+	public final fun getStrafe ()D
+	public final fun getStrength ()D
+	public final fun getTechnique ()D
+	public fun hashCode ()I
+	public static final fun of (Ljava/lang/String;)Lnet/ccbluex/agent/skills/SkillLevel;
+	public fun toString ()Ljava/lang/String;
+	public final fun use (D)Lnet/ccbluex/agent/skills/SkillLevel$Use;
+}
+
+public final class net/ccbluex/agent/skills/SkillLevel$Companion {
+	public final fun of (Ljava/lang/String;)Lnet/ccbluex/agent/skills/SkillLevel;
+}
+
+public final class net/ccbluex/agent/skills/SkillLevel$Use {
+	public fun <init> (DDDD)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun component4 ()D
+	public final fun copy (DDDD)Lnet/ccbluex/agent/skills/SkillLevel$Use;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/SkillLevel$Use;DDDDILjava/lang/Object;)Lnet/ccbluex/agent/skills/SkillLevel$Use;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCooldown ()D
+	public final fun getPlacement ()D
+	public final fun getSkill ()D
+	public final fun getSlowness ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun towards (Lnet/ccbluex/agent/skills/SkillLevel$Use;D)Lnet/ccbluex/agent/skills/SkillLevel$Use;
+}
+
+public final class net/ccbluex/agent/skills/Skills {
+	public static final field Companion Lnet/ccbluex/agent/skills/Skills$Companion;
+	public fun <init> ()V
+	public fun <init> (Lnet/ccbluex/agent/skills/fight/Fight;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/fight/Fight;Lnet/ccbluex/agent/skills/eat/Eat;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/fight/Fight;Lnet/ccbluex/agent/skills/eat/Eat;Lnet/ccbluex/agent/skills/loot/Loot;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/fight/Fight;Lnet/ccbluex/agent/skills/eat/Eat;Lnet/ccbluex/agent/skills/loot/Loot;Lnet/ccbluex/agent/skills/gear/Gear;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/fight/Fight;Lnet/ccbluex/agent/skills/eat/Eat;Lnet/ccbluex/agent/skills/loot/Loot;Lnet/ccbluex/agent/skills/gear/Gear;Lnet/ccbluex/agent/skills/shop/Shop;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/fight/Fight;Lnet/ccbluex/agent/skills/eat/Eat;Lnet/ccbluex/agent/skills/loot/Loot;Lnet/ccbluex/agent/skills/gear/Gear;Lnet/ccbluex/agent/skills/shop/Shop;Lnet/ccbluex/agent/skills/voidrescue/VoidRescue;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/fight/Fight;Lnet/ccbluex/agent/skills/eat/Eat;Lnet/ccbluex/agent/skills/loot/Loot;Lnet/ccbluex/agent/skills/gear/Gear;Lnet/ccbluex/agent/skills/shop/Shop;Lnet/ccbluex/agent/skills/voidrescue/VoidRescue;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;)Lnet/ccbluex/agent/skills/Skills;
+	public static final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;)Lnet/ccbluex/agent/skills/Skills;
+	public static final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)Lnet/ccbluex/agent/skills/Skills;
+	public static final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;)Lnet/ccbluex/agent/skills/Skills;
+	public static final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;)Lnet/ccbluex/agent/skills/Skills;
+	public static final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;)Lnet/ccbluex/agent/skills/Skills;
+	public static final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;Lnet/ccbluex/agent/skills/shop/Counter;)Lnet/ccbluex/agent/skills/Skills;
+	public final fun getEat ()Lnet/ccbluex/agent/skills/eat/Eat;
+	public final fun getFight ()Lnet/ccbluex/agent/skills/fight/Fight;
+	public final fun getGear ()Lnet/ccbluex/agent/skills/gear/Gear;
+	public final fun getLoot ()Lnet/ccbluex/agent/skills/loot/Loot;
+	public final fun getShop ()Lnet/ccbluex/agent/skills/shop/Shop;
+	public final fun getVoidRescue ()Lnet/ccbluex/agent/skills/voidrescue/VoidRescue;
+}
+
+public final class net/ccbluex/agent/skills/Skills$Companion {
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;)Lnet/ccbluex/agent/skills/Skills;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;)Lnet/ccbluex/agent/skills/Skills;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)Lnet/ccbluex/agent/skills/Skills;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;)Lnet/ccbluex/agent/skills/Skills;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;)Lnet/ccbluex/agent/skills/Skills;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;)Lnet/ccbluex/agent/skills/Skills;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;Lnet/ccbluex/agent/skills/shop/Counter;)Lnet/ccbluex/agent/skills/Skills;
+	public static synthetic fun builtIn$default (Lnet/ccbluex/agent/skills/Skills$Companion;Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;Lnet/ccbluex/agent/skills/shop/Counter;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/Skills;
+}
+
+public abstract interface class net/ccbluex/agent/skills/eat/Eat {
+	public static final field Companion Lnet/ccbluex/agent/skills/eat/Eat$Companion;
+	public static fun builtIn ()Lnet/ccbluex/agent/skills/eat/Eat;
+	public abstract fun getWantsToEat ()Z
+	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/eat/Eat$Companion {
+	public final fun builtIn ()Lnet/ccbluex/agent/skills/eat/Eat;
+}
+
+public abstract interface class net/ccbluex/agent/skills/fight/Fight {
+	public static final field Companion Lnet/ccbluex/agent/skills/fight/Fight$Companion;
+	public static fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)Lnet/ccbluex/agent/skills/fight/Fight;
+	public static fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;)Lnet/ccbluex/agent/skills/fight/Fight;
+	public fun damaged (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/Entity;)V
+	public abstract fun disengage ()V
+	public abstract fun engage (Lnet/minecraft/world/entity/LivingEntity;)V
+	public fun getStats ()Lnet/ccbluex/agent/skills/fight/Stats;
+	public abstract fun getTarget ()Lnet/minecraft/world/entity/LivingEntity;
+	public fun isBusy ()Z
+	public abstract fun isHealing ()Z
+	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/fight/Fight$Companion {
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)Lnet/ccbluex/agent/skills/fight/Fight;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;)Lnet/ccbluex/agent/skills/fight/Fight;
+	public static synthetic fun builtIn$default (Lnet/ccbluex/agent/skills/fight/Fight$Companion;Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/fight/Fight;
+}
+
+public final class net/ccbluex/agent/skills/fight/Outnumbered {
+	public fun <init> (Lnet/ccbluex/agent/skills/fight/Targets;)V
+	public final fun allows (Lnet/minecraft/world/entity/Entity;)Z
+	public final fun getPlan ()Lnet/ccbluex/agent/skills/fight/OutnumberedPlan;
+	public final fun retreatPoint (Lnet/ccbluex/agent/skills/Agent;Ljava/util/List;)Lnet/minecraft/world/phys/Vec3;
+	public final fun stop ()V
+	public final fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/fight/OutnumberedPlan {
+}
+
+public final class net/ccbluex/agent/skills/fight/OutnumberedPlan$Focus : net/ccbluex/agent/skills/fight/OutnumberedPlan {
+	public fun <init> (Lnet/minecraft/world/entity/player/Player;)V
+	public final fun getTarget ()Lnet/minecraft/world/entity/player/Player;
+}
+
+public final class net/ccbluex/agent/skills/fight/OutnumberedPlan$Retreat : net/ccbluex/agent/skills/fight/OutnumberedPlan {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;)V
+	public final fun getPoint ()Lnet/minecraft/world/phys/Vec3;
+}
+
+public final class net/ccbluex/agent/skills/fight/Rules {
+	public static final field Companion Lnet/ccbluex/agent/skills/fight/Rules$Companion;
+	public static final field DEFAULT Lnet/ccbluex/agent/skills/fight/Rules;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;)V
+	public fun <init> (Ljava/util/Set;Z)V
+	public fun <init> (Ljava/util/Set;ZZ)V
+	public fun <init> (Ljava/util/Set;ZZZ)V
+	public fun <init> (Ljava/util/Set;ZZZZ)V
+	public fun <init> (Ljava/util/Set;ZZZZZ)V
+	public fun <init> (Ljava/util/Set;ZZZZZZ)V
+	public fun <init> (Ljava/util/Set;ZZZZZZD)V
+	public fun <init> (Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;)V
+	public fun <init> (Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;Z)V
+	public fun <init> (Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;ZZ)V
+	public fun <init> (Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;ZZZ)V
+	public fun <init> (Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;ZZZD)V
+	public synthetic fun <init> (Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;ZZZDILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component10 ()Z
+	public final fun component11 ()Z
+	public final fun component12 ()Z
+	public final fun component13 ()D
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun component7 ()Z
+	public final fun component8 ()D
+	public final fun component9 ()Lnet/minecraft/world/phys/Vec3;
+	public final fun copy (Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;ZZZD)Lnet/ccbluex/agent/skills/fight/Rules;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/fight/Rules;Ljava/util/Set;ZZZZZZDLnet/minecraft/world/phys/Vec3;ZZZDILjava/lang/Object;)Lnet/ccbluex/agent/skills/fight/Rules;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlwaysGuard ()Z
+	public final fun getAttacks ()Z
+	public final fun getBlastWeight ()D
+	public final fun getCrits ()Z
+	public final fun getGuardsEdges ()Z
+	public final fun getHitReactions ()Z
+	public final fun getHunts ()Z
+	public final fun getInstantSoup ()Z
+	public final fun getOldCombat ()Z
+	public final fun getRange ()D
+	public final fun getRetaliates ()Z
+	public final fun getRingCentre ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getSkills ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/fight/Rules$Companion {
+}
+
+public final class net/ccbluex/agent/skills/fight/Skill : java/lang/Enum {
+	public static final field ANCHOR Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field BLOCK_PEARL Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field BOW Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field COBWEB Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field CRYSTAL Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field DRAIN Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field GAPPLE Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field GUARD Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field LAVA_TAP Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field MACE_SMASH Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field PEARL Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field PILLAR Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field POT_BUFF Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field POT_HEAL Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field ROD Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field SHIELD_BREAK Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field SOUP Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field SPEAR_CHARGE Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field THROW Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field TOTEM Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field WATER_CLUTCH Lnet/ccbluex/agent/skills/fight/Skill;
+	public static final field WEB_ESCAPE Lnet/ccbluex/agent/skills/fight/Skill;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/fight/Skill;
+	public static fun values ()[Lnet/ccbluex/agent/skills/fight/Skill;
+}
+
+public final class net/ccbluex/agent/skills/fight/Stats {
+	public static final field Companion Lnet/ccbluex/agent/skills/fight/Stats$Companion;
+	public static final field NONE Lnet/ccbluex/agent/skills/fight/Stats;
+	public fun <init> (IIID)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()D
+	public final fun copy (IIID)Lnet/ccbluex/agent/skills/fight/Stats;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/fight/Stats;IIIDILjava/lang/Object;)Lnet/ccbluex/agent/skills/fight/Stats;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCombo ()I
+	public final fun getDamageDealt ()D
+	public final fun getHits ()I
+	public final fun getLongestCombo ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/fight/Stats$Companion {
+}
+
+public final class net/ccbluex/agent/skills/fight/Targets {
+	public static final field Companion Lnet/ccbluex/agent/skills/fight/Targets$Companion;
+	public fun <init> (Lnet/ccbluex/agent/skills/games/RoundSenses;)V
+	public final fun around ()Ljava/util/List;
+	public final fun damaged (Lnet/minecraft/world/entity/Entity;)V
+	public final fun hitsLanded (I)I
+	public final fun hitsTaken (I)I
+	public final fun hitsTaken (IZ)I
+	public static synthetic fun hitsTaken$default (Lnet/ccbluex/agent/skills/fight/Targets;IZILjava/lang/Object;)I
+	public final fun isBot (Lnet/minecraft/world/entity/player/Player;)Z
+	public final fun isOpponent (Lnet/minecraft/world/entity/player/Player;)Z
+	public final fun killed (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun lastAttacker (I)Lnet/minecraft/world/entity/player/Player;
+	public final fun reachOnUs (Lnet/minecraft/world/entity/player/Player;)Ljava/lang/Double;
+	public final fun recentKillers (I)Ljava/util/List;
+	public final fun reset ()V
+	public final fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+	public final fun weaponDamage (Lnet/minecraft/world/entity/player/Player;)D
+}
+
+public final class net/ccbluex/agent/skills/fight/Targets$Companion {
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/FlightSwitch : net/ccbluex/agent/navigation/FlightControl {
+	public abstract fun fly (Z)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/GameMode {
+	public fun damaged (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/Entity;)V
+	public abstract fun getGoal ()Ljava/lang/String;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getPhase ()Ljava/lang/String;
+	public fun getSenses ()Lnet/ccbluex/agent/skills/games/RoundSenses;
+	public fun stop (Lnet/ccbluex/agent/skills/Agent;)V
+	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/RoundSenses {
+	public abstract fun getCountdownSeconds ()Ljava/lang/Integer;
+	public abstract fun getMatchSeconds ()I
+	public abstract fun getOwnSpawn ()Lnet/minecraft/world/phys/Vec3;
+	public abstract fun getState ()Lnet/ccbluex/agent/skills/games/RoundState;
+	public fun isBot (Lnet/minecraft/world/entity/player/Player;)Z
+	public abstract fun isOpponent (Lnet/minecraft/world/entity/Entity;)Z
+	public abstract fun isSpectator ()Z
+	public abstract fun isTeammate (Lnet/minecraft/world/entity/Entity;)Z
+}
+
+public final class net/ccbluex/agent/skills/games/RoundState : java/lang/Enum {
+	public static final field COUNTDOWN Lnet/ccbluex/agent/skills/games/RoundState;
+	public static final field ENDED Lnet/ccbluex/agent/skills/games/RoundState;
+	public static final field LOBBY Lnet/ccbluex/agent/skills/games/RoundState;
+	public static final field PLAYING Lnet/ccbluex/agent/skills/games/RoundState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/RoundState;
+	public static fun values ()[Lnet/ccbluex/agent/skills/games/RoundState;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/BedWars : net/ccbluex/agent/skills/games/GameMode {
+	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;Ljava/util/Random;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;Ljava/util/Random;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun damaged (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/Entity;)V
+	public fun getGoal ()Ljava/lang/String;
+	public final fun getMatch ()Lnet/ccbluex/agent/skills/games/bedwars/Match;
+	public fun getName ()Ljava/lang/String;
+	public fun getPhase ()Ljava/lang/String;
+	public synthetic fun getSenses ()Lnet/ccbluex/agent/skills/games/RoundSenses;
+	public fun getSenses ()Lnet/ccbluex/agent/skills/games/bedwars/Senses;
+	public final fun getStrategy ()Lnet/ccbluex/agent/skills/games/bedwars/Strategy;
+	public fun stop (Lnet/ccbluex/agent/skills/Agent;)V
+	public final fun takes (Lnet/minecraft/world/entity/item/ItemEntity;)Z
+	public fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/bedwars/BedWarsTeam {
+	public abstract fun getBed ()Lnet/minecraft/core/BlockPos;
+	public abstract fun getChest ()Lnet/minecraft/core/BlockPos;
+	public abstract fun getMembers ()Ljava/util/List;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getShopkeeper ()Lnet/minecraft/world/phys/Vec3;
+	public abstract fun getSpawn ()Lnet/minecraft/world/phys/Vec3;
+	public abstract fun getUpgrader ()Lnet/minecraft/world/phys/Vec3;
+	public abstract fun isBedAlive ()Z
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/bedwars/Callout {
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$BedLost : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/games/bedwars/Callout$BedLost;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$BoughtUpgrade : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$BoughtUpgrade;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/bedwars/Callout$BoughtUpgrade;Ljava/lang/String;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$BoughtUpgrade;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getUpgrade ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$BrokeBed : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$BrokeBed;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/bedwars/Callout$BrokeBed;Ljava/lang/String;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$BrokeBed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getTeam ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$ComingToHelp : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/games/bedwars/Callout$ComingToHelp;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$CoveringBed : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/games/bedwars/Callout$CoveringBed;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$GettingDiamonds : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/games/bedwars/Callout$GettingDiamonds;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$GettingEmeralds : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/games/bedwars/Callout$GettingEmeralds;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$GoingFor : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$GoingFor;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/bedwars/Callout$GoingFor;Ljava/lang/String;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$GoingFor;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getTeam ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$Incoming : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$Incoming;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/bedwars/Callout$Incoming;Ljava/lang/String;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$Incoming;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnemy ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$LeftResources : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Lnet/ccbluex/agent/skills/games/bedwars/Callout$LeftResources;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/bedwars/Callout$LeftResources;IILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/bedwars/Callout$LeftResources;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCount ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callout$NeedWool : net/ccbluex/agent/skills/games/bedwars/Callout {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/games/bedwars/Callout$NeedWool;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/bedwars/Callouts {
+	public static final field Companion Lnet/ccbluex/agent/skills/games/bedwars/Callouts$Companion;
+	public static final field NONE Lnet/ccbluex/agent/skills/games/bedwars/Callouts;
+	public abstract fun say (Lnet/ccbluex/agent/skills/games/bedwars/Callout;)V
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Callouts$Companion {
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Generator {
+	public fun <init> (Lnet/ccbluex/agent/skills/shop/Currency;Lnet/minecraft/world/phys/Vec3;Ljava/lang/String;)V
+	public final fun component1 ()Lnet/ccbluex/agent/skills/shop/Currency;
+	public final fun component2 ()Lnet/minecraft/world/phys/Vec3;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Lnet/ccbluex/agent/skills/shop/Currency;Lnet/minecraft/world/phys/Vec3;Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/bedwars/Generator;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/bedwars/Generator;Lnet/ccbluex/agent/skills/shop/Currency;Lnet/minecraft/world/phys/Vec3;Ljava/lang/String;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/bedwars/Generator;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPosition ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getResource ()Lnet/ccbluex/agent/skills/shop/Currency;
+	public final fun getTeam ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Match {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Random;)V
+	public synthetic fun <init> (Ljava/util/Random;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun bedDestroyed (Ljava/lang/String;Lnet/minecraft/world/entity/player/Player;)V
+	public final fun clear ()V
+	public final fun planned (Lnet/minecraft/world/level/BlockGetter;Lnet/ccbluex/agent/skills/games/bedwars/BedWarsTeam;)Ljava/util/Set;
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/bedwars/Senses : net/ccbluex/agent/skills/games/RoundSenses {
+	public fun canPlace (Lnet/minecraft/core/BlockPos;)Z
+	public abstract fun getGenerators ()Ljava/util/List;
+	public abstract fun getOwnTeam ()Lnet/ccbluex/agent/skills/games/bedwars/BedWarsTeam;
+	public abstract fun getTeams ()Ljava/util/List;
+	public abstract fun isPlayerPlaced (Lnet/minecraft/core/BlockPos;)Z
+	public abstract fun isRespawning ()Z
+	public fun isRespawning (Lnet/minecraft/world/entity/player/Player;)Z
+	public abstract fun teamOf (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/skills/games/bedwars/BedWarsTeam;
+}
+
+public final class net/ccbluex/agent/skills/games/bedwars/Strategy : java/lang/Enum {
+	public static final field ADAPTIVE Lnet/ccbluex/agent/skills/games/bedwars/Strategy;
+	public static final field HOLD_BASE Lnet/ccbluex/agent/skills/games/bedwars/Strategy;
+	public static final field RUSH Lnet/ccbluex/agent/skills/games/bedwars/Strategy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/bedwars/Strategy;
+	public static fun values ()[Lnet/ccbluex/agent/skills/games/bedwars/Strategy;
+}
+
+public final class net/ccbluex/agent/skills/games/blitz/Blitz : net/ccbluex/agent/skills/games/GameMode {
+	public fun <init> (Lnet/ccbluex/agent/skills/games/blitz/Senses;)V
+	public fun damaged (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/Entity;)V
+	public fun getGoal ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getPhase ()Ljava/lang/String;
+	public fun getSenses ()Lnet/ccbluex/agent/skills/games/RoundSenses;
+	public fun stop (Lnet/ccbluex/agent/skills/Agent;)V
+	public fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/blitz/Senses : net/ccbluex/agent/skills/games/RoundSenses {
+	public abstract fun getChests ()Ljava/util/Collection;
+	public abstract fun getCompassTarget ()Lnet/minecraft/core/BlockPos;
+	public abstract fun getKitDelaySeconds ()Ljava/lang/Integer;
+	public abstract fun getRefills ()I
+	public abstract fun getSecondsToDeathmatch ()Ljava/lang/Integer;
+	public abstract fun getSecondsToRefill ()Ljava/lang/Integer;
+	public abstract fun isDeathmatchStarted ()Z
+}
+
+public final class net/ccbluex/agent/skills/games/duels/AdaptiveSkillLevel {
+	public fun <init> ()V
+	public fun <init> (Lnet/ccbluex/agent/skills/SkillLevel;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/SkillLevel;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun forget (Ljava/util/UUID;)V
+	public final fun record (Ljava/util/UUID;Ljava/lang/String;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/games/duels/Outcome;)V
+	public final fun skillLevel (Ljava/util/UUID;Ljava/lang/String;)Lnet/ccbluex/agent/skills/SkillLevel;
+}
+
+public final class net/ccbluex/agent/skills/games/duels/Duels : net/ccbluex/agent/skills/games/GameMode {
+	public static final field Companion Lnet/ccbluex/agent/skills/games/duels/Duels$Companion;
+	public fun <init> (Lnet/ccbluex/agent/skills/games/duels/Senses;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/duels/Senses;Lnet/ccbluex/agent/skills/games/duels/AdaptiveSkillLevel;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/duels/Senses;Lnet/ccbluex/agent/skills/games/duels/AdaptiveSkillLevel;Ljava/lang/String;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/games/duels/Senses;Lnet/ccbluex/agent/skills/games/duels/AdaptiveSkillLevel;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final fun fightRules (Lnet/ccbluex/agent/skills/games/duels/Senses;)Lnet/ccbluex/agent/skills/fight/Rules;
+	public static final fun fightRules (Lnet/ccbluex/agent/skills/games/duels/Senses;Lnet/ccbluex/agent/skills/fight/Rules;)Lnet/ccbluex/agent/skills/fight/Rules;
+	public fun getGoal ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getPhase ()Ljava/lang/String;
+	public synthetic fun getSenses ()Lnet/ccbluex/agent/skills/games/RoundSenses;
+	public fun getSenses ()Lnet/ccbluex/agent/skills/games/duels/Senses;
+	public fun stop (Lnet/ccbluex/agent/skills/Agent;)V
+	public fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/games/duels/Duels$Companion {
+	public final fun fightRules (Lnet/ccbluex/agent/skills/games/duels/Senses;)Lnet/ccbluex/agent/skills/fight/Rules;
+	public final fun fightRules (Lnet/ccbluex/agent/skills/games/duels/Senses;Lnet/ccbluex/agent/skills/fight/Rules;)Lnet/ccbluex/agent/skills/fight/Rules;
+	public static synthetic fun fightRules$default (Lnet/ccbluex/agent/skills/games/duels/Duels$Companion;Lnet/ccbluex/agent/skills/games/duels/Senses;Lnet/ccbluex/agent/skills/fight/Rules;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/fight/Rules;
+}
+
+public final class net/ccbluex/agent/skills/games/duels/Mode : java/lang/Enum {
+	public static final field BOXING Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static final field CLASSIC Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static final field FLOOR_IS_LAVA Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static final field PILLAR_OF_FORTUNE Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static final field SPLEEF Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static final field SUMO Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static final field TNT_RUN Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static final field TNT_TAG Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public static fun values ()[Lnet/ccbluex/agent/skills/games/duels/Mode;
+}
+
+public final class net/ccbluex/agent/skills/games/duels/Outcome : java/lang/Enum {
+	public static final field DRAW Lnet/ccbluex/agent/skills/games/duels/Outcome;
+	public static final field LOST Lnet/ccbluex/agent/skills/games/duels/Outcome;
+	public static final field WON Lnet/ccbluex/agent/skills/games/duels/Outcome;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/games/duels/Outcome;
+	public static fun values ()[Lnet/ccbluex/agent/skills/games/duels/Outcome;
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/duels/Senses : net/ccbluex/agent/skills/games/RoundSenses {
+	public abstract fun getBattleArea ()Lnet/minecraft/world/phys/AABB;
+	public abstract fun getFallHeight ()D
+	public abstract fun getMode ()Lnet/ccbluex/agent/skills/games/duels/Mode;
+	public fun getNaturalRegen ()Z
+	public fun getNextLavaLevel ()Ljava/lang/Integer;
+	public abstract fun getOpponent ()Lnet/minecraft/world/entity/LivingEntity;
+	public abstract fun getResult ()Lnet/ccbluex/agent/skills/games/duels/Outcome;
+	public fun getTagged ()Lnet/minecraft/world/entity/Entity;
+	public fun getTicksToLavaRise ()Ljava/lang/Integer;
+	public abstract fun getTimeLimitSeconds ()Ljava/lang/Integer;
+}
+
+public final class net/ccbluex/agent/skills/games/skywars/Options {
+	public fun <init> ()V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/FlightSwitch;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/FlightSwitch;I)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/FlightSwitch;II)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/games/FlightSwitch;IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lnet/ccbluex/agent/skills/games/FlightSwitch;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (Lnet/ccbluex/agent/skills/games/FlightSwitch;II)Lnet/ccbluex/agent/skills/games/skywars/Options;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/skywars/Options;Lnet/ccbluex/agent/skills/games/FlightSwitch;IIILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/skywars/Options;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFlight ()Lnet/ccbluex/agent/skills/games/FlightSwitch;
+	public final fun getFlyMaxDistance ()I
+	public final fun getFlyMaxSeconds ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/skywars/Senses : net/ccbluex/agent/skills/games/RoundSenses {
+	public abstract fun getCages ()Ljava/util/List;
+	public abstract fun getChests ()Ljava/util/Collection;
+	public abstract fun getMiddle ()Lnet/minecraft/world/phys/Vec3;
+	public abstract fun getRefills ()I
+	public abstract fun getSecondsToRefill ()Ljava/lang/Integer;
+	public fun isChestInUse (Lnet/minecraft/core/BlockPos;)Z
+	public abstract fun isDoom ()Z
+	public fun isMiddleChest (Lnet/minecraft/core/BlockPos;)Z
+	public fun ticksSinceChestClosed (Lnet/minecraft/core/BlockPos;)Ljava/lang/Integer;
+}
+
+public final class net/ccbluex/agent/skills/games/skywars/SkyWars : net/ccbluex/agent/skills/games/GameMode {
+	public fun <init> (Lnet/ccbluex/agent/skills/games/skywars/Senses;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/skywars/Senses;Lnet/ccbluex/agent/skills/games/skywars/Options;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/games/skywars/Senses;Lnet/ccbluex/agent/skills/games/skywars/Options;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun damaged (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/Entity;)V
+	public fun getGoal ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getPhase ()Ljava/lang/String;
+	public fun getSenses ()Lnet/ccbluex/agent/skills/games/RoundSenses;
+	public fun stop (Lnet/ccbluex/agent/skills/Agent;)V
+	public fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public abstract interface class net/ccbluex/agent/skills/gear/Gear {
+	public static final field Companion Lnet/ccbluex/agent/skills/gear/Gear$Companion;
+	public static fun builtIn ()Lnet/ccbluex/agent/skills/gear/Gear;
+	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/gear/Gear$Companion {
+	public final fun builtIn ()Lnet/ccbluex/agent/skills/gear/Gear;
+}
+
+public final class net/ccbluex/agent/skills/loot/Chests {
+	public fun <init> ()V
+	public final fun add (Lnet/minecraft/core/BlockPos;)V
+	public final fun clear ()V
+	public final fun getAll ()Ljava/util/Set;
+	public final fun getRefills ()I
+	public final fun getSecondsToRefill ()Ljava/lang/Integer;
+	public final fun giveUp (Lnet/minecraft/core/BlockPos;)V
+	public final fun isOpened (Lnet/minecraft/core/BlockPos;)Z
+	public final fun opened (Lnet/minecraft/core/BlockPos;)V
+	public final fun refilled ()V
+	public final fun remove (Lnet/minecraft/core/BlockPos;)V
+	public final fun scan (Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I)V
+	public final fun setSecondsToRefill (Ljava/lang/Integer;)V
+	public final fun unopened ()Ljava/util/List;
+}
+
+public abstract interface class net/ccbluex/agent/skills/loot/Loot {
+	public static final field Companion Lnet/ccbluex/agent/skills/loot/Loot$Companion;
+	public static fun builtIn ()Lnet/ccbluex/agent/skills/loot/Loot;
+	public static fun builtIn (Lnet/ccbluex/agent/skills/loot/Chests;)Lnet/ccbluex/agent/skills/loot/Loot;
+	public static fun builtIn (Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/loot/Wanted;)Lnet/ccbluex/agent/skills/loot/Loot;
+	public abstract fun getChests ()Lnet/ccbluex/agent/skills/loot/Chests;
+	public abstract fun isLooting ()Z
+	public abstract fun open (Lnet/minecraft/core/BlockPos;)Z
+	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/loot/Loot$Companion {
+	public final fun builtIn ()Lnet/ccbluex/agent/skills/loot/Loot;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/loot/Chests;)Lnet/ccbluex/agent/skills/loot/Loot;
+	public final fun builtIn (Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/loot/Wanted;)Lnet/ccbluex/agent/skills/loot/Loot;
+	public static synthetic fun builtIn$default (Lnet/ccbluex/agent/skills/loot/Loot$Companion;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/loot/Wanted;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/loot/Loot;
+}
+
+public final class net/ccbluex/agent/skills/loot/Wanted {
+	public static final field Companion Lnet/ccbluex/agent/skills/loot/Wanted$Companion;
+	public static final field DEFAULT Lnet/ccbluex/agent/skills/loot/Wanted;
+	public fun <init> ()V
+	public fun <init> (I)V
+	public fun <init> (II)V
+	public fun <init> (III)V
+	public synthetic fun <init> (IIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (III)Lnet/ccbluex/agent/skills/loot/Wanted;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/loot/Wanted;IIIILjava/lang/Object;)Lnet/ccbluex/agent/skills/loot/Wanted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArrows ()I
+	public final fun getBlocks ()I
+	public final fun getThrowables ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun wants (Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;)Z
+}
+
+public final class net/ccbluex/agent/skills/loot/Wanted$Companion {
+}
+
+public abstract interface class net/ccbluex/agent/skills/shop/Catalogue {
+	public abstract fun getActiveTraps ()I
+	public abstract fun getItems ()Ljava/util/List;
+	public abstract fun upgrade (Ljava/lang/String;)Lnet/ccbluex/agent/skills/shop/Offer;
+	public abstract fun upgradeTier (Ljava/lang/String;)I
+}
+
+public abstract interface class net/ccbluex/agent/skills/shop/Counter {
+	public abstract fun step (Lnet/ccbluex/agent/skills/shop/Offer;I)Z
+}
+
+public final class net/ccbluex/agent/skills/shop/Currency : java/lang/Enum {
+	public static final field Companion Lnet/ccbluex/agent/skills/shop/Currency$Companion;
+	public static final field DIAMOND Lnet/ccbluex/agent/skills/shop/Currency;
+	public static final field EMERALD Lnet/ccbluex/agent/skills/shop/Currency;
+	public static final field GOLD Lnet/ccbluex/agent/skills/shop/Currency;
+	public static final field IRON Lnet/ccbluex/agent/skills/shop/Currency;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getItem ()Lnet/minecraft/world/item/Item;
+	public static final fun of (Lnet/minecraft/world/item/Item;)Lnet/ccbluex/agent/skills/shop/Currency;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/shop/Currency;
+	public static fun values ()[Lnet/ccbluex/agent/skills/shop/Currency;
+}
+
+public final class net/ccbluex/agent/skills/shop/Currency$Companion {
+	public final fun of (Lnet/minecraft/world/item/Item;)Lnet/ccbluex/agent/skills/shop/Currency;
+}
+
+public final class net/ccbluex/agent/skills/shop/Offer {
+	public fun <init> (Lnet/minecraft/world/item/ItemStack;Lnet/ccbluex/agent/skills/shop/Currency;I)V
+	public fun <init> (Lnet/minecraft/world/item/ItemStack;Lnet/ccbluex/agent/skills/shop/Currency;ILjava/lang/String;)V
+	public synthetic fun <init> (Lnet/minecraft/world/item/ItemStack;Lnet/ccbluex/agent/skills/shop/Currency;ILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lnet/minecraft/world/item/ItemStack;
+	public final fun component2 ()Lnet/ccbluex/agent/skills/shop/Currency;
+	public final fun component3 ()I
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Lnet/minecraft/world/item/ItemStack;Lnet/ccbluex/agent/skills/shop/Currency;ILjava/lang/String;)Lnet/ccbluex/agent/skills/shop/Offer;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/shop/Offer;Lnet/minecraft/world/item/ItemStack;Lnet/ccbluex/agent/skills/shop/Currency;ILjava/lang/String;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/shop/Offer;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCurrency ()Lnet/ccbluex/agent/skills/shop/Currency;
+	public final fun getPrice ()I
+	public final fun getStack ()Lnet/minecraft/world/item/ItemStack;
+	public final fun getUpgrade ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/ccbluex/agent/skills/shop/Shop {
+	public static final field Companion Lnet/ccbluex/agent/skills/shop/Shop$Companion;
+	public static fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/shop/Catalogue;Lnet/ccbluex/agent/skills/shop/Counter;)Lnet/ccbluex/agent/skills/shop/Shop;
+	public abstract fun buy (Lnet/ccbluex/agent/skills/shop/Wish;)Z
+	public abstract fun getCatalogue ()Lnet/ccbluex/agent/skills/shop/Catalogue;
+	public abstract fun getLastPurchase ()Ljava/lang/Boolean;
+	public abstract fun isBuying ()Z
+	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/shop/Shop$Companion {
+	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/shop/Catalogue;Lnet/ccbluex/agent/skills/shop/Counter;)Lnet/ccbluex/agent/skills/shop/Shop;
+}
+
+public final class net/ccbluex/agent/skills/shop/Wish {
+	public static final field Companion Lnet/ccbluex/agent/skills/shop/Wish$Companion;
+	public fun <init> (Ljava/lang/String;Lnet/ccbluex/agent/skills/ItemMatch;Lnet/ccbluex/agent/skills/ItemMatch;)V
+	public fun <init> (Ljava/lang/String;Lnet/ccbluex/agent/skills/ItemMatch;Lnet/ccbluex/agent/skills/ItemMatch;I)V
+	public fun <init> (Ljava/lang/String;Lnet/ccbluex/agent/skills/ItemMatch;Lnet/ccbluex/agent/skills/ItemMatch;ID)V
+	public fun <init> (Ljava/lang/String;Lnet/ccbluex/agent/skills/ItemMatch;Lnet/ccbluex/agent/skills/ItemMatch;IDLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lnet/ccbluex/agent/skills/ItemMatch;Lnet/ccbluex/agent/skills/ItemMatch;IDLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAmount ()I
+	public final fun getBuy ()Lnet/ccbluex/agent/skills/ItemMatch;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getOwned ()Lnet/ccbluex/agent/skills/ItemMatch;
+	public final fun getUpgrade ()Ljava/lang/String;
+	public final fun getUrgency ()D
+	public fun toString ()Ljava/lang/String;
+	public static final fun upgrade (Ljava/lang/String;)Lnet/ccbluex/agent/skills/shop/Wish;
+}
+
+public final class net/ccbluex/agent/skills/shop/Wish$Companion {
+	public final fun upgrade (Ljava/lang/String;)Lnet/ccbluex/agent/skills/shop/Wish;
+}
+
+public abstract interface class net/ccbluex/agent/skills/voidrescue/VoidRescue {
+	public static final field Companion Lnet/ccbluex/agent/skills/voidrescue/VoidRescue$Companion;
+	public static fun builtIn ()Lnet/ccbluex/agent/skills/voidrescue/VoidRescue;
+	public fun guard (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/player/Input;)Lnet/minecraft/world/entity/player/Input;
+	public abstract fun isRescuing ()Z
+	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/voidrescue/VoidRescue$Companion {
+	public final fun builtIn ()Lnet/ccbluex/agent/skills/voidrescue/VoidRescue;
+}
+

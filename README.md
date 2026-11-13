@@ -13,6 +13,7 @@ Java.
   - `simulation`: player movement, tick by tick
   - `pathfinder`: route searches
   - `navigation`: follows routes
+  - `skills`: fighting, looting, game modes
 
 ## Platforms
 
@@ -31,7 +32,7 @@ val navigation = ClientNavigation()
 navigation.moveTo(Vec3(100.5, 64.0, -20.5))
 ```
 
-[SKILL.md](SKILL.md) covers the options.
+[SKILL.md](SKILL.md) covers the rest: game modes and options.
 
 ## Navigation
 
