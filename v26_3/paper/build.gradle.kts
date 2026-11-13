@@ -1,0 +1,18 @@
+plugins {
+    id("agent.kotlin")
+    id("agent.paper")
+    id("agent.publish")
+}
+
+kotlin {
+    compilerOptions.optIn.add("net.ccbluex.agent.ExperimentalAgentApi")
+}
+
+dependencies {
+    api(project(":common"))
+}
+
+// The Paper part of one module: it may use the internals of common
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    friendPaths.from(project(":common").layout.buildDirectory.dir("classes/kotlin/main"))
+}

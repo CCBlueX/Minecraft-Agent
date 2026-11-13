@@ -9,5 +9,6 @@ pluginManagement {
 
 rootProject.name = "minecraft-agent"
 
-include("common", "v26_3-fabric")
+include("common", "v26_3-fabric", "v26_3-paper")
 project(":v26_3-fabric").projectDir = file("v26_3/fabric")
+project(":v26_3-paper").projectDir = file("v26_3/paper")

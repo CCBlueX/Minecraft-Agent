@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(paper): server bots",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 1892, "cachedInput": 420353066, "cacheWrite": 2551544, "output": 660136 },
+      "usd": 117.69
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 1305, "cachedInput": 0, "cacheWrite": 0, "output": 12 },
+      "usd": 0.00
+    }
+  ]
+}

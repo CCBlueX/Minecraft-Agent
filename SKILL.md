@@ -9,11 +9,12 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`.
 
 | Artifact | Use it for |
 |---|---|
-| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes |
+| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes; what server bots share on every server platform |
 | `minecraft-agent-fabric` | The local player as a body (Fabric mod) |
+| `minecraft-agent-paper` | Server bots (Paper plugin `MinecraftAgent`) |
 
 Each one brings what it builds on: `navigation` brings `pathfinder` and `simulation`, `skills` brings `navigation`,
-`fabric` brings `common`.
+`fabric` brings `common`, `paper` brings `common`.
 Everything public is callable from Java.
 
 ## Fabric mod
@@ -36,6 +37,28 @@ navigation.stop()
 
 `navigation.Options` (digging, bridging, parkour, sprinting, look-ahead) go in the constructor or `navigation.options`.
 `ClientBody(maxTurn)` limits how fast the camera turns.
+
+## Paper plugin
+
+Install the `MinecraftAgent` plugin jar (`minecraft-agent-paper-<version>-plugin.jar`) on the server, then:
+
+```kotlin
+dependencies { compileOnly("net.ccbluex:minecraft-agent-paper:1.0.0") }
+```
+
+```yaml
+# plugin.yml
+depend: [MinecraftAgent]
+```
+
+```kotlin
+val bot = MinecraftAgent.bots().spawn(location, "Steve")
+bot.moveTo(target, 1.0)
+bot.follow(player)
+bot.fight(enemy)                 // with whatever it holds
+bot.play(gameMode)               // a skills.games mode, see below
+bot.remove()
+```
 
 ## Bots on your own host
 

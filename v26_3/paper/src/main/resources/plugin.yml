@@ -1,0 +1,15 @@
+name: MinecraftAgent
+version: "${version}"
+main: net.ccbluex.agent.v26_3.paper.AgentPlugin
+api-version: "26.3"
+description: Bots that walk, build, fight and play games as players
+libraries: ${libraries}
+commands:
+  agent:
+    description: Spawns, moves and removes bots
+    usage: /agent <spawn|remove|list|goto|follow|fight|give|stop>
+    permission: agent.admin
+permissions:
+  agent.admin:
+    description: Use /agent
+    default: op

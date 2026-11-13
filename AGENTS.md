@@ -6,11 +6,14 @@ Minecraft 26.3 (Mojang names, unobfuscated), Java 25, Kotlin. Root package `net.
 |---|---|---|---|
 | `common/` | `minecraft-agent-common` | `agent.shared` | - |
 | `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.fabric` (Loom, client) | common |
+| `v26_3/paper/` | `minecraft-agent-paper`, plugin jar (classifier `plugin`) | `agent.paper` (paperweight) | common |
 | `gradle/build-logic/` | - | convention plugins and checks | - |
 
 - Shared modules compile against the vanilla server jar only (`serverOnlyMinecraftJar()`), so their classes link
   on the Fabric client and on Paper. `checkClientClasses` fails on `net.minecraft.client` or `com.mojang.blaze3d`
   in their sources or classes.
+- The Paper plugin jar bundles the library modules; Kotlin and coroutines come from `libraries` in `plugin.yml`
+  (write `libraries: ${libraries}` and `version: "${version}"`, the build fills them in).
 - Dependency repositories are in `agent.kotlin`, not in settings: Loom and paperweight add project repositories,
   which make Gradle ignore the settings ones.
 

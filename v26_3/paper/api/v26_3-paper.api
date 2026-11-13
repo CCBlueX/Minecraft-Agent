@@ -1,0 +1,180 @@
+public final class net/ccbluex/agent/v26_3/paper/Bot {
+	public final fun addAgentListener (Lnet/ccbluex/agent/skills/AgentListener;)V
+	public final fun addListener (Lnet/ccbluex/agent/navigation/Listener;)V
+	public final fun fight (Lorg/bukkit/entity/LivingEntity;)V
+	public final fun follow (Lorg/bukkit/entity/Entity;)V
+	public final fun follow (Lorg/bukkit/entity/Entity;D)V
+	public static synthetic fun follow$default (Lnet/ccbluex/agent/v26_3/paper/Bot;Lorg/bukkit/entity/Entity;DILjava/lang/Object;)V
+	public final fun getAgent ()Lnet/ccbluex/agent/skills/Agent;
+	public final fun getBody ()Lnet/ccbluex/agent/v26_3/paper/PaperBody;
+	public final fun getEquipment ()Ljava/util/Map;
+	public final fun getGame ()Lnet/ccbluex/agent/skills/games/GameMode;
+	public final fun getHome ()Lorg/bukkit/Location;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getNavigator ()Lnet/ccbluex/agent/navigation/Navigator;
+	public final fun getPlayer ()Lorg/bukkit/entity/Player;
+	public final fun getSettings ()Lnet/ccbluex/agent/v26_3/paper/BotSettings;
+	public final fun getSkin ()Lnet/ccbluex/agent/bukkit/BotSkin;
+	public final fun isDead ()Z
+	public final fun isSpawned ()Z
+	public final fun moveTo (Lorg/bukkit/Location;D)V
+	public final fun play (Lnet/ccbluex/agent/skills/games/GameMode;)V
+	public final fun play (Lnet/ccbluex/agent/skills/games/GameMode;Lnet/ccbluex/agent/skills/Skills;)V
+	public final fun remove ()V
+	public final fun removeAgentListener (Lnet/ccbluex/agent/skills/AgentListener;)V
+	public final fun removeListener (Lnet/ccbluex/agent/navigation/Listener;)V
+	public final fun respawn ()V
+	public final fun setHome (Lorg/bukkit/Location;)V
+	public final fun setSettings (Lnet/ccbluex/agent/v26_3/paper/BotSettings;)V
+	public final fun setSkin (Lnet/ccbluex/agent/bukkit/BotSkin;)V
+	public final fun stop ()V
+	public final fun stopPlaying ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/ccbluex/agent/v26_3/paper/BotListener {
+	public fun despawned (Lnet/ccbluex/agent/v26_3/paper/Bot;)V
+	public fun died (Lnet/ccbluex/agent/v26_3/paper/Bot;)V
+	public fun removed (Lnet/ccbluex/agent/v26_3/paper/Bot;)V
+	public fun spawned (Lnet/ccbluex/agent/v26_3/paper/Bot;)V
+}
+
+public final class net/ccbluex/agent/v26_3/paper/BotSettings {
+	public static final field Companion Lnet/ccbluex/agent/v26_3/paper/BotSettings$Companion;
+	public static final field STANDING Lnet/ccbluex/agent/v26_3/paper/BotSettings;
+	public fun <init> ()V
+	public fun <init> (D)V
+	public fun <init> (DZ)V
+	public fun <init> (DZZ)V
+	public fun <init> (DZZZ)V
+	public fun <init> (DZZZZ)V
+	public fun <init> (DZZZZZ)V
+	public fun <init> (DZZZZZZ)V
+	public fun <init> (DZZZZZZF)V
+	public fun <init> (DZZZZZZFZ)V
+	public fun <init> (DZZZZZZFZI)V
+	public fun <init> (DZZZZZZFZIZ)V
+	public fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;)V
+	public fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;)V
+	public fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)V
+	public synthetic fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()D
+	public final fun component10 ()I
+	public final fun component11 ()Z
+	public final fun component12 ()Lnet/ccbluex/agent/navigation/Options;
+	public final fun component13 ()Lnet/ccbluex/agent/skills/SkillLevel;
+	public final fun component14 ()Lnet/ccbluex/agent/skills/Personality;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun component7 ()Z
+	public final fun component8 ()F
+	public final fun component9 ()Z
+	public final fun copy (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)Lnet/ccbluex/agent/v26_3/paper/BotSettings;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/v26_3/paper/BotSettings;DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;ILjava/lang/Object;)Lnet/ccbluex/agent/v26_3/paper/BotSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnchored ()Z
+	public final fun getDamageable ()Z
+	public final fun getHealth ()D
+	public final fun getImmortal ()Z
+	public final fun getKnockback ()Z
+	public final fun getMinigame ()Z
+	public final fun getNavigation ()Lnet/ccbluex/agent/navigation/Options;
+	public final fun getPersonality ()Lnet/ccbluex/agent/skills/Personality;
+	public final fun getRespawnDelay ()I
+	public final fun getRespawns ()Z
+	public final fun getSkillLevel ()Lnet/ccbluex/agent/skills/SkillLevel;
+	public final fun getSneak ()Z
+	public final fun getSprint ()Z
+	public final fun getTurnSpeed ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/v26_3/paper/BotSettings$Companion {
+}
+
+public final class net/ccbluex/agent/v26_3/paper/Bots {
+	public final fun addListener (Lnet/ccbluex/agent/v26_3/paper/BotListener;)V
+	public final fun get (Ljava/lang/String;)Lnet/ccbluex/agent/v26_3/paper/Bot;
+	public final fun get (Lorg/bukkit/entity/Entity;)Lnet/ccbluex/agent/v26_3/paper/Bot;
+	public final fun getAll ()Ljava/util/List;
+	public final fun isBot (Lorg/bukkit/entity/Entity;)Z
+	public final fun remove (Lnet/ccbluex/agent/v26_3/paper/Bot;)V
+	public final fun removeListener (Lnet/ccbluex/agent/v26_3/paper/BotListener;)V
+	public final fun respawn (Lnet/ccbluex/agent/v26_3/paper/Bot;)V
+	public final fun spawn (Lorg/bukkit/Location;Ljava/lang/String;)Lnet/ccbluex/agent/v26_3/paper/Bot;
+	public final fun spawn (Lorg/bukkit/Location;Ljava/lang/String;Lnet/ccbluex/agent/bukkit/BotSkin;)Lnet/ccbluex/agent/v26_3/paper/Bot;
+	public final fun spawn (Lorg/bukkit/Location;Ljava/lang/String;Lnet/ccbluex/agent/bukkit/BotSkin;Lnet/ccbluex/agent/v26_3/paper/BotSettings;)Lnet/ccbluex/agent/v26_3/paper/Bot;
+	public static synthetic fun spawn$default (Lnet/ccbluex/agent/v26_3/paper/Bots;Lorg/bukkit/Location;Ljava/lang/String;Lnet/ccbluex/agent/bukkit/BotSkin;Lnet/ccbluex/agent/v26_3/paper/BotSettings;ILjava/lang/Object;)Lnet/ccbluex/agent/v26_3/paper/Bot;
+}
+
+public final class net/ccbluex/agent/v26_3/paper/MinecraftAgent {
+	public static final field INSTANCE Lnet/ccbluex/agent/v26_3/paper/MinecraftAgent;
+	public static final fun bots ()Lnet/ccbluex/agent/v26_3/paper/Bots;
+}
+
+public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/skills/AgentBody {
+	public fun attack (Lnet/minecraft/world/entity/Entity;)V
+	public final fun attack (Lorg/bukkit/entity/Entity;)Z
+	public fun clickContainer (IILnet/minecraft/world/inventory/ContainerInput;)V
+	public fun closeContainer ()V
+	public fun continueDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public fun drop (IZ)V
+	public final fun getAnchored ()Z
+	public fun getAttackStrength ()F
+	public fun getContainerMenu ()Lnet/minecraft/world/inventory/AbstractContainerMenu;
+	public final fun getEntity ()Lorg/bukkit/entity/Player;
+	public final fun getFallDistance ()F
+	public fun getFlight ()Lnet/ccbluex/agent/navigation/FlightControl;
+	public final fun getImmortal ()Z
+	public final fun getKnockback ()Z
+	public fun getLatencyMillis ()I
+	public fun getMaxAttackReach ()D
+	public fun getMinAttackReach ()D
+	public fun getPlayer ()Lnet/minecraft/world/entity/player/Player;
+	public fun getSafeWalk ()Z
+	public fun getSentRotation ()Lnet/ccbluex/agent/math/ViewRotation;
+	public final fun getShieldCooldown ()I
+	public fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
+	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
+	public final fun getTurnSpeed ()F
+	public final fun isBlocking ()Z
+	public fun isCombat1_8 ()Z
+	public final fun isOnGround ()Z
+	public final fun isShiftKeyDown ()Z
+	public final fun isSprinting ()Z
+	public fun isUsingItem ()Z
+	public final fun jab ()Z
+	public final fun launch (Lorg/bukkit/inventory/ItemStack;)Lorg/bukkit/entity/Projectile;
+	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
+	public final fun moveTo (DDDFF)V
+	public fun players ()Ljava/util/List;
+	public fun press (Lnet/minecraft/world/entity/player/Input;)V
+	public final fun push (DDD)V
+	public fun releaseHotbarSlot ()V
+	public fun releaseUsingItem ()V
+	public fun selectHotbarSlot (I)V
+	public final fun setAnchored (Z)V
+	public final fun setImmortal (Z)V
+	public final fun setKnockback (Z)V
+	public final fun setRot (FF)V
+	public fun setSafeWalk (Z)V
+	public final fun setShiftKeyDown (Z)V
+	public final fun setSprinting (Z)V
+	public final fun setTurnSpeed (F)V
+	public fun stab ()V
+	public fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public fun startUsingItem (Lnet/minecraft/world/InteractionHand;)Z
+	public fun stopDestroy ()V
+	public final fun stopUsingItem ()V
+	public fun swapWithHotbar (II)V
+	public fun swapWithOffhand (I)V
+	public fun swing (Lnet/minecraft/world/InteractionHand;)V
+	public fun takeFromContainer (I)V
+	public fun useItem (Lnet/minecraft/world/InteractionHand;)Z
+	public fun useItemOn (Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Z
+}
+
