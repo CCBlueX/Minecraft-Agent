@@ -9,6 +9,6 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`.
 
 | Artifact | Use it for |
 |---|---|
-| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`) |
+| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything |
 
 Everything public is callable from Java.

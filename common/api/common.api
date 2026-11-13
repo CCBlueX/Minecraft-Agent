@@ -65,6 +65,646 @@ public final class net/ccbluex/agent/math/ViewRotation$Companion {
 	public final fun fromVector (Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/math/ViewRotation;
 }
 
+public final class net/ccbluex/agent/pathfinder/flight/Acceleration : java/lang/Enum {
+	public static final field DIRECT Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
+	public static final field MOMENTUM Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
+	public static fun values ()[Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
+}
+
+public final class net/ccbluex/agent/pathfinder/flight/FlyAbilities {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/flight/FlyAbilities$Companion;
+	public static final field VERTICAL_DRAG D
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/flight/Acceleration;DDZ)V
+	public final fun getControl ()Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
+	public final fun getHorizontalCost ()D
+	public final fun getHorizontalSpeed ()D
+	public final fun getVerticalCost ()D
+	public final fun getVerticalSpeed ()D
+	public final fun isFlying ()Z
+}
+
+public final class net/ccbluex/agent/pathfinder/flight/FlyAbilities$Companion {
+	public final fun of (Lnet/minecraft/world/entity/player/Abilities;)Lnet/ccbluex/agent/pathfinder/flight/FlyAbilities;
+}
+
+public final class net/ccbluex/agent/pathfinder/flight/Route {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;Z)V
+	public final fun getCanReach ()Z
+	public final fun getEnd ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getPoints ()Ljava/util/List;
+	public final fun getStart ()Lnet/minecraft/world/phys/Vec3;
+}
+
+public final class net/ccbluex/agent/pathfinder/flight/RouteSearch : net/ccbluex/agent/pathfinder/route/AStarSearch {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Lnet/ccbluex/agent/pathfinder/route/Destination;Lnet/ccbluex/agent/pathfinder/flight/FlyAbilities;Lnet/ccbluex/agent/pathfinder/route/Limits;)V
+	public synthetic fun heuristic (Ljava/lang/Object;)D
+	public synthetic fun isGoal (Ljava/lang/Object;)Z
+	public synthetic fun neighbors$net_ccbluex_minecraft_agent_common (Ljava/lang/Object;)Ljava/lang/Iterable;
+	public fun preview ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/flight/RouteSearchKt {
+	public static final fun isClearLine (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Z
+}
+
+public abstract interface class net/ccbluex/agent/pathfinder/glide/ColumnHeights {
+	public abstract fun top (II)Ljava/lang/Integer;
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/Controls {
+	public fun <init> (FFZZ)V
+	public final fun getShouldFireRocket ()Z
+	public final fun getXRot ()F
+	public final fun getYRot ()F
+	public final fun isBoosted ()Z
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/Cruise$Companion {
+	public final fun cruiseAltitude (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/ccbluex/agent/pathfinder/glide/ColumnHeights;)D
+	public final fun rocketsNeeded (DDI)I
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/GlideAbilities {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/glide/GlideAbilities$Companion;
+	public fun <init> (III)V
+	public final fun getGlideTicks ()I
+	public final fun getRocketTicks ()I
+	public final fun getRockets ()I
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/GlideAbilities$Companion {
+	public final fun of (Lnet/minecraft/world/item/ItemStack;Ljava/lang/Iterable;Z)Lnet/ccbluex/agent/pathfinder/glide/GlideAbilities;
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/Landing : net/ccbluex/agent/pathfinder/glide/Steering {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/glide/Landing$Companion;
+	public static final field SAFE_SINK D
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;Lnet/ccbluex/agent/pathfinder/glide/Rockets;D)V
+	public synthetic fun <init> (Lnet/minecraft/world/phys/Vec3;Lnet/ccbluex/agent/pathfinder/glide/Rockets;DILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getRockets ()Lnet/ccbluex/agent/pathfinder/glide/Rockets;
+	public fun getTarget ()Lnet/minecraft/world/phys/Vec3;
+	public fun steer (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/pathfinder/glide/Controls;
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/Landing$Companion {
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/Rockets {
+	public fun <init> (II)V
+	public final fun fire ()V
+	public final fun getBoostTicks ()I
+	public final fun getCanFire ()Z
+	public final fun getLeft ()I
+	public final fun tick ()Z
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/Route {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;Lnet/minecraft/world/phys/Vec3;ID)V
+	public final fun getApproach ()D
+	public final fun getLanding ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getPoints ()Ljava/util/List;
+	public final fun getRockets ()I
+	public final fun getStart ()Lnet/minecraft/world/phys/Vec3;
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/RouteSearch : net/ccbluex/agent/pathfinder/route/Search {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/glide/RouteSearch$Companion;
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;DLnet/ccbluex/agent/pathfinder/glide/GlideAbilities;)V
+	public fun advance ()Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	public fun preview ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/glide/RouteSearch$Companion {
+	public final fun region (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/pathfinder/level/BlockRegion;
+}
+
+public abstract interface class net/ccbluex/agent/pathfinder/glide/Steering {
+	public abstract fun getTarget ()Lnet/minecraft/world/phys/Vec3;
+	public abstract fun steer (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/pathfinder/glide/Controls;
+}
+
+public final class net/ccbluex/agent/pathfinder/level/BlockRegion {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/level/BlockRegion$Companion;
+	public fun <init> (IIIIII)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun contains (Lnet/minecraft/core/BlockPos;)Z
+	public final fun copy (IIIIII)Lnet/ccbluex/agent/pathfinder/level/BlockRegion;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/pathfinder/level/BlockRegion;IIIIIIILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/level/BlockRegion;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxX ()I
+	public final fun getMaxY ()I
+	public final fun getMaxZ ()I
+	public final fun getMinX ()I
+	public final fun getMinY ()I
+	public final fun getMinZ ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/pathfinder/level/BlockRegion$Companion {
+	public final fun around (Lnet/minecraft/world/phys/Vec3;Ljava/util/Collection;DI)Lnet/ccbluex/agent/pathfinder/level/BlockRegion;
+}
+
+public abstract interface class net/ccbluex/agent/pathfinder/level/LevelBlocks : net/minecraft/world/level/BlockGetter {
+	public abstract fun isInsideBorder (DD)Z
+	public abstract fun isKnown (III)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/level/LevelSnapshot : net/ccbluex/agent/pathfinder/level/LevelBlocks {
+	public fun getBlockEntity (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/entity/BlockEntity;
+	public fun getBlockState (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;
+	public fun getFluidState (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;
+	public fun getHeight ()I
+	public fun getMinY ()I
+	public fun isInsideBorder (DD)Z
+	public fun isKnown (III)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/level/LiveLevel : net/ccbluex/agent/pathfinder/level/LevelBlocks {
+	public fun <init> (Lnet/minecraft/world/level/Level;)V
+	public fun getBlockEntity (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/entity/BlockEntity;
+	public fun getBlockState (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;
+	public fun getFluidState (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;
+	public fun getHeight ()I
+	public fun getMinY ()I
+	public fun isInsideBorder (DD)Z
+	public fun isKnown (III)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/level/SectionCache {
+	public static final field INSTANCE Lnet/ccbluex/agent/pathfinder/level/SectionCache;
+	public final fun blockChanged (Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)V
+	public final fun capture (Lnet/minecraft/world/level/Level;Lnet/ccbluex/agent/pathfinder/level/BlockRegion;)Lnet/ccbluex/agent/pathfinder/level/LevelSnapshot;
+	public final fun columnChanged (Lnet/minecraft/world/level/Level;II)V
+	public final fun forget (Lnet/minecraft/world/level/Level;)V
+}
+
+public final class net/ccbluex/agent/pathfinder/ride/Moves {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/ccbluex/agent/pathfinder/ride/Vehicle;)V
+	public final fun isStraight (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/ride/Point {
+	public fun <init> (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/Vec3;Z)V
+	public final fun getJump ()Z
+	public final fun getNode ()Lnet/minecraft/core/BlockPos;
+	public final fun getPosition ()Lnet/minecraft/world/phys/Vec3;
+}
+
+public final class net/ccbluex/agent/pathfinder/ride/Route {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;ZZ)V
+	public final fun getCanReach ()Z
+	public final fun getEnd ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getExhausted ()Z
+	public final fun getPoints ()Ljava/util/List;
+	public final fun getPositions ()Ljava/util/List;
+	public final fun getStart ()Lnet/minecraft/world/phys/Vec3;
+}
+
+public final class net/ccbluex/agent/pathfinder/ride/RouteSearch : net/ccbluex/agent/pathfinder/route/AStarSearch {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Lnet/ccbluex/agent/pathfinder/route/Destination;Lnet/ccbluex/agent/pathfinder/ride/Vehicle;Lnet/ccbluex/agent/pathfinder/route/Limits;)V
+	public synthetic fun heuristic (Ljava/lang/Object;)D
+	public synthetic fun isGoal (Ljava/lang/Object;)Z
+	public synthetic fun neighbors$net_ccbluex_minecraft_agent_common (Ljava/lang/Object;)Ljava/lang/Iterable;
+	public fun preview ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/ride/Vehicle {
+	public static final field BOAT_ICE_SPEED D
+	public static final field BOAT_WATER_SPEED D
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/ride/Vehicle$Companion;
+	public static final field JUMP_CHARGE_TICKS I
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/ride/VehicleKind;DDDDIDD)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/pathfinder/ride/VehicleKind;DDDDIDDILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getHeight ()D
+	public final fun getIceSpeed ()D
+	public final fun getJumpHeight ()D
+	public final fun getKind ()Lnet/ccbluex/agent/pathfinder/ride/VehicleKind;
+	public final fun getSafeFall ()I
+	public final fun getSpeed ()D
+	public final fun getStepHeight ()D
+	public final fun getWidth ()D
+}
+
+public final class net/ccbluex/agent/pathfinder/ride/Vehicle$Companion {
+	public final fun of (Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/Entity;)Lnet/ccbluex/agent/pathfinder/ride/Vehicle;
+}
+
+public final class net/ccbluex/agent/pathfinder/ride/VehicleKind : java/lang/Enum {
+	public static final field BOAT Lnet/ccbluex/agent/pathfinder/ride/VehicleKind;
+	public static final field MOUNT Lnet/ccbluex/agent/pathfinder/ride/VehicleKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/pathfinder/ride/VehicleKind;
+	public static fun values ()[Lnet/ccbluex/agent/pathfinder/ride/VehicleKind;
+}
+
+public abstract class net/ccbluex/agent/pathfinder/route/AStarSearch : net/ccbluex/agent/pathfinder/route/Search {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/route/Limits;)V
+	public final fun advance ()Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	protected abstract fun begin ()Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	protected fun closestOr (Lnet/ccbluex/agent/pathfinder/route/Failure;)Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	protected final fun getLimits ()Lnet/ccbluex/agent/pathfinder/route/Limits;
+	protected abstract fun heuristic (Ljava/lang/Object;)D
+	protected abstract fun isGoal (Ljava/lang/Object;)Z
+	protected abstract fun route (Ljava/util/List;)Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	protected final fun searchFrom (Ljava/lang/Object;D)Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	public static synthetic fun searchFrom$default (Lnet/ccbluex/agent/pathfinder/route/AStarSearch;Ljava/lang/Object;DILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/route/Outcome;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/BlockDestination : net/ccbluex/agent/pathfinder/route/Destination {
+	public fun <init> (Ljava/util/Collection;)V
+	public fun distance (III)D
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getEnds ()Ljava/util/Collection;
+	public fun hashCode ()I
+	public fun isGoal (III)Z
+}
+
+public abstract interface class net/ccbluex/agent/pathfinder/route/Destination {
+	public abstract fun distance (III)D
+	public fun distance (Lnet/minecraft/core/BlockPos;)D
+	public abstract fun getEnds ()Ljava/util/Collection;
+	public abstract fun isGoal (III)Z
+	public fun isGoal (Lnet/minecraft/core/BlockPos;)Z
+	public fun region (Lnet/minecraft/world/phys/Vec3;DI)Lnet/ccbluex/agent/pathfinder/level/BlockRegion;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/Failure : java/lang/Enum {
+	public static final field INVALID_DESTINATION Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public static final field NO_PATH Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public static final field TIMED_OUT Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public static final field TOO_COMPLEX Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public static final field TOO_FAR Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public static fun values ()[Lnet/ccbluex/agent/pathfinder/route/Failure;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/Limits {
+	public fun <init> (DIIIJ)V
+	public synthetic fun <init> (DIIIJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getMaxComputeNanos ()J
+	public final fun getMaxLength ()D
+	public final fun getMaxVisitedNodes ()I
+	public final fun getMaxWaypoints ()I
+	public final fun getVisitedNodesPerSlice ()I
+}
+
+public final class net/ccbluex/agent/pathfinder/route/NearDestination : net/ccbluex/agent/pathfinder/route/Destination {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;D)V
+	public final fun component1 ()Lnet/minecraft/world/phys/Vec3;
+	public final fun component2 ()D
+	public final fun copy (Lnet/minecraft/world/phys/Vec3;D)Lnet/ccbluex/agent/pathfinder/route/NearDestination;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/pathfinder/route/NearDestination;Lnet/minecraft/world/phys/Vec3;DILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/route/NearDestination;
+	public fun distance (III)D
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCenter ()Lnet/minecraft/world/phys/Vec3;
+	public fun getEnds ()Ljava/util/Collection;
+	public final fun getRadius ()D
+	public fun hashCode ()I
+	public fun isGoal (III)Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/ccbluex/agent/pathfinder/route/Outcome {
+}
+
+public final class net/ccbluex/agent/pathfinder/route/Outcome$AlreadyThere : net/ccbluex/agent/pathfinder/route/Outcome {
+	public static final field INSTANCE Lnet/ccbluex/agent/pathfinder/route/Outcome$AlreadyThere;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/Outcome$Failed : net/ccbluex/agent/pathfinder/route/Outcome {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/route/Failure;)V
+	public final fun component1 ()Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public final fun copy (Lnet/ccbluex/agent/pathfinder/route/Failure;)Lnet/ccbluex/agent/pathfinder/route/Outcome$Failed;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/pathfinder/route/Outcome$Failed;Lnet/ccbluex/agent/pathfinder/route/Failure;ILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/route/Outcome$Failed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFailure ()Lnet/ccbluex/agent/pathfinder/route/Failure;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/Outcome$Found : net/ccbluex/agent/pathfinder/route/Outcome {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun getValue ()Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/Outcome$Searching : net/ccbluex/agent/pathfinder/route/Outcome {
+	public static final field INSTANCE Lnet/ccbluex/agent/pathfinder/route/Outcome$Searching;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/Replanner$Companion {
+}
+
+public abstract interface class net/ccbluex/agent/pathfinder/route/Search {
+	public abstract fun advance ()Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	public fun preview ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/route/StageDestination : net/ccbluex/agent/pathfinder/route/Destination {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/route/StageDestination$Companion;
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/route/Destination;Lnet/minecraft/world/phys/Vec3;DLnet/ccbluex/agent/pathfinder/terrain/Terrain;)V
+	public fun distance (III)D
+	public fun getEnds ()Ljava/util/Collection;
+	public final fun getGoal ()Lnet/ccbluex/agent/pathfinder/route/Destination;
+	public fun isGoal (III)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/route/StageDestination$Companion {
+	public final fun isNeeded (Lnet/ccbluex/agent/pathfinder/level/LevelBlocks;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;D)Z
+	public final fun region (Lnet/minecraft/world/phys/Vec3;DI)Lnet/ccbluex/agent/pathfinder/level/BlockRegion;
+}
+
+public final class net/ccbluex/agent/pathfinder/teleport/Route {
+	public static final field BOUNCE D
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/teleport/Route$Companion;
+	public static final field MAX_FALL D
+	public static final field MAX_PACKETS_PER_TICK I
+	public static final field SAME_POSITION_SQ D
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public final fun batches (I)[I
+	public final fun getDestination ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getLength ()D
+	public final fun getPath ()Ljava/util/List;
+	public final fun getPoints ()Ljava/util/List;
+	public final fun getStart ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getSteps ()Ljava/util/List;
+	public final fun startingAt (Lnet/minecraft/world/phys/Vec3;Lnet/ccbluex/agent/pathfinder/terrain/Terrain;D)Lnet/ccbluex/agent/pathfinder/teleport/Route;
+}
+
+public final class net/ccbluex/agent/pathfinder/teleport/Route$Companion {
+	public final fun lengthOf (Ljava/util/List;)D
+	public final fun plan (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Ljava/util/List;D)Lnet/ccbluex/agent/pathfinder/teleport/Route;
+}
+
+public final class net/ccbluex/agent/pathfinder/teleport/Route$Step {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;ZI)V
+	public final fun getOnGround ()Z
+	public final fun getPosition ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getSegment ()I
+}
+
+public final class net/ccbluex/agent/pathfinder/teleport/WaypointSearch : net/ccbluex/agent/pathfinder/route/AStarSearch {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;Lnet/ccbluex/agent/pathfinder/route/Limits;D)V
+	public synthetic fun heuristic (Ljava/lang/Object;)D
+	public synthetic fun isGoal (Ljava/lang/Object;)Z
+	public synthetic fun neighbors$net_ccbluex_minecraft_agent_common (Ljava/lang/Object;)Ljava/lang/Iterable;
+	public fun preview ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/terrain/DestinationCheck : java/lang/Enum {
+	public static final field NOT_LOADED Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+	public static final field NOT_STANDABLE Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+	public static final field OUTSIDE_BORDER Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+	public static final field OUTSIDE_WORLD Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+	public static final field VALID Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+	public static fun values ()[Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+}
+
+public final class net/ccbluex/agent/pathfinder/terrain/ReachKt {
+	public static final fun reachPositions (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/AABB;DLnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;DZ)Ljava/util/List;
+	public static synthetic fun reachPositions$default (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/AABB;DLnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;DZILjava/lang/Object;)Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/terrain/Terrain : net/ccbluex/agent/simulation/BlockGrid {
+	public static final field CROUCH_HEIGHT D
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/terrain/Terrain$Companion;
+	public static final field PLAYER_HEIGHT D
+	public static final field PLAYER_WIDTH D
+	public static final field STEP_HEIGHT D
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/level/LevelBlocks;DDZ)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/pathfinder/level/LevelBlocks;DDZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun box (DDDD)Lnet/minecraft/world/phys/AABB;
+	public final fun box (Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/AABB;
+	public static synthetic fun box$default (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;DDDDILjava/lang/Object;)Lnet/minecraft/world/phys/AABB;
+	public final fun check (Lnet/minecraft/core/BlockPos;)Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
+	public final fun climbSide (III)Lnet/minecraft/core/Direction;
+	public final fun closedIn (Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/phys/AABB;Ljava/util/List;)V
+	public final fun crouchHeight (III)D
+	public final fun feet (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;
+	public final fun getCanOpenDoors ()Z
+	public final fun getHeight ()D
+	public final fun getLevel ()Lnet/ccbluex/agent/pathfinder/level/LevelBlocks;
+	public final fun getMaxY ()I
+	public final fun getMinY ()I
+	public final fun getWidth ()D
+	public final fun invalidate (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z
+	public final fun isClear (Lnet/minecraft/world/phys/AABB;)Z
+	public final fun isClimbable (III)Z
+	public final fun isHazard (III)Z
+	public final fun isKnown (III)Z
+	public final fun isPassable (III)Z
+	public final fun isStandable (Lnet/minecraft/core/BlockPos;)Z
+	public final fun isSupported (Lnet/minecraft/world/phys/Vec3;)Z
+	public final fun isWater (III)Z
+	public final fun restitution (IDI)D
+	public fun shape (III)Lnet/minecraft/world/phys/shapes/VoxelShape;
+	public final fun standHeight (III)D
+	public fun state (III)Lnet/minecraft/world/level/block/state/BlockState;
+	public final fun sweep (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/terrain/Terrain$Companion {
+	public final fun isHazard (Lnet/minecraft/world/level/block/state/BlockState;)Z
+	public final fun live (Lnet/minecraft/world/level/Level;)Lnet/ccbluex/agent/pathfinder/terrain/Terrain;
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/BreakTimes : java/util/function/ToDoubleFunction {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/walk/BreakTimes$Companion;
+	public synthetic fun applyAsDouble (Ljava/lang/Object;)D
+	public fun applyAsDouble (Lnet/minecraft/world/level/block/state/BlockState;)D
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/BreakTimes$Companion {
+	public final fun capture (Ljava/util/List;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/ccbluex/agent/pathfinder/walk/BreakTimes;
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Costs {
+	public static final field AVOID D
+	public static final field BREAK_OVERHEAD D
+	public static final field CLIMB_DOWN D
+	public static final field CLIMB_UP D
+	public static final field INSTANCE Lnet/ccbluex/agent/pathfinder/walk/Costs;
+	public static final field JUMP_PENALTY D
+	public static final field OPEN D
+	public static final field PLACE D
+	public static final field RUN_BRIDGE D
+	public static final field SNEAK D
+	public static final field SPRINT D
+	public static final field SPRINT_SWIM D
+	public static final field SWIM D
+	public static final field WALK D
+	public final fun bounce (Lnet/minecraft/world/level/block/Block;I)D
+	public final fun fall (I)D
+	public final fun floorFactor (Lnet/minecraft/world/level/block/Block;)D
+	public final fun getJUMP ()D
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Jump {
+	public static final field Companion Lnet/ccbluex/agent/pathfinder/walk/Jump$Companion;
+	public static final field RUN_UP_TOLERANCE D
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;IZIDILnet/minecraft/world/phys/Vec3;)V
+	public final fun getAim ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getAirTicks ()I
+	public final fun getHops ()I
+	public final fun getJumps ()Z
+	public final fun getMargin ()D
+	public final fun getRunUp ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getTakeoff ()I
+	public final fun ticks (Lnet/minecraft/world/phys/Vec3;)D
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Jump$Companion {
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/JumpTargets {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/ccbluex/agent/simulation/MotionTraits;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/ccbluex/agent/simulation/MotionTraits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun forEach (IIIDIIDZLnet/ccbluex/agent/pathfinder/walk/JumpTargets$Sink;)V
+	public static synthetic fun forEach$default (Lnet/ccbluex/agent/pathfinder/walk/JumpTargets;IIIDIIDZLnet/ccbluex/agent/pathfinder/walk/JumpTargets$Sink;ILjava/lang/Object;)V
+	public final fun getTerrain ()Lnet/ccbluex/agent/pathfinder/terrain/Terrain;
+	public final fun lift (D)D
+}
+
+public abstract interface class net/ccbluex/agent/pathfinder/walk/JumpTargets$Sink {
+	public abstract fun accept (IIID)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Jumps {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/ccbluex/agent/pathfinder/walk/WalkAbilities;Z)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/ccbluex/agent/pathfinder/walk/WalkAbilities;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun airKeys (Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/minecraft/core/BlockPos;DZ)Lnet/ccbluex/agent/pathfinder/walk/Jumps$AirKeys;
+	public static synthetic fun airKeys$default (Lnet/ccbluex/agent/pathfinder/walk/Jumps;Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/minecraft/core/BlockPos;DZILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/walk/Jumps$AirKeys;
+	public final fun fromHere (Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/minecraft/core/BlockPos;DLnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public static synthetic fun fromHere$default (Lnet/ccbluex/agent/pathfinder/walk/Jumps;Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/minecraft/core/BlockPos;DLnet/minecraft/world/phys/Vec3;ILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public final fun getCanSprint ()Z
+	public final fun lastFromHere (Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/minecraft/core/BlockPos;D)Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public final fun plan (Lnet/minecraft/core/BlockPos;DLnet/minecraft/core/BlockPos;DZ)Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public static synthetic fun plan$default (Lnet/ccbluex/agent/pathfinder/walk/Jumps;Lnet/minecraft/core/BlockPos;DLnet/minecraft/core/BlockPos;DZILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public final fun refine (Lnet/minecraft/core/BlockPos;DLnet/minecraft/core/BlockPos;D)Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public final fun takeOff (Lnet/ccbluex/agent/simulation/PlayerMotion;Ljava/lang/Float;Lnet/minecraft/core/BlockPos;DLnet/ccbluex/agent/pathfinder/walk/Jump;Ljava/util/List;)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Jumps$AirKeys {
+	public fun <init> (IID)V
+	public final fun getForward ()I
+	public final fun getMargin ()D
+	public final fun getStrafe ()I
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Leap {
+	public fun <init> ()V
+	public final fun decide (Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/ccbluex/agent/pathfinder/walk/Step;Lnet/ccbluex/agent/pathfinder/walk/Jump;Lnet/ccbluex/agent/pathfinder/walk/Jumps;)Lnet/ccbluex/agent/pathfinder/walk/LeapInput;
+	public final fun getHopeless ()Z
+	public final fun getSprint ()Z
+	public final fun getTarget ()Lnet/minecraft/world/phys/Vec3;
+	public final fun tick (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/pathfinder/terrain/Terrain;FLnet/ccbluex/agent/pathfinder/walk/Step;Lnet/ccbluex/agent/pathfinder/walk/Jump;Lnet/ccbluex/agent/pathfinder/walk/WalkAbilities;)Lnet/ccbluex/agent/pathfinder/walk/LeapInput;
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/LeapInput {
+	public fun <init> (IIZZZ)V
+	public synthetic fun <init> (IIZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getForward ()I
+	public final fun getJump ()Z
+	public final fun getShift ()Z
+	public final fun getSprint ()Z
+	public final fun getStrafe ()I
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Move : java/lang/Enum {
+	public static final field ASCEND Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field CLIMB_DOWN Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field CLIMB_UP Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field DIAGONAL Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field DOWNWARD Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field FALL Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field PARKOUR Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field PILLAR Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field SWIM Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static final field TRAVERSE Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public static fun values ()[Lnet/ccbluex/agent/pathfinder/walk/Move;
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Route {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;ZLnet/ccbluex/agent/pathfinder/walk/WalkAbilities;)V
+	public final fun getAbilities ()Lnet/ccbluex/agent/pathfinder/walk/WalkAbilities;
+	public final fun getCanReach ()Z
+	public final fun getCost ()D
+	public final fun getEnd ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getPoints ()Ljava/util/List;
+	public final fun getStart ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getSteps ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/RouteSearch : net/ccbluex/agent/pathfinder/route/AStarSearch {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Lnet/ccbluex/agent/pathfinder/route/Destination;Lnet/ccbluex/agent/pathfinder/walk/WalkAbilities;Lnet/ccbluex/agent/pathfinder/route/Limits;)V
+	public final fun getGoal ()Lnet/ccbluex/agent/pathfinder/route/Destination;
+	public final fun getStart ()Lnet/minecraft/world/phys/Vec3;
+	public synthetic fun heuristic (Ljava/lang/Object;)D
+	public synthetic fun isGoal (Ljava/lang/Object;)Z
+	public synthetic fun neighbors$net_ccbluex_minecraft_agent_common (Ljava/lang/Object;)Ljava/lang/Iterable;
+	public fun preview ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/Step {
+	public fun <init> (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Lnet/ccbluex/agent/pathfinder/walk/Move;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;Ljava/util/List;Ljava/util/List;DZZZLnet/ccbluex/agent/pathfinder/walk/Jump;)V
+	public synthetic fun <init> (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Lnet/ccbluex/agent/pathfinder/walk/Move;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;Ljava/util/List;Ljava/util/List;DZZZLnet/ccbluex/agent/pathfinder/walk/Jump;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBreaks ()Ljava/util/List;
+	public final fun getCost ()D
+	public final fun getEdge ()Z
+	public final fun getFeet ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getFrom ()Lnet/minecraft/core/BlockPos;
+	public final fun getJump ()Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public final fun getMove ()Lnet/ccbluex/agent/pathfinder/walk/Move;
+	public final fun getOpens ()Ljava/util/List;
+	public final fun getPlaces ()Ljava/util/List;
+	public final fun getShift ()Z
+	public final fun getTo ()Lnet/minecraft/core/BlockPos;
+	public final fun isBridge ()Z
+	public final fun isUnderWater ()Z
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/StraightWalkKt {
+	public static final fun isStraightWalkable (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;DI)Z
+}
+
+public final class net/ccbluex/agent/pathfinder/walk/WalkAbilities {
+	public fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZD)V
+	public synthetic fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAir ()I
+	public final fun getAvoid ()Lit/unimi/dsi/fastutil/longs/LongSet;
+	public final fun getBreakTicks ()Ljava/util/function/ToDoubleFunction;
+	public final fun getBridgeTicks ()D
+	public final fun getCanBreak ()Z
+	public final fun getCanParkour ()Z
+	public final fun getCanPlace ()Z
+	public final fun getCanSprint ()Z
+	public final fun getJumpClimbs ()Z
+	public final fun getMotion ()Lnet/ccbluex/agent/simulation/MotionTraits;
+	public final fun getPlaceableBlocks ()I
+	public final fun getRiskyJumps ()Z
+	public final fun getSafeFall ()I
+	public final fun getWaterFall ()I
+	public final fun withMotion (Lnet/ccbluex/agent/simulation/MotionTraits;)Lnet/ccbluex/agent/pathfinder/walk/WalkAbilities;
+}
+
 public abstract interface class net/ccbluex/agent/simulation/BlockGrid {
 	public abstract fun shape (III)Lnet/minecraft/world/phys/shapes/VoxelShape;
 	public abstract fun state (III)Lnet/minecraft/world/level/block/state/BlockState;
