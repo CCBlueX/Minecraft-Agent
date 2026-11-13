@@ -1,0 +1,62 @@
+public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/navigation/Body {
+	public fun <init> ()V
+	public fun <init> (F)V
+	public synthetic fun <init> (FILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun continueDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public fun getFlight ()Lnet/ccbluex/agent/navigation/FlightControl;
+	public fun getLatencyMillis ()I
+	public final fun getMaxTurn ()F
+	public fun getMovementYRot ()F
+	public fun getPlayer ()Lnet/minecraft/client/player/LocalPlayer;
+	public synthetic fun getPlayer ()Lnet/minecraft/world/entity/player/Player;
+	public fun getSafeWalk ()Z
+	public fun getSentRotation ()Lnet/ccbluex/agent/math/ViewRotation;
+	public fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
+	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
+	public fun getViewStep ()F
+	public fun isViewTakenOver ()Z
+	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
+	public fun press (Lnet/minecraft/world/entity/player/Input;)V
+	public fun releaseHotbarSlot ()V
+	public fun selectHotbarSlot (I)V
+	public final fun setMaxTurn (F)V
+	public fun setSafeWalk (Z)V
+	public fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public fun stopDestroy ()V
+	public fun useItem (Lnet/minecraft/world/InteractionHand;)Z
+	public fun useItemOn (Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Z
+}
+
+public final class net/ccbluex/agent/v26_3/fabric/ClientNavigation {
+	public fun <init> ()V
+	public fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;)V
+	public fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;Lnet/ccbluex/agent/navigation/Options;)V
+	public fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;Lnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/navigation/Listener;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;Lnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/navigation/Listener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun follow (Lnet/ccbluex/agent/v26_3/fabric/DestinationSource;)V
+	public final fun getBody ()Lnet/ccbluex/agent/v26_3/fabric/ClientBody;
+	public final fun getNavigator ()Lnet/ccbluex/agent/navigation/Navigator;
+	public final fun getOptions ()Lnet/ccbluex/agent/navigation/Options;
+	public final fun isRunning ()Z
+	public final fun moveTo (Lnet/minecraft/world/phys/Vec3;)V
+	public final fun moveTo (Lnet/minecraft/world/phys/Vec3;D)V
+	public static synthetic fun moveTo$default (Lnet/ccbluex/agent/v26_3/fabric/ClientNavigation;Lnet/minecraft/world/phys/Vec3;DILjava/lang/Object;)V
+	public final fun setOptions (Lnet/ccbluex/agent/navigation/Options;)V
+	public final fun stop ()V
+}
+
+public abstract interface class net/ccbluex/agent/v26_3/fabric/DestinationSource {
+	public static final field Companion Lnet/ccbluex/agent/v26_3/fabric/DestinationSource$Companion;
+	public static final field DEFAULT_RADIUS D
+	public abstract fun goal ()Lnet/minecraft/world/phys/Vec3;
+	public fun radius ()D
+}
+
+public final class net/ccbluex/agent/v26_3/fabric/DestinationSource$Companion {
+	public static final field DEFAULT_RADIUS D
+}
+
+public abstract interface class net/ccbluex/agent/v26_3/fabric/mixin/ClientInputAccessor {
+	public abstract fun agentSetMoveVector (Lnet/minecraft/world/phys/Vec2;)V
+}
+

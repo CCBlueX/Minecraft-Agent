@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.ccbluex.agent.v26_3.fabric.gametest.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "LocalPlayerTickMixin",
+    "MinecraftTickMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

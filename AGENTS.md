@@ -5,6 +5,7 @@ Minecraft 26.3 (Mojang names, unobfuscated), Java 25, Kotlin. Root package `net.
 | Module | Artifact (`net.ccbluex`) | Builds with | Needs |
 |---|---|---|---|
 | `common/` | `minecraft-agent-common` | `agent.shared` | - |
+| `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.fabric` (Loom, client) | common |
 | `gradle/build-logic/` | - | convention plugins and checks | - |
 
 - Shared modules compile against the vanilla server jar only (`serverOnlyMinecraftJar()`), so their classes link

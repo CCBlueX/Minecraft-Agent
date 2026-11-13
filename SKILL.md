@@ -10,9 +10,31 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`.
 | Artifact | Use it for |
 |---|---|
 | `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body` |
+| `minecraft-agent-fabric` | The local player as a body (Fabric mod) |
 
-Each one brings what it builds on: `navigation` brings `pathfinder` and `simulation`.
+Each one brings what it builds on: `navigation` brings `pathfinder` and `simulation`, `fabric` brings `common`.
 Everything public is callable from Java.
+
+## Fabric mod
+
+```kotlin
+dependencies {
+    implementation("net.ccbluex:minecraft-agent-fabric:1.0.0")
+    include("net.ccbluex:minecraft-agent-fabric:1.0.0")
+}
+```
+
+The mod needs Fabric API and Fabric Language Kotlin. Walk the local player somewhere:
+
+```kotlin
+val navigation = ClientNavigation()
+navigation.moveTo(Vec3(100.5, 64.0, -20.5))   // stops on arrival
+navigation.follow { target?.position() }    // a goal that moves; null pauses
+navigation.stop()
+```
+
+`navigation.Options` (digging, bridging, parkour, sprinting, look-ahead) go in the constructor or `navigation.options`.
+`ClientBody(maxTurn)` limits how fast the camera turns.
 
 ## Bots on your own host
 

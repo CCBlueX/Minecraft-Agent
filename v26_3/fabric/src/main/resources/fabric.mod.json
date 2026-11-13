@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft-agent",
+  "version": "1.0.0",
+  "name": "Minecraft Agent",
+  "description": "Navigation for the local player: walking, building, parkour, flying, gliding and riding.",
+  "authors": [
+    "CCBlueX"
+  ],
+  "contact": {
+    "sources": "https://github.com/CCBlueX/Minecraft-Agent"
+  },
+  "license": "GPL-3.0-or-later",
+  "environment": "client",
+  "mixins": [
+    "minecraft-agent.mixins.json"
+  ],
+  "depends": {
+    "java": ">=25",
+    "minecraft": "26.3",
+    "fabricloader": ">=0.19.5",
+    "fabric-language-kotlin": "*"
+  }
+}

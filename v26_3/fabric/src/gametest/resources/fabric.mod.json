@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft-agent-gametest",
+  "version": "1.0.0",
+  "name": "Minecraft Agent game tests",
+  "license": "GPL-3.0-or-later",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "net.ccbluex.agent.v26_3.fabric.gametest.WalkNavigationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.WalkBlockedGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.WalkClimbGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.WalkSneakGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.WalkSwimGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.WalkParkourGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.WalkParkourSpeedGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.AutoWalkGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.AutoWalkStagesGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.ParkourAssistGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.ParkourEdgeGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.FlightNavigationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.ElytraTravelGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.RideNavigationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.PlayerMotionGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.PlayerSimulationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.BlockSightGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkNavigationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkBlockedGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkClimbGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkSneakGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkSwimGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkParkourGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkParkourSpeedGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.AutoWalkGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.AutoWalkStagesGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.ParkourAssistGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.ParkourEdgeGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.FlightNavigationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.ElytraTravelGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.RideNavigationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.PlayerMotionGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.PlayerSimulationGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.BlockSightGameTest",
+      "net.ccbluex.gametest.harness.ResultsGameTest"
+    ]
+  },
+  "mixins": [
+    "minecraft-agent-gametest.mixins.json"
+  ],
+  "depends": {
+    "minecraft-agent": "*",
+    "gametest-harness": "*",
+    "fabric-client-gametest-api-v1": "*",
+    "fabric-language-kotlin": "*"
+  }
+}
