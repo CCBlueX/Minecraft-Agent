@@ -1619,6 +1619,31 @@ public abstract interface class net/ccbluex/agent/skills/games/GameMode {
 	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
 }
 
+public abstract class net/ccbluex/agent/skills/games/LevelRoundSenses : net/ccbluex/agent/skills/games/RoundSenses {
+	public fun <init> (Lnet/minecraft/world/level/Level;Lnet/ccbluex/agent/skills/games/RoundFacts;)V
+	public final fun getCountdownSeconds ()Ljava/lang/Integer;
+	protected final fun getLevel ()Lnet/minecraft/world/level/Level;
+	public final fun getMatchSeconds ()I
+	public fun getOwnSpawn ()Lnet/minecraft/world/phys/Vec3;
+	protected final fun getSelf ()Lnet/minecraft/world/entity/player/Player;
+	public final fun getState ()Lnet/ccbluex/agent/skills/games/RoundState;
+	public final fun isBot (Lnet/minecraft/world/entity/player/Player;)Z
+	public final fun isOpponent (Lnet/minecraft/world/entity/Entity;)Z
+	public final fun isSpectator ()Z
+	public fun isTeammate (Lnet/minecraft/world/entity/Entity;)Z
+	protected abstract fun scan ()V
+	public final fun tick ()V
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/RoundFacts {
+	public abstract fun getCountdownSeconds ()Ljava/lang/Integer;
+	public abstract fun getMatchSeconds ()I
+	public abstract fun getOwnName ()Ljava/lang/String;
+	public abstract fun getState ()Lnet/ccbluex/agent/skills/games/RoundState;
+	public fun isBot (Lnet/minecraft/world/entity/player/Player;)Z
+	public fun isFriend (Lnet/minecraft/world/entity/player/Player;)Z
+}
+
 public abstract interface class net/ccbluex/agent/skills/games/RoundSenses {
 	public abstract fun getCountdownSeconds ()Ljava/lang/Integer;
 	public abstract fun getMatchSeconds ()I
@@ -1795,6 +1820,26 @@ public final class net/ccbluex/agent/skills/games/bedwars/Generator {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class net/ccbluex/agent/skills/games/bedwars/LevelSenses : net/ccbluex/agent/skills/games/LevelRoundSenses, net/ccbluex/agent/skills/games/bedwars/Senses {
+	public fun <init> (Lnet/minecraft/world/level/Level;Lnet/ccbluex/agent/skills/games/bedwars/LevelSenses$Facts;)V
+	public final fun blockChanged (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V
+	public fun getGenerators ()Ljava/util/List;
+	public fun getOwnTeam ()Lnet/ccbluex/agent/skills/games/bedwars/BedWarsTeam;
+	public fun getTeams ()Ljava/util/List;
+	public fun isPlayerPlaced (Lnet/minecraft/core/BlockPos;)Z
+	public fun isRespawning ()Z
+	public fun isRespawning (Lnet/minecraft/world/entity/player/Player;)Z
+	public fun isTeammate (Lnet/minecraft/world/entity/Entity;)Z
+	public fun teamOf (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/skills/games/bedwars/BedWarsTeam;
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/bedwars/LevelSenses$Facts : net/ccbluex/agent/skills/games/RoundFacts {
+	public abstract fun getOwnTeamName ()Ljava/lang/String;
+	public abstract fun getTeams ()Ljava/util/List;
+	public abstract fun isShopkeeper (Lnet/minecraft/world/entity/Entity;)Z
+	public abstract fun isUpgrader (Lnet/minecraft/world/entity/Entity;)Z
+}
+
 public final class net/ccbluex/agent/skills/games/bedwars/Match {
 	public fun <init> ()V
 	public fun <init> (Ljava/util/Random;)V
@@ -1824,6 +1869,23 @@ public final class net/ccbluex/agent/skills/games/bedwars/Strategy : java/lang/E
 	public static fun values ()[Lnet/ccbluex/agent/skills/games/bedwars/Strategy;
 }
 
+public final class net/ccbluex/agent/skills/games/bedwars/TeamFacts {
+	public fun <init> (Ljava/lang/String;Lnet/minecraft/world/item/DyeColor;Ljava/util/Set;Z)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lnet/minecraft/world/item/DyeColor;
+	public final fun component3 ()Ljava/util/Set;
+	public final fun component4 ()Z
+	public final fun copy (Ljava/lang/String;Lnet/minecraft/world/item/DyeColor;Ljava/util/Set;Z)Lnet/ccbluex/agent/skills/games/bedwars/TeamFacts;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/games/bedwars/TeamFacts;Ljava/lang/String;Lnet/minecraft/world/item/DyeColor;Ljava/util/Set;ZILjava/lang/Object;)Lnet/ccbluex/agent/skills/games/bedwars/TeamFacts;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColor ()Lnet/minecraft/world/item/DyeColor;
+	public final fun getMemberNames ()Ljava/util/Set;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isBedAlive ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class net/ccbluex/agent/skills/games/blitz/Blitz : net/ccbluex/agent/skills/games/GameMode {
 	public fun <init> (Lnet/ccbluex/agent/skills/games/blitz/Senses;)V
 	public fun damaged (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/Entity;)V
@@ -1833,6 +1895,23 @@ public final class net/ccbluex/agent/skills/games/blitz/Blitz : net/ccbluex/agen
 	public fun getSenses ()Lnet/ccbluex/agent/skills/games/RoundSenses;
 	public fun stop (Lnet/ccbluex/agent/skills/Agent;)V
 	public fun tick (Lnet/ccbluex/agent/skills/Agent;)V
+}
+
+public final class net/ccbluex/agent/skills/games/blitz/LevelSenses : net/ccbluex/agent/skills/games/LevelRoundSenses, net/ccbluex/agent/skills/games/blitz/Senses {
+	public fun <init> (Lnet/minecraft/world/level/Level;Lnet/ccbluex/agent/skills/games/blitz/LevelSenses$Facts;Lnet/ccbluex/agent/skills/loot/Chests;)V
+	public fun getChests ()Ljava/util/Collection;
+	public fun getCompassTarget ()Lnet/minecraft/core/BlockPos;
+	public fun getKitDelaySeconds ()Ljava/lang/Integer;
+	public fun getRefills ()I
+	public fun getSecondsToDeathmatch ()Ljava/lang/Integer;
+	public fun getSecondsToRefill ()Ljava/lang/Integer;
+	public fun isDeathmatchStarted ()Z
+}
+
+public abstract interface class net/ccbluex/agent/skills/games/blitz/LevelSenses$Facts : net/ccbluex/agent/skills/games/RoundFacts {
+	public abstract fun getKitDelaySeconds ()Ljava/lang/Integer;
+	public abstract fun getSecondsToDeathmatch ()Ljava/lang/Integer;
+	public abstract fun isDeathmatchStarted ()Z
 }
 
 public abstract interface class net/ccbluex/agent/skills/games/blitz/Senses : net/ccbluex/agent/skills/games/RoundSenses {
@@ -1911,6 +1990,17 @@ public abstract interface class net/ccbluex/agent/skills/games/duels/Senses : ne
 	public fun getTagged ()Lnet/minecraft/world/entity/Entity;
 	public fun getTicksToLavaRise ()Ljava/lang/Integer;
 	public abstract fun getTimeLimitSeconds ()Ljava/lang/Integer;
+}
+
+public final class net/ccbluex/agent/skills/games/skywars/LevelSenses : net/ccbluex/agent/skills/games/LevelRoundSenses, net/ccbluex/agent/skills/games/skywars/Senses {
+	public fun <init> (Lnet/minecraft/world/level/Level;Lnet/ccbluex/agent/skills/games/RoundFacts;Lnet/ccbluex/agent/skills/loot/Chests;)V
+	public fun getCages ()Ljava/util/List;
+	public fun getChests ()Ljava/util/Collection;
+	public fun getMiddle ()Lnet/minecraft/world/phys/Vec3;
+	public fun getOwnSpawn ()Lnet/minecraft/world/phys/Vec3;
+	public fun getRefills ()I
+	public fun getSecondsToRefill ()Ljava/lang/Integer;
+	public fun isDoom ()Z
 }
 
 public final class net/ccbluex/agent/skills/games/skywars/Options {

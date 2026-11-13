@@ -70,3 +70,7 @@ Game modes take senses the host supplies (round state, teams, chests, beds): `Sk
 `Blitz(blitz.Senses)`, `BedWars(bedwars.Senses)`, `Duels(duels.Senses)`. They are `@ExperimentalAgentApi`: game modes
 change while the bots get better; hosts opt in. A null ability in `Skills` leaves it to the host. Kits are never
 built in; bots use what they hold.
+
+A client host does not implement them: `bedwars.LevelSenses(level, facts)`, `skywars.LevelSenses(level, facts, chests)`
+and `blitz.LevelSenses(level, facts, chests)` read beds, generators, chests, players and the border from the level; the
+host supplies only what the server says in text (`RoundFacts`) and calls `tick()` every client tick.
