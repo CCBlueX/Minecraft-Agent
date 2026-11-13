@@ -1,0 +1,139 @@
+/*
+ * This file is part of Minecraft Agent (https://github.com/CCBlueX/Minecraft-Agent)
+ *
+ * Copyright (c) 2026 CCBlueX
+ *
+ * Minecraft Agent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Minecraft Agent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.ccbluex.agent.navigation.flight
+
+import net.ccbluex.agent.navigation.FlightControl
+import net.ccbluex.agent.navigation.FollowState
+import net.ccbluex.agent.navigation.TestBody
+import net.ccbluex.agent.pathfinder.MinecraftBootstrap
+import net.ccbluex.agent.pathfinder.TestLevel
+import net.ccbluex.agent.pathfinder.TestWorld
+import net.ccbluex.agent.pathfinder.flight.Acceleration
+import net.ccbluex.agent.pathfinder.flight.Route
+import net.minecraft.world.entity.player.Input
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.phys.Vec3
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import kotlin.math.sqrt
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+/**
+ * A fly mode flies a route with a sharp corner at half and at twice the speed a host used to report, stopping at once
+ * or coasting on: the player gets to the end and comes to rest there, without flying past it or back and forth.
+ *
+ * @agent claude-opus-5-5
+ */
+internal class FollowerTest {
+
+    companion object {
+        init {
+            MinecraftBootstrap.ensureInitialized()
+        }
+
+        private const val MAX_TICKS = 600
+        private const val SETTLE_TICKS = 60
+        private const val ARRIVAL = 1.5
+        private const val MAX_OVERSHOOT = 1.5
+        private const val MAX_REVERSALS = 3
+        private const val NEAR_END = 8.0
+
+        private val START = Vec3(0.5, 10.0, 0.5)
+
+        // Corners off whole multiples of the speeds, so a fly mode cannot happen to land on them exactly.
+        private val POINTS = listOf(START, Vec3(23.3, 10.0, 0.5), Vec3(23.3, 15.3, 21.9), Vec3(4.7, 15.3, 21.9))
+    }
+
+    /**
+     * A fly mode that settles at [speed] blocks a tick level and half that vertically, keeping [drag] of its motion a
+     * tick: 0 stops as soon as the keys are released.
+     *
+     * @agent claude-opus-5-5
+     */
+    private class FlyMode(val speed: Double, val drag: Double) : FlightControl {
+        override val control: Acceleration
+            get() = if (drag > 0.0) Acceleration.MOMENTUM else Acceleration.DIRECT
+
+        private var velocity = Vec3.ZERO
+
+        fun move(player: Player, input: Input) {
+            val x = (if (input.left()) 1.0 else 0.0) - (if (input.right()) 1.0 else 0.0)
+            val z = (if (input.forward()) 1.0 else 0.0) - (if (input.backward()) 1.0 else 0.0)
+            val y = (if (input.jump()) 1.0 else 0.0) - (if (input.shift()) 1.0 else 0.0)
+            val length = sqrt(x * x + z * z).coerceAtLeast(1.0)
+            val thrust = speed * (1.0 - drag)
+            velocity = velocity.scale(drag).add(x / length * thrust, y * thrust / 2.0, z / length * thrust)
+            player.setPos(player.position().add(velocity))
+            player.deltaMovement = velocity.scale(drag)
+            player.tickCount++
+        }
+    }
+
+    @ParameterizedTest(name = "speed {0}, drag {1}")
+    @CsvSource("0.5, 0.0", "2.0, 0.0", "0.5, 0.8", "2.0, 0.8")
+    fun `a fly mode of any speed flies the route to its end and stops there`(speed: Double, drag: Double) {
+        val player = TestLevel(TestWorld()).player(START)
+        val mode = FlyMode(speed, drag)
+        val body = TestBody(player, mode)
+        val context = body.context()
+        val handling = Handling()
+        val follower = Follower(context, handling)
+        follower.follow(Route(START, POINTS, canReach = true))
+
+        val end = POINTS.last()
+        val lastLeg = end.subtract(POINTS[POINTS.size - 2]).normalize()
+        var overshoot = 0.0
+        var reversals = 0
+        var lastMove = Vec3.ZERO
+        fun move(input: Input) {
+            val before = player.position()
+            mode.move(player, input)
+            val moved = player.position().subtract(before)
+            if (moved.horizontalDistanceSqr() > 1.0E-6 && moved.x * lastMove.x + moved.z * lastMove.z < 0.0) {
+                reversals++
+            }
+            if (moved.horizontalDistanceSqr() > 1.0E-6) {
+                lastMove = moved
+            }
+            if (player.position().distanceTo(end) < NEAR_END) {
+                overshoot = maxOf(overshoot, player.position().subtract(end).dot(lastLeg))
+            }
+        }
+
+        var ticks = 0
+        while (ticks < MAX_TICKS) {
+            val abilities = checkNotNull(context.captureFlight(handling))
+            if (follower.tick(0f, abilities) == FollowState.FINISHED) {
+                break
+            }
+            move(body.pressed)
+            ticks++
+        }
+        repeat(SETTLE_TICKS) { move(Input.EMPTY) }
+
+        assertTrue(ticks < MAX_TICKS, "Did not finish the route in $MAX_TICKS ticks, at ${player.position()}")
+        val rest = player.position()
+        assertTrue(rest.distanceTo(end) <= ARRIVAL, "Came to rest at $rest, ${rest.distanceTo(end)} from $end")
+        assertTrue(overshoot <= MAX_OVERSHOOT, "Flew $overshoot past the end")
+        assertTrue(reversals <= MAX_REVERSALS, "Turned back $reversals times")
+        assertEquals(speed, handling.speed, speed * 0.1, "Measured the speed")
+    }
+}

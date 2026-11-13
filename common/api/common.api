@@ -65,6 +65,356 @@ public final class net/ccbluex/agent/math/ViewRotation$Companion {
 	public final fun fromVector (Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/math/ViewRotation;
 }
 
+public abstract interface class net/ccbluex/agent/navigation/Body {
+	public abstract fun continueDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public abstract fun getFlight ()Lnet/ccbluex/agent/navigation/FlightControl;
+	public fun getInputYRot ()F
+	public abstract fun getLatencyMillis ()I
+	public fun getLevel ()Lnet/minecraft/world/level/Level;
+	public fun getMovementYRot ()F
+	public abstract fun getPlayer ()Lnet/minecraft/world/entity/player/Player;
+	public fun getRecastsElytra ()Z
+	public abstract fun getSafeWalk ()Z
+	public abstract fun getSentRotation ()Lnet/ccbluex/agent/math/ViewRotation;
+	public fun getSimulationHooks ()Lnet/ccbluex/agent/simulation/SimulationHooks;
+	public abstract fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
+	public abstract fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
+	public fun getViewStep ()F
+	public fun isViewTakenOver ()Z
+	public abstract fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
+	public abstract fun press (Lnet/minecraft/world/entity/player/Input;)V
+	public abstract fun releaseHotbarSlot ()V
+	public abstract fun selectHotbarSlot (I)V
+	public abstract fun setSafeWalk (Z)V
+	public abstract fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public abstract fun stopDestroy ()V
+	public abstract fun useItem (Lnet/minecraft/world/InteractionHand;)Z
+	public abstract fun useItemOn (Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Z
+}
+
+public final class net/ccbluex/agent/navigation/BodyTraits {
+	public fun <init> ()V
+	public fun <init> (ZZZ)V
+	public synthetic fun <init> (ZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getExactSimulation ()Z
+	public final fun getJumpClimbsLadders ()Z
+	public final fun getNavigatesInMovementTick ()Z
+}
+
+public abstract interface class net/ccbluex/agent/navigation/FlightControl {
+	public fun getControl ()Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
+}
+
+public abstract interface class net/ccbluex/agent/navigation/Listener {
+	public static final field Companion Lnet/ccbluex/agent/navigation/Listener$Companion;
+	public static final field NONE Lnet/ccbluex/agent/navigation/Listener;
+	public fun arrived (Lnet/minecraft/world/phys/Vec3;)V
+	public fun blockKept (Lnet/ccbluex/agent/navigation/walk/PlacedBlock;)V
+	public fun blockPlaced (Lnet/ccbluex/agent/navigation/walk/PlacedBlock;)V
+	public fun blockRejected (Lnet/ccbluex/agent/navigation/walk/PlacedBlock;)V
+	public fun blocksAhead (Ljava/util/Collection;Ljava/util/Collection;)V
+	public fun failed (Lnet/minecraft/world/phys/Vec3;)V
+	public fun routeCleared ()V
+	public fun routeDone ()V
+	public fun routeFollowing (Ljava/util/List;Lnet/ccbluex/agent/navigation/Progress;)V
+	public fun routeFound (Lnet/ccbluex/agent/pathfinder/walk/Route;)V
+	public fun routeInvalid ()V
+	public fun routeSearching (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;DLjava/util/List;)V
+	public fun stepReached (ILnet/minecraft/core/BlockPos;)V
+	public fun stuck (Lnet/minecraft/core/BlockPos;)V
+}
+
+public final class net/ccbluex/agent/navigation/Listener$Companion {
+}
+
+public final class net/ccbluex/agent/navigation/LookPurpose : java/lang/Enum {
+	public static final field AIM Lnet/ccbluex/agent/navigation/LookPurpose;
+	public static final field MOVEMENT Lnet/ccbluex/agent/navigation/LookPurpose;
+	public static final field VIEW Lnet/ccbluex/agent/navigation/LookPurpose;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/navigation/LookPurpose;
+	public static fun values ()[Lnet/ccbluex/agent/navigation/LookPurpose;
+}
+
+public final class net/ccbluex/agent/navigation/Navigator {
+	public fun <init> (Lnet/ccbluex/agent/navigation/Body;)V
+	public fun <init> (Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/Options;)V
+	public fun <init> (Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/navigation/Listener;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/navigation/Listener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun blockChanged (Lnet/minecraft/core/BlockPos;)V
+	public final fun blockConfirmed (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V
+	public final fun getBridgeAhead ()I
+	public final fun getBridgeYRot ()Ljava/lang/Float;
+	public final fun getInput ()Lnet/minecraft/world/entity/player/Input;
+	public final fun getOptions ()Lnet/ccbluex/agent/navigation/Options;
+	public final fun getOvershoots ()I
+	public final fun getPlacement ()Lnet/ccbluex/agent/navigation/walk/PlacedBlock;
+	public final fun getPlacesAhead ()Ljava/util/List;
+	public final fun getSlowdown ()Ljava/lang/String;
+	public final fun halt ()V
+	public final fun isActing ()Z
+	public final fun isBuilding ()Z
+	public final fun isStranded ()Z
+	public final fun levelChanged ()V
+	public final fun lookAt (Lnet/minecraft/world/phys/Vec3;)V
+	public final fun movementRotation ()Lnet/ccbluex/agent/math/ViewRotation;
+	public final fun navigate (Lnet/minecraft/world/phys/Vec3;D)Z
+	public final fun positionCorrected ()V
+	public final fun setOptions (Lnet/ccbluex/agent/navigation/Options;)V
+	public final fun stop ()V
+	public final fun turnView ()V
+}
+
+public final class net/ccbluex/agent/navigation/Options {
+	public fun <init> ()V
+	public fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;)V
+	public synthetic fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component10 ()Z
+	public final fun component11 ()F
+	public final fun component12 ()F
+	public final fun component13 ()F
+	public final fun component14 ()Z
+	public final fun component15 ()Z
+	public final fun component16 ()Lnet/ccbluex/agent/navigation/PlaceableBlocks;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun component7 ()Z
+	public final fun component8 ()Z
+	public final fun component9 ()Z
+	public final fun copy (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;)Lnet/ccbluex/agent/navigation/Options;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/navigation/Options;ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ILjava/lang/Object;)Lnet/ccbluex/agent/navigation/Options;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCanBreak ()Z
+	public final fun getCanElytra ()Z
+	public final fun getCanFly ()Z
+	public final fun getCanParkour ()Z
+	public final fun getCanPlace ()Z
+	public final fun getElytraRockets ()Z
+	public final fun getFastBridges ()Z
+	public final fun getLookAhead ()Z
+	public final fun getLookAheadDistance ()F
+	public final fun getLookAheadTurnSpeed ()F
+	public final fun getLookAheadXRot ()F
+	public final fun getMaxFall ()I
+	public final fun getPathRange ()I
+	public final fun getPlaceableBlocks ()Lnet/ccbluex/agent/navigation/PlaceableBlocks;
+	public final fun getPlacesBridgeFloors ()Z
+	public final fun getRiskyJumps ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/ccbluex/agent/navigation/PlaceableBlocks {
+	public static final field Companion Lnet/ccbluex/agent/navigation/PlaceableBlocks$Companion;
+	public static fun getDEFAULT ()Lnet/ccbluex/agent/navigation/PlaceableBlocks;
+	public abstract fun isPlaceable (Lnet/minecraft/world/item/ItemStack;)Z
+	public fun isUnfavourable (Lnet/minecraft/world/item/ItemStack;)Z
+}
+
+public final class net/ccbluex/agent/navigation/PlaceableBlocks$Companion {
+	public final fun getDEFAULT ()Lnet/ccbluex/agent/navigation/PlaceableBlocks;
+}
+
+public abstract interface class net/ccbluex/agent/navigation/Progress {
+	public abstract fun getAhead ()Ljava/util/List;
+	public abstract fun head (F)Lnet/minecraft/world/phys/Vec3;
+	public abstract fun isMoving ()Z
+}
+
+public abstract interface class net/ccbluex/agent/navigation/Teleporter {
+	public abstract fun land (Lnet/minecraft/world/phys/Vec3;)V
+	public abstract fun send (Lnet/minecraft/world/phys/Vec3;Z)V
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Options {
+	public static final field Companion Lnet/ccbluex/agent/navigation/teleport/Options$Companion;
+	public static final field DEFAULT_STEP_LENGTH D
+	public fun <init> ()V
+	public fun <init> (D)V
+	public fun <init> (DLnet/ccbluex/agent/navigation/teleport/Pacing;)V
+	public fun <init> (DLnet/ccbluex/agent/navigation/teleport/Pacing;Z)V
+	public synthetic fun <init> (DLnet/ccbluex/agent/navigation/teleport/Pacing;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()D
+	public final fun component2 ()Lnet/ccbluex/agent/navigation/teleport/Pacing;
+	public final fun component3 ()Z
+	public final fun copy (DLnet/ccbluex/agent/navigation/teleport/Pacing;Z)Lnet/ccbluex/agent/navigation/teleport/Options;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/navigation/teleport/Options;DLnet/ccbluex/agent/navigation/teleport/Pacing;ZILjava/lang/Object;)Lnet/ccbluex/agent/navigation/teleport/Options;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPacing ()Lnet/ccbluex/agent/navigation/teleport/Pacing;
+	public final fun getShouldClaimGroundOnDescent ()Z
+	public final fun getStepLength ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Options$Companion {
+}
+
+public abstract interface class net/ccbluex/agent/navigation/teleport/Owner {
+	public abstract fun isRunning ()Z
+}
+
+public abstract interface class net/ccbluex/agent/navigation/teleport/Pacing {
+	public static final field Companion Lnet/ccbluex/agent/navigation/teleport/Pacing$Companion;
+	public static final field DEFAULT_PACKETS_PER_TICK I
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Pacing$Batches : net/ccbluex/agent/navigation/teleport/Pacing {
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun copy (I)Lnet/ccbluex/agent/navigation/teleport/Pacing$Batches;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/navigation/teleport/Pacing$Batches;IILjava/lang/Object;)Lnet/ccbluex/agent/navigation/teleport/Pacing$Batches;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPacketsPerTick ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Pacing$Burst : net/ccbluex/agent/navigation/teleport/Pacing {
+	public static final field INSTANCE Lnet/ccbluex/agent/navigation/teleport/Pacing$Burst;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Pacing$Companion {
+	public static final field DEFAULT_PACKETS_PER_TICK I
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Pacing$Instant : net/ccbluex/agent/navigation/teleport/Pacing {
+	public static final field INSTANCE Lnet/ccbluex/agent/navigation/teleport/Pacing$Instant;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Teleport : net/ccbluex/agent/navigation/Progress {
+	public fun getAhead ()Ljava/util/List;
+	public final fun getFinish ()Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;
+	public final fun getOwner ()Lnet/ccbluex/agent/navigation/teleport/Owner;
+	public final fun getState ()Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+	public final fun getTicks ()I
+	public fun head (F)Lnet/minecraft/world/phys/Vec3;
+	public fun isMoving ()Z
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Teleport$Finish : java/lang/Enum {
+	public static final field HOLD Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;
+	public static final field LAND Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;
+	public static final field RESYNC Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;
+	public static fun values ()[Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Teleport$State : java/lang/Enum {
+	public static final field ACTIVE Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+	public static final field CANCELLED Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+	public static final field DONE Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+	public static final field INVALID Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+	public static final field REJECTED Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+	public static fun values ()[Lnet/ccbluex/agent/navigation/teleport/Teleport$State;
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Teleports {
+	public fun <init> (Lnet/ccbluex/agent/navigation/Body;)V
+	public final fun blockChanged (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V
+	public final fun cancel ()V
+	public final fun getRewritesMovement ()Z
+	public final fun getRun ()Lnet/ccbluex/agent/navigation/teleport/Teleport;
+	public final fun getServerOnGround ()Z
+	public final fun getServerPosition ()Lnet/minecraft/world/phys/Vec3;
+	public final fun holds (Lnet/ccbluex/agent/navigation/teleport/Owner;)Z
+	public final fun isAvailable (Lnet/ccbluex/agent/navigation/teleport/Owner;)Z
+	public final fun isMoving ()Z
+	public final fun serverPosition (Lnet/ccbluex/agent/navigation/teleport/Owner;F)Lnet/minecraft/world/phys/Vec3;
+	public final fun setBack ()V
+	public final fun syncPosition ()V
+	public final fun tick ()V
+	public final fun undo (Lnet/ccbluex/agent/navigation/teleport/Owner;)V
+}
+
+public final class net/ccbluex/agent/navigation/teleport/Trip {
+	public fun <init> (Lnet/ccbluex/agent/navigation/teleport/Owner;Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/teleport/Teleports;)V
+	public fun <init> (Lnet/ccbluex/agent/navigation/teleport/Owner;Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/teleport/Teleports;Lnet/ccbluex/agent/navigation/teleport/Options;)V
+	public fun <init> (Lnet/ccbluex/agent/navigation/teleport/Owner;Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/teleport/Teleports;Lnet/ccbluex/agent/navigation/teleport/Options;Lnet/ccbluex/agent/navigation/Listener;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/navigation/teleport/Owner;Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/teleport/Teleports;Lnet/ccbluex/agent/navigation/teleport/Options;Lnet/ccbluex/agent/navigation/Listener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun blockChanged (Lnet/minecraft/core/BlockPos;)V
+	public final fun comeBack ()Z
+	public final fun getEyePosition ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getOptions ()Lnet/ccbluex/agent/navigation/teleport/Options;
+	public final fun getPosition ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getRun ()Lnet/ccbluex/agent/navigation/teleport/Teleport;
+	public final fun isAvailable ()Z
+	public final fun isAway ()Z
+	public final fun request (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;)V
+	public static synthetic fun request$default (Lnet/ccbluex/agent/navigation/teleport/Trip;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;ILjava/lang/Object;)V
+	public final fun reset ()V
+	public final fun setOptions (Lnet/ccbluex/agent/navigation/teleport/Options;)V
+	public final fun showReturn ()V
+}
+
+public final class net/ccbluex/agent/navigation/walk/AssistedJump {
+	public fun <init> ()V
+	public final fun aimYRot (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Z)F
+	public final fun getArcs ()Ljava/util/ArrayList;
+	public final fun getTarget ()Lnet/ccbluex/agent/navigation/walk/AssistedJump$Landing;
+	public final fun release ()V
+	public final fun reset ()V
+	public final fun tick (Lnet/ccbluex/agent/simulation/PlayerMotion;FFLnet/ccbluex/agent/pathfinder/walk/LeapInput;FLnet/ccbluex/agent/pathfinder/walk/Jumps;Lnet/ccbluex/agent/pathfinder/walk/JumpTargets;)Lnet/ccbluex/agent/pathfinder/walk/LeapInput;
+	public final fun trace (Lnet/ccbluex/agent/simulation/PlayerMotion;FFFLnet/ccbluex/agent/pathfinder/walk/Jumps;Lnet/ccbluex/agent/pathfinder/walk/JumpTargets;)V
+}
+
+public final class net/ccbluex/agent/navigation/walk/AssistedJump$Arc {
+	public fun <init> (Lnet/ccbluex/agent/navigation/walk/AssistedJump$Landing;)V
+	public final fun follow (Lnet/ccbluex/agent/simulation/PlayerMotion;Ljava/lang/Float;Lnet/ccbluex/agent/pathfinder/walk/Jumps;)F
+	public final fun getPath ()Ljava/util/ArrayList;
+	public final fun getTakeoff ()I
+	public final fun getTarget ()Lnet/ccbluex/agent/navigation/walk/AssistedJump$Landing;
+}
+
+public final class net/ccbluex/agent/navigation/walk/AssistedJump$Landing {
+	public fun <init> (Lnet/minecraft/core/BlockPos;DLnet/ccbluex/agent/pathfinder/walk/Jump;Lnet/ccbluex/agent/pathfinder/walk/Step;ZZZ)V
+	public synthetic fun <init> (Lnet/minecraft/core/BlockPos;DLnet/ccbluex/agent/pathfinder/walk/Jump;Lnet/ccbluex/agent/pathfinder/walk/Step;ZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun aimYRot (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;ZLnet/minecraft/world/phys/Vec3;)F
+	public static synthetic fun aimYRot$default (Lnet/ccbluex/agent/navigation/walk/AssistedJump$Landing;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;ZLnet/minecraft/world/phys/Vec3;ILjava/lang/Object;)F
+	public final fun getAim ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getBounces ()Z
+	public final fun getFeet ()D
+	public final fun getJump ()Lnet/ccbluex/agent/pathfinder/walk/Jump;
+	public final fun getPos ()Lnet/minecraft/core/BlockPos;
+	public final fun getSettles ()Z
+	public final fun getStep ()Lnet/ccbluex/agent/pathfinder/walk/Step;
+	public final fun getTakesOff ()Z
+	public final fun isLanded (Lnet/minecraft/world/phys/Vec3;Z)Z
+	public final fun steer (Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/ccbluex/agent/pathfinder/walk/Jumps;)Lnet/ccbluex/agent/pathfinder/walk/LeapInput;
+}
+
+public final class net/ccbluex/agent/navigation/walk/PlacedBlock {
+	public fun <init> (Lnet/minecraft/core/BlockPos;I)V
+	public final fun getPos ()Lnet/minecraft/core/BlockPos;
+	public final fun getTick ()I
+	public final fun getVerdict ()Lnet/ccbluex/agent/navigation/walk/PlacedBlock$Verdict;
+}
+
+public final class net/ccbluex/agent/navigation/walk/PlacedBlock$Verdict : java/lang/Enum {
+	public static final field KEPT Lnet/ccbluex/agent/navigation/walk/PlacedBlock$Verdict;
+	public static final field PENDING Lnet/ccbluex/agent/navigation/walk/PlacedBlock$Verdict;
+	public static final field REJECTED Lnet/ccbluex/agent/navigation/walk/PlacedBlock$Verdict;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getTag ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/navigation/walk/PlacedBlock$Verdict;
+	public static fun values ()[Lnet/ccbluex/agent/navigation/walk/PlacedBlock$Verdict;
+}
+
 public final class net/ccbluex/agent/pathfinder/flight/Acceleration : java/lang/Enum {
 	public static final field DIRECT Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
 	public static final field MOMENTUM Lnet/ccbluex/agent/pathfinder/flight/Acceleration;
@@ -428,15 +778,22 @@ public final class net/ccbluex/agent/pathfinder/route/StageDestination$Companion
 	public final fun region (Lnet/minecraft/world/phys/Vec3;DI)Lnet/ccbluex/agent/pathfinder/level/BlockRegion;
 }
 
+public final class net/ccbluex/agent/pathfinder/teleport/DirectSearch : net/ccbluex/agent/pathfinder/route/Search {
+	public fun <init> (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;Lnet/ccbluex/agent/pathfinder/route/Limits;)V
+	public fun advance ()Lnet/ccbluex/agent/pathfinder/route/Outcome;
+}
+
 public final class net/ccbluex/agent/pathfinder/teleport/Route {
 	public static final field BOUNCE D
 	public static final field Companion Lnet/ccbluex/agent/pathfinder/teleport/Route$Companion;
 	public static final field MAX_FALL D
 	public static final field MAX_PACKETS_PER_TICK I
+	public static final field SAFE_DISTANCE D
 	public static final field SAME_POSITION_SQ D
 	public fun <init> (Ljava/util/List;Ljava/util/List;)V
 	public final fun batches (I)[I
 	public final fun getDestination ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getFitsOneTick ()Z
 	public final fun getLength ()D
 	public final fun getPath ()Ljava/util/List;
 	public final fun getPoints ()Ljava/util/List;
@@ -446,6 +803,7 @@ public final class net/ccbluex/agent/pathfinder/teleport/Route {
 }
 
 public final class net/ccbluex/agent/pathfinder/teleport/Route$Companion {
+	public final fun direct (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/pathfinder/teleport/Route;
 	public final fun lengthOf (Ljava/util/List;)D
 	public final fun plan (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Ljava/util/List;D)Lnet/ccbluex/agent/pathfinder/teleport/Route;
 }

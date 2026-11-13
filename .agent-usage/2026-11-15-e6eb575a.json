@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "change": "feat(navigation): route following",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 408, "cachedInput": 54923472, "cacheWrite": 373874, "output": 152890 },
+      "usd": 17.04
+    }
+  ]
+}

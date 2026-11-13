@@ -10,6 +10,7 @@ Java.
 - `common`: everything that runs on every game version
   - `simulation`: player movement, tick by tick
   - `pathfinder`: route searches
+  - `navigation`: follows routes
 
 ## Agent usage
 

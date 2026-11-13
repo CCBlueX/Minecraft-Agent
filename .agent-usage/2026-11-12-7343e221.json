@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-12",
+  "change": "feat(navigation): route following",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-fable-5-1",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 34,
+        "cachedInput": 995289,
+        "cacheWrite": 86205,
+        "output": 10377
+      },
+      "usd": 2.49
+    },
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 8476,
+        "cachedInput": 1387526453,
+        "cacheWrite": 13396540,
+        "output": 2829251
+      },
+      "usd": 441.29
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "provider": "github-copilot",
+      "tokens": {
+        "input": 0,
+        "cachedInput": 0,
+        "cacheWrite": 0,
+        "output": 0
+      },
+      "usd": 0.0
+    },
+    {
+      "model": "claude-fable-5-2",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 1548,
+        "cachedInput": 235172632,
+        "cacheWrite": 2212319,
+        "output": 968616
+      },
+      "usd": 327.87
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 326,
+        "cachedInput": 7768519,
+        "cacheWrite": 1808736,
+        "output": 517941
+      },
+      "usd": 0.7
+    }
+  ]
+}

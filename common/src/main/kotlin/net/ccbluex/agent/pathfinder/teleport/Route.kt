@@ -34,6 +34,7 @@ import kotlin.math.min
  * From LiquidBounce: [Route.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/teleport/Route.kt#L34-L210)
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 public class Route(public val points: List<Vec3>, public val steps: List<Step>) {
 
@@ -98,6 +99,12 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
         return sizes.toIntArray()
     }
 
+    /**
+     * Whether the server takes every step of this route in one tick.
+     */
+    public val fitsOneTick: Boolean
+        get() = batches(MAX_PACKETS_PER_TICK).size <= 1
+
     public companion object {
 
         // The server adds every descending move to the fall distance, damages a landing after more than three blocks
@@ -112,7 +119,7 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
         // A vanilla server sets the player back when the k-th position packet since its last tick ends more than
         // 10 * sqrt(k) blocks from where that tick started; from the sixth packet on k counts as 1 again.
         public const val MAX_PACKETS_PER_TICK: Int = 5
-        private const val SAFE_DISTANCE = 9.5
+        public const val SAFE_DISTANCE: Double = 9.5
 
         public const val SAME_POSITION_SQ: Double = 1.0E-6
         private const val EPSILON = 1.0E-6
@@ -128,6 +135,17 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
                 }
             }
             return Route(points, steps)
+        }
+
+        /**
+         * One step from [from] to [to], which the server's collision sweep of that move lets through; null when it is
+         * blocked or longer than [SAFE_DISTANCE].
+         */
+        public fun direct(terrain: Terrain, from: Vec3, to: Vec3): Route? {
+            if (from.distanceToSqr(to) > SAFE_DISTANCE * SAFE_DISTANCE || !terrain.sweep(from, to)) {
+                return null
+            }
+            return Route(listOf(from, to), listOf(Step(to, terrain.isSupported(to), 0)))
         }
 
         /**
