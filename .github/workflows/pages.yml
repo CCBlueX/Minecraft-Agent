@@ -1,0 +1,52 @@
+name: Pages
+
+# The site generator lives on the orphan branch `pages`; this only runs it against main.
+on:
+  push:
+    branches: [main]
+    paths: [README.md, SKILL.md, '.agent-usage/**', '**/src/main/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency: pages
+
+jobs:
+  deploy:
+    # GitHub Free serves Pages only from public repositories
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          ref: pages
+          path: site-generator
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+      - name: Build the API docs
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx2g dokkaGeneratePublicationHtml
+          mkdir -p "$RUNNER_TEMP/api"
+          for html in */build/dokka/html; do cp -r "$html" "$RUNNER_TEMP/api/${html%%/*}"; done
+      - name: Generate the site
+        # static/ on the pages branch holds the README clips, served as they are
+        working-directory: site-generator
+        run: >-
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g run --args="--main $GITHUB_WORKSPACE --api $RUNNER_TEMP/api
+          --out $RUNNER_TEMP/site --static $GITHUB_WORKSPACE/site-generator/static"
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ runner.temp }}/site
+      - id: deployment
+        uses: actions/deploy-pages@v5

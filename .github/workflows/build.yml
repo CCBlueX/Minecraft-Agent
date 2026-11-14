@@ -1,0 +1,102 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Loom and paperweight set up Minecraft on a cold cache, which takes a few minutes
+    timeout-minutes: 30
+    env:
+      HAS_MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN_NAME != '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          # agent-usage check compares .agent-usage/ with the base branch
+          fetch-depth: 0
+      - name: Check agent usage
+        run: |
+          curl -fsSLo "$RUNNER_TEMP/agent-usage" https://raw.githubusercontent.com/1zun4/agent-usage/v1.0.0/agent-usage
+          echo "361fe1a03ffa9860427ab1cb306cc153d6d6692f515b0c912821811feddf1004  $RUNNER_TEMP/agent-usage" | sha256sum -c -
+          python3 "$RUNNER_TEMP/agent-usage" check --base "origin/${GITHUB_BASE_REF:-main}"
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build
+        # A tag v1.2.3 builds version 1.2.3
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="-Pversion=${GITHUB_REF_NAME#v}"
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          fi
+          ./gradlew build ${VERSION:-}
+      - name: Publish
+        # Snapshots from main, releases from tags; skipped until the repository has the maven.ccbluex.net token
+        if: github.event_name == 'push' && env.HAS_MAVEN_TOKEN == 'true'
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_TOKEN_NAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_TOKEN_SECRET }}
+        run: ./gradlew publish ${VERSION:-}
+      - name: Upload the plugin
+        uses: actions/upload-artifact@v7
+        with:
+          name: minecraft-agent-plugin
+          path: v26_3/paper/build/libs/minecraft-agent-paper-*-plugin.jar
+          if-no-files-found: error
+
+  gametest:
+    name: gametest (${{ matrix.run }})
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    # The Gradle task gives up after 30 minutes
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        # `local` runs the singleplayer tests, the others the server tests against this anticheat:
+        # https://github.com/CCBlueX/gametest/blob/main/docs/anticheats.md
+        run: [local, vanilla, grim]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+      - name: Install EGL
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libegl-mesa0
+      - name: Client game tests
+        env:
+          CI: true
+          # Bots join with a LiquidBounce account token; forks get none and skip the server tests
+          GAMETEST_API_TOKEN: ${{ matrix.run != 'local' && secrets.GAMETEST_API_TOKEN || '' }}
+          GAMETEST_SERVER_ANTICHEAT: ${{ matrix.run != 'local' && matrix.run || '' }}
+        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew :v26_3-fabric:runClientGameTest -PgameTestTimeoutMinutes=30
+      - name: Upload game test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gametest-${{ matrix.run }}
+          path: |
+            v26_3/fabric/build/run/clientGameTest/logs/latest.log
+            v26_3/fabric/build/run/clientGameTest/crash-reports/
+            v26_3/fabric/build/run/clientGameTest/screenshots/
+            v26_3/fabric/build/run/clientGameTest/gametest/
+          if-no-files-found: ignore
