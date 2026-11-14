@@ -48,10 +48,14 @@ import kotlin.math.roundToInt
  * rotation, the hotbar and [net.minecraft.client.multiplayer.MultiPlayerGameMode] for digging and using items.
  *
  * The rotation the walk faces ([LookPurpose.MOVEMENT]) or aims with ([LookPurpose.AIM]) is turned to at most
- * [maxTurn] degrees a tick in whole mouse steps, and holds while it is asked for every tick; then it turns back to the
- * camera. The player moves and the movement packet goes out with it, and the keys pressed for the camera are turned
- * onto it; once the packet is out the player looks through the camera again. The camera only turns with the mouse and
- * [LookPurpose.VIEW].
+ * [maxTurn] degrees a tick in whole mouse steps, and the keys pressed for the old view are turned onto it. The camera
+ * looks there too: the way the walk goes, or at the block it places or breaks.
+ *
+ * While the user turns the mouse, or something outside the navigation owns the rotation
+ * ([isRotationOverridden]), the camera is theirs: the player moves and the movement packet goes out with the
+ * rotation, and once the packet is out the player looks through the camera again. Look-ahead
+ * ([LookPurpose.VIEW]) turns the camera only while the rotation is owned elsewhere, so it looks where it goes rather
+ * than where that rotation points.
  *
  * [ClientNavigation] drives it. A client with its own rotation and input handling overrides [look], [press] and the
  * rotation members and calls the navigator from its own input hook instead.
@@ -94,8 +98,18 @@ public open class ClientBody @JvmOverloads constructor(
     override val sentRotation: ViewRotation
         get() = lastSentRotation ?: player.let { ViewRotation(it.yRot, it.xRot) }
 
+    /**
+     * Whether something outside the navigation owns the rotation this tick, such as a client's own aiming feature; the
+     * camera then looks the way the navigation goes instead of following it.
+     */
+    public open val isRotationOverridden: Boolean
+        get() = false
+
+    /**
+     * The user turned the mouse lately, or the camera follows the navigation's own rotation, so look-ahead keeps out.
+     */
     override val isViewTakenOver: Boolean
-        get() = isMouseTurning()
+        get() = isMouseTurning() || !isRotationOverridden
 
     /**
      * One mouse count at the current sensitivity, as `MouseHandler.turnPlayer` and `Entity.turn` turn.
@@ -248,22 +262,30 @@ public open class ClientBody @JvmOverloads constructor(
 
     /**
      * After the navigator ran in the player's tick, before the player moves: puts the player on the rotation of the
-     * tick, or turns it back towards the camera, and puts the keys into [input], turned onto that rotation.
+     * tick, or turns it back towards the camera, and puts the keys into [input], turned onto that rotation. The camera
+     * keeps that rotation unless it is the user's or owned elsewhere.
      */
     internal fun applyTick(player: LocalPlayer, input: ClientInput) {
         val view = ViewRotation(player.yRot, player.xRot)
         val last = this.rotation
         val rotation = nextRotation ?: last?.let { turn(it, view) }?.takeUnless { it.reaches(view) }
-        this.rotation = rotation
+        val viewFollows = rotation != null && !isMouseTurning() && !isRotationOverridden
+        this.rotation = rotation.takeUnless { viewFollows }
         nextRotation = null
         nextPurpose = null
         if (rotation == null && last != null) {
             alignCamera(player, last.yRot)
         }
         if (rotation != null) {
-            camera = view
+            if (!viewFollows) {
+                camera = view
+            }
             player.yRot = rotation.yRot
             player.xRot = rotation.xRot
+            if (viewFollows) {
+                // The camera moves on from where it was by less than a whole turn, as a mouse turn does
+                player.yRotO += Math.round((player.yRot - player.yRotO) / FULL_TURN) * FULL_TURN
+            }
         }
 
         val pressed = pressed

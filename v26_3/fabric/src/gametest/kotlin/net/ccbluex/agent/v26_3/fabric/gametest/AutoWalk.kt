@@ -35,6 +35,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import java.util.UUID
+import java.util.function.Consumer
 import kotlin.math.abs
 
 /**
@@ -63,11 +64,20 @@ internal object AutoWalk {
 
     fun follow(target: String) = navigation.follow(Follow(target))
 
-    fun walkFacing() = navigation.follow(Direction())
+    fun walkFacing() {
+        val direction = Direction()
+        GameTicks.afterPlayerTick.addIfAbsent(direction.tickEnd)
+        this.direction = direction
+        navigation.follow(direction)
+    }
 
     fun stop() {
         current?.stop()
+        direction?.let { GameTicks.afterPlayerTick.remove(it.tickEnd) }
+        direction = null
     }
+
+    private var direction: Direction? = null
 
     /**
      * Stops on arrival.
@@ -120,18 +130,27 @@ internal object AutoWalk {
     }
 
     /**
-     * Keeps a goal [DISTANCE] blocks the way the camera faces, set again once the view turned or half the way is
-     * walked.
+     * Keeps a goal [DISTANCE] blocks the way the user faces, set again once the user turned the view or half the way
+     * is walked. The camera turns with the walk too, so only its turns between ticks, the mouse's, count.
      */
     private class Direction : DestinationSource {
 
         private var goal: Vec3? = null
         private var goalYRot = 0f
+        private var heading = Float.NaN
+        private var tickEndYRot = Float.NaN
+
+        val tickEnd = Consumer<LocalPlayer> { tickEndYRot = it.yRot }
 
         override fun goal(): Vec3 {
             val player = player
             val position = player.position()
-            val yRot = player.yRot
+            heading = if (heading.isNaN() || tickEndYRot.isNaN()) {
+                player.yRot
+            } else {
+                heading + Mth.wrapDegrees(player.yRot - tickEndYRot)
+            }
+            val yRot = heading
             val goal = goal
             if (goal != null && position.horizontalDistanceTo(goal) > REFRESH &&
                 abs(Mth.wrapDegrees(yRot - goalYRot)) <= MAX_TURN

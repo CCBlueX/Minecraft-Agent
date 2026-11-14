@@ -14,6 +14,7 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/navig
 	public fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
 	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
 	public fun getViewStep ()F
+	public fun isRotationOverridden ()Z
 	public fun isViewTakenOver ()Z
 	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
 	public fun press (Lnet/minecraft/world/entity/player/Input;)V
