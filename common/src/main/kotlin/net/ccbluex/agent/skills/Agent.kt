@@ -24,6 +24,7 @@ import net.ccbluex.agent.skills.games.GameMode
 import net.ccbluex.agent.skills.games.RoundSenses
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Input
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -135,11 +136,22 @@ public class Agent @JvmOverloads constructor(
     }
 
     /**
-     * Hosts call it on every hit the body takes; [attacker] is null for falls, fire and the like.
+     * Hosts call it on every hit the body takes; [attacker] is null for falls, fire and the like. Servers older than
+     * 1.19.4 name no source for any hit, so without one an opponent that has just swung at the agent counts as it.
      */
     public fun damaged(attacker: Entity?) {
-        game?.damaged(this, attacker)
-        skills.fight?.damaged(this, attacker)
+        val source = attacker ?: swingingOpponent()
+        game?.damaged(this, source)
+        skills.fight?.damaged(this, source)
+    }
+
+    private fun swingingOpponent(): Player? {
+        val player = body.player
+        val senses = senses
+        val opponents = body.players().filter { it !== player && senses?.isOpponent(it) != false }
+        return likelyAttacker(opponents, { it.distanceTo(player).toDouble() }) {
+            if (it.isSwinging) it.getSwingAnimation(1f) else null
+        }
     }
 
     public fun stop() {
@@ -168,3 +180,24 @@ internal fun idleKeys(last: Input, guard: (Input) -> Input): Input? {
     if (last != Input.EMPTY) return null
     return guard(Input.EMPTY).takeIf { it != Input.EMPTY }
 }
+
+/**
+ * A server takes hits from up to this far, 6 blocks on 1.8.
+ */
+private const val HIT_REACH = 6.0
+
+/**
+ * How far into its swing an arm is that hit just now: a 1.8 client swings before it attacks.
+ */
+private const val FRESH_SWING = 0.5f
+
+/**
+ * Which of [players] hit the agent, by their [distance] and how far into a [swing] their arm is (null without one):
+ * the nearest within [HIT_REACH] early in a swing, or null.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun <T> likelyAttacker(players: List<T>, distance: (T) -> Double, swing: (T) -> Float?): T? =
+    players
+        .filter { other -> distance(other) <= HIT_REACH && swing(other)?.let { it <= FRESH_SWING } == true }
+        .minByOrNull(distance)
