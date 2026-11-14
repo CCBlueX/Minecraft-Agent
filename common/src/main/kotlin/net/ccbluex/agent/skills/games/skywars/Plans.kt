@@ -145,7 +145,7 @@ internal object Plans {
 
     /**
      * The option with the best score plus noise of [whim] and the commit bonus for [current]. While [current] heads
-     * for a chest, no other chest plan takes its place.
+     * for a chest, no other chest plan takes its place. With no option left, [current] goes on until it ends itself.
      */
     fun pick(options: List<Plan>, current: Plan?, whim: Double, random: Random, chestUnderway: Boolean): Plan {
         val keepsChest = current != null && chestUnderway && current.activity.isChests &&
@@ -153,7 +153,7 @@ internal object Plans {
         val candidates = if (keepsChest) options.filter { !it.activity.isChests || it.same(current) } else options
         return candidates.maxByOrNull {
             it.score + random.nextGaussian() * NOISE * whim + if (it.same(current)) COMMIT else 0.0
-        } ?: Plan(Activity.HOLD, 0.0, reason = "nothing")
+        } ?: current ?: Plan(Activity.HOLD, 0.0, reason = "nothing")
     }
 
     fun score(s: Situation, p: Personality): List<Plan> {

@@ -166,19 +166,59 @@ class ScoresTest {
     fun `the choice takes the best score with taste and sticks with what it does`() {
         val scores = mapOf(Activity.GATHER to 0.5, Activity.GEAR to 0.6)
         val noTaste = emptyMap<Activity, Double>()
-        assertEquals(Activity.GEAR, choose(scores, noTaste, middling, null, null, still).first)
+        assertEquals(Activity.GEAR, choose(scores, noTaste, middling, null, null, false, still).first)
         // Gathering already: 0.5 + 0.15 + 0.3 * 0.5 beats 0.6
-        assertEquals(Activity.GATHER, choose(scores, noTaste, middling, Activity.GATHER, null, still).first)
-        assertEquals(Activity.GATHER, choose(scores, mapOf(Activity.GATHER to 0.2), middling, null, null, still).first)
+        assertEquals(Activity.GATHER, choose(scores, noTaste, middling, Activity.GATHER, null, false, still).first)
+        assertEquals(Activity.GATHER, choose(scores, mapOf(Activity.GATHER to 0.2), middling, null, null, false, still).first)
     }
 
     @Test
     fun `a finished activity is left out until its time is up`() {
         val scores = mapOf(Activity.GATHER to 0.2, Activity.COVER to 0.9)
-        val (best, score) = choose(scores, emptyMap(), middling, null, Activity.COVER, still)
+        val (best, score) = choose(scores, emptyMap(), middling, null, Activity.COVER, false, still)
         assertEquals(Activity.GATHER, best)
         assertEquals(0.2, score, 1e-9)
-        assertEquals(Activity.GATHER, choose(emptyMap(), emptyMap(), middling, null, null, still).first)
+        assertEquals(Activity.GATHER, choose(emptyMap(), emptyMap(), middling, null, null, false, still).first)
+    }
+
+    /**
+     * A hunter that waits at its generator for wool money affords its next gear, buys it and then
+     * can afford nothing, so GEAR and HUNT took turns on every think, 2 to 5 s apart, for half an hour.
+     */
+    private fun switches(commit: Boolean): List<Long> {
+        var current = Activity.HUNT
+        var affords = true
+        var committedUntil = 0L
+        val switches = ArrayList<Long>()
+        for (tick in 0L until 2000L step 50) {
+            val facts = Facts(seconds = 600, hasPrey = true, wishUrgency = if (affords) 0.8 else 0.5, affordsWish = affords)
+            val committed = commit && tick < committedUntil
+            val best = choose(scores(facts, middling), emptyMap(), middling, current, null, committed, still).first
+            if (best != current) {
+                switches += tick
+                current = best
+                committedUntil = tick + Activities.COMMIT_TICKS
+            }
+            affords = current != Activity.GEAR
+        }
+        return switches
+    }
+
+    @Test
+    fun `a purchase does not flip the agent between gearing up and hunting`() {
+        assertTrue(switches(commit = false).size >= 30, "the flip-flop the commitment stops")
+        val switches = switches(commit = true)
+        assertTrue(switches.size >= 2, "$switches")
+        assertTrue(switches.zipWithNext().all { (a, b) -> b - a >= Activities.COMMIT_TICKS }, "$switches")
+    }
+
+    @Test
+    fun `a committed activity is kept while it can be taken up and dropped once it cannot`() {
+        val scores = mapOf(Activity.GATHER to 0.3, Activity.HUNT to 0.4, Activity.DEFEND to 1.4)
+        assertEquals(Activity.HUNT, choose(scores, emptyMap(), middling, Activity.HUNT, null, true, still).first)
+        assertEquals(Activity.DEFEND, choose(scores, emptyMap(), middling, Activity.HUNT, null, false, still).first)
+        val noPrey = scores - Activity.HUNT
+        assertEquals(Activity.DEFEND, choose(noPrey, emptyMap(), middling, Activity.HUNT, null, true, still).first)
     }
 
     @Test

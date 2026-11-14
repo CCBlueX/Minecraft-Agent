@@ -182,4 +182,13 @@ class PlansTest {
     fun nothingToDoHolds() {
         assertEquals(Activity.HOLD, Plans.pick(emptyList(), null, 1.0, Random(1), false).activity)
     }
+
+    /**
+     * A hunt whose foe dropped out of the options for a moment gave way to holding, nine times.
+     */
+    @Test
+    fun aPlanWithNoOptionLeftGoesOn() {
+        val hunt = Plan(Activity.HUNT, -32.75, targetId = 7)
+        assertEquals(hunt, Plans.pick(emptyList(), hunt, 1.0, Random(1), false))
+    }
 }

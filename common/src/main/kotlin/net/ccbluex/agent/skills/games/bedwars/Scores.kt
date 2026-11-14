@@ -244,7 +244,8 @@ internal fun scores(f: Facts, t: Traits): Map<Activity, Double> {
 
 /**
  * The activity a think settles on, with its final score: each score plus the agent's taste for it and noise, the
- * current activity a bonus for sticking with it, [finished] left out; GATHER when nothing is left.
+ * current activity a bonus for sticking with it, [finished] left out; GATHER when nothing is left. While [committed],
+ * the current activity stays as long as it can still be taken up, whatever else scores.
  *
  * @agent claude-opus-5-5
  */
@@ -254,8 +255,10 @@ internal fun choose(
     t: Traits,
     current: Activity?,
     finished: Activity?,
+    committed: Boolean,
     random: Random,
 ): Pair<Activity, Double> {
+    if (committed && current != null) scores[current]?.let { return current to it + (taste[current] ?: 0.0) }
     var best = Activity.GATHER
     var bestScore = -Double.MAX_VALUE
     for ((activity, base) in scores) {

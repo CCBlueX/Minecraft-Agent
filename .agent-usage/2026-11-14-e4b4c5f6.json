@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): activities stop flipping",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 110, "cachedInput": 6671401, "cacheWrite": 139836, "output": 28646 },
+      "usd": 3.03
+    }
+  ]
+}

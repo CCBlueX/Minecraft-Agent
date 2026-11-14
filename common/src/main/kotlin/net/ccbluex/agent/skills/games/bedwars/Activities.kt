@@ -93,6 +93,11 @@ internal class Activities(
      */
     var intruder: Player? = null
     private var thinkAt = 0L
+
+    /**
+     * Until when the running activity is kept without weighing, unless an alarm ends the wait.
+     */
+    private var committedUntil = 0L
     private val taste = EnumMap<Activity, Double>(Activity::class.java)
     private var joined = false
 
@@ -181,7 +186,7 @@ internal class Activities(
         if (tick % Threats.APPROACH_TICKS == 0L) threats.trackApproach(self, team)
         val intruder = threats.intruder(self, team, tick)
         // A bed alarm is no time to finish the thought
-        if (intruder != null && this.intruder == null) thinkAt = tick
+        if (intruder != null && this.intruder == null) alarm()
         this.intruder = intruder
         if (activity == null || job?.isActive != true || tick >= thinkAt) think()
         val guardsBed = team.isBedAlive && (activity == Activity.DEFEND || isOnIsland())
@@ -255,7 +260,9 @@ internal class Activities(
     private fun think() {
         thinkAt = tick + THINK_TICKS + random.nextInt(THINK_SPREAD) - (traits.skill * 15).toInt()
         val scores = scores(facts(intruder), traits)
-        val (best, score) = choose(scores, taste, traits, activity, finished.takeIf { tick < finishedUntil }, random)
+        val committed = job?.isActive == true && tick < committedUntil
+        val (best, score) =
+            choose(scores, taste, traits, activity, finished.takeIf { tick < finishedUntil }, committed, random)
         if (best != activity || job?.isActive != true) {
             if (best != activity) {
                 agent.decide(best.name, score, "think")
@@ -263,6 +270,7 @@ internal class Activities(
                 announce(best)
             }
             activity = best
+            committedUntil = tick + COMMIT_TICKS
             cancel()
             job = scope.launch {
                 carryOut(best)
@@ -337,7 +345,15 @@ internal class Activities(
         } else if (teamName == team.name && (activity == Activity.COVER || activity == Activity.DEFEND)) {
             say(Callout.BedLost)
         }
+        alarm()
+    }
+
+    /**
+     * Thinks again on the next tick, free to drop the running activity.
+     */
+    private fun alarm() {
         thinkAt = tick
+        committedUntil = tick
     }
 
     /**
@@ -387,6 +403,11 @@ internal class Activities(
          * How long an activity that ran out of things to do stays out of the choice.
          */
         const val FINISHED_TICKS = 60
+
+        /**
+         * How long a new activity is kept before a think may swap it for another, unless it ends or an alarm.
+         */
+        const val COMMIT_TICKS = 200
         const val MIN_RESPAWN_TICKS = 20
 
         /**
