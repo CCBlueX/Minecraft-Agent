@@ -24,11 +24,15 @@ import net.minecraft.core.Holder
 import net.minecraft.core.component.DataComponents
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.effect.MobEffect
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import net.minecraft.world.item.component.ItemAttributeModifiers
 import net.minecraft.world.item.enchantment.Enchantment
+import net.minecraft.world.item.enchantment.Enchantments
 import net.minecraft.world.level.EmptyBlockGetter
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.FallingBlock
@@ -99,3 +103,21 @@ internal val ItemStack.weaponRank: Int
         isShovel -> 1
         else -> 0
     }
+
+/**
+ * Damage per second of full-charge hits with this item under 1.9 rules, from its attack damage and speed, sharpness
+ * included: a wooden sword's 6.4 loses to a stone axe's 7.2, a diamond sword's 11.2 beats a diamond axe's 9.
+ *
+ * @agent claude-opus-5-5
+ */
+internal val ItemStack.damagePerSecond: Double
+    get() {
+        val modifiers = getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY)
+        val sharpness = enchantLevel(Enchantments.SHARPNESS)
+        val damage = modifiers.compute(Attributes.ATTACK_DAMAGE, BASE_ATTACK_DAMAGE, EquipmentSlot.MAINHAND) +
+            if (sharpness > 0) 0.5 + 0.5 * sharpness else 0.0
+        return damage * modifiers.compute(Attributes.ATTACK_SPEED, BASE_ATTACK_SPEED, EquipmentSlot.MAINHAND)
+    }
+
+private const val BASE_ATTACK_DAMAGE = 1.0
+private const val BASE_ATTACK_SPEED = 4.0

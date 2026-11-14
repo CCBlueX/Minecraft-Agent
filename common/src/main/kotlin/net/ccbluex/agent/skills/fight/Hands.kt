@@ -90,13 +90,23 @@ internal class Hands(private val body: AgentBody) {
     }
 
     /**
-     * The weapon held between skills: the best scored of the highest [weaponRank]; null without any.
+     * The weapon held between skills: under 1.9 rules the sword or axe with the most damage per second, else the
+     * best scored of the highest [weaponRank]; null without any.
+     *
+     * @agent claude-opus-5-5
      */
-    fun primary(): Int? = (0 until Inventory.INVENTORY_SIZE)
-        .filter { inventory.getItem(it).weaponRank > 0 }
-        .maxWithOrNull(
-            compareBy({ inventory.getItem(it).weaponRank }, { GearScore.weaponScore(inventory.getItem(it)) }),
-        )
+    fun primary(): Int? {
+        val slots = 0 until Inventory.INVENTORY_SIZE
+        if (!body.isCombat1_8) {
+            slots.filter { inventory.getItem(it).let { stack -> stack.isSword || stack.isAxe } }
+                .maxByOrNull { inventory.getItem(it).damagePerSecond }
+                ?.let { return it }
+        }
+        return slots.filter { inventory.getItem(it).weaponRank > 0 }
+            .maxWithOrNull(
+                compareBy({ inventory.getItem(it).weaponRank }, { GearScore.weaponScore(inventory.getItem(it)) }),
+            )
+    }
 
     fun holdPrimary() {
         val weapon = primary()

@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(skills): 1.9 best weapon by dps",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 84, "cachedInput": 12438738, "cacheWrite": 21569, "output": 10395 },
+      "usd": 2.87
+    }
+  ]
+}
