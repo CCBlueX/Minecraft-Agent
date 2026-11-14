@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(paper): eliminated bots hear a death",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 152, "cachedInput": 12195098, "cacheWrite": 209402, "output": 50777 },
+      "usd": 2.57
+    }
+  ]
+}

@@ -167,6 +167,17 @@ public class Bots internal constructor(private val plugin: Plugin) {
     }
 
     /**
+     * A minigame plugin took the bot out of its round while its body lives on, as a spectator: told as the death it is,
+     * with [killer] when the plugin knows one.
+     *
+     * @agent claude-sonnet-5-5
+     */
+    internal fun eliminated(bot: Bot, killer: net.minecraft.world.entity.Entity?) {
+        bot.agent?.listener?.died(killer)
+        notify(bot, "died") { it.died(bot) }
+    }
+
+    /**
      * Bodies standing in an unloading chunk go; they come back at home once the home chunk is loaded.
      */
     internal fun chunkUnloading(chunk: Chunk) {
