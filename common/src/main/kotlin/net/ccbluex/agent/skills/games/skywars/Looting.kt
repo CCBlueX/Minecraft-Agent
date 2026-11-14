@@ -24,6 +24,7 @@ import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.entity.ChestBlockEntity
 import net.minecraft.world.phys.Vec3
+import kotlin.math.abs
 
 internal const val OWN_CHEST_RANGE = 7.0
 private const val REAL_PLAYER_NEAR_CHEST = 12.0
@@ -104,6 +105,22 @@ private fun Round.freeAt(pos: BlockPos): Long {
 }
 
 /**
+ * [blocked] and the chests of [chests] on the same island and level, which a navigator that found no way closer to
+ * one finds none to either.
+ *
+ * @agent claude-sonnet-5-5
+ */
+internal fun sharingGround(blocked: BlockPos, chests: List<BlockPos>): List<BlockPos> {
+    val center = Vec3.atBottomCenterOf(blocked)
+    return chests.filter {
+        it == blocked || Vec3.atBottomCenterOf(it).horizontalDistanceTo(center) <= SkyWars.ISLAND_RADIUS &&
+            abs(it.y - blocked.y) <= SAME_LEVEL
+    }
+}
+
+private const val SAME_LEVEL = 3
+
+/**
  * Loots the nearest of [chests] one after the other while any is the agent's to loot: a far chest is travelled to
  * first, a close one left to the loot ability, which walks up, opens it and takes what is wanted. Returns once none
  * is left.
@@ -124,7 +141,9 @@ internal suspend fun Round.loot(chests: () -> List<BlockPos>, where: String, lef
         chest = next
         val center = Vec3.atCenterOf(next)
         if (player.position().distanceTo(center) > CHEST_TRAVEL) {
-            if (step(center, CHEST_TRAVEL / 2, next, where) == Step.BLOCKED) unreachable += next
+            if (step(center, CHEST_TRAVEL / 2, next, where) == Step.BLOCKED) {
+                unreachable += if (agent.navigator.isStranded) sharingGround(next, chests()) else listOf(next)
+            }
         } else if (loot.open(next)) {
             openedAny = true
             goal = if (loot.isLooting) "Looting" else "Going to $where"
