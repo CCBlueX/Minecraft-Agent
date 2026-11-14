@@ -44,10 +44,17 @@ import net.minecraft.world.phys.Vec3
  * one then leans on. The look leads the click by a tick, so it is aimed from where the eyes will be.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 internal object Clutch {
 
     private val SUPPORTS = Direction.Plane.HORIZONTAL.toList() + Direction.DOWN
+
+    /**
+     * A fall gives a few ticks, so the look is a flick a body paces at flick speed, not the aim's: at the aim's pace
+     * of a normal bot (15 degrees of yaw, 10.5 of pitch a tick) it takes seven ticks to look down from level.
+     */
+    val LOOK = LookPurpose.STEER
     private const val PLACE_REACH = 4.5
     private const val HALF = 0.5
 
@@ -85,7 +92,7 @@ internal object Clutch {
                 agent.decide("Clutch block", 1.0, "falling at ${hit.blockPos.relative(hit.direction).y}")
             }
         }
-        body.look(ViewRotation.fromVector(aim.subtract(eyes)), LookPurpose.AIM)
+        body.look(ViewRotation.fromVector(aim.subtract(eyes)), LOOK)
         return true
     }
 

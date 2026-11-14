@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): clutch looks down at flick speed",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 68, "cachedInput": 9873104, "cacheWrite": 637195, "output": 21186 },
+      "usd": 3.75
+    }
+  ]
+}
