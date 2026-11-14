@@ -20,11 +20,13 @@
 package net.ccbluex.agent.navigation.walk
 
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.FarmlandBlock
 import net.minecraft.world.phys.Vec3
+import kotlin.math.abs
 
 /**
  * Sprint jumps along straight runs, which are faster than running.
@@ -60,12 +62,18 @@ internal class Hops(private val context: NavigationContext, private val stride: 
     }
 
     /**
-     * Whether to jump while sprinting straight on to [aim].
+     * Whether to jump while sprinting straight on to [aim]. The jump pushes the way the player moves along, so it
+     * waits until the player turned to the aim; the way is checked as far as the hop goes at the measured speed.
+     *
+     * @agent claude-opus-5-5
      */
     private fun canHop(position: Vec3, aim: Vec3): Boolean {
         val distance = position.horizontalDistanceTo(aim)
         val able = player.onGround() && player.isSprinting && player.foodData.foodLevel > HOP_FOOD
         if (!able || distance < HOP_DISTANCE) {
+            return false
+        }
+        if (abs(Mth.wrapDegrees(aim.subtract(position).yRot - context.body.movementYRot)) > HOP_FACING) {
             return false
         }
 
@@ -89,6 +97,11 @@ internal class Hops(private val context: NavigationContext, private val stride: 
 
     private companion object {
         const val HOP_DISTANCE = 4.0
+
+        /**
+         * Degrees the facing may be off the aim for the push of the jump to carry the player there.
+         */
+        const val HOP_FACING = 15f
         const val HOP_FOOD = 10
         const val HOP_LENGTH = 3.5
         const val HOP_HEIGHT = 1.25
