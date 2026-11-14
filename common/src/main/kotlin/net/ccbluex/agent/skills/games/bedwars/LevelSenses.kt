@@ -38,9 +38,11 @@ import net.minecraft.world.phys.Vec3
 
 /**
  * A Bed Wars round of a client: the team texts from [LevelSenses.Facts], the rest from the [level]. A team's bed is
- * the one of its colour, its island the agent's spawn or the bed, its generator the iron or gold lying by the bed,
- * the neutral generators the diamonds and emeralds lying between the islands, its shopkeepers the entities the
- * facts name near the island. Blocks that appear while the round plays count as placed by players.
+ * the one of its colour, or, where the beds' colours do not tell the teams apart as on 1.8 servers, the free bed
+ * nearest to where the team was seen. Its island is the agent's spawn, where the agent stands after the teleport
+ * from the waiting lobby, or the bed; its generator the iron or gold lying by the bed, the neutral generators the
+ * diamonds and emeralds lying between the islands, its shopkeepers the entities the facts name near the island.
+ * Blocks that appear while the round plays count as placed by players.
  *
  * The host calls [tick] every client tick and [blockChanged] for every block the server changes.
  *
@@ -88,10 +90,23 @@ public class LevelSenses internal constructor(
 
     private var ownTeamName: String? = null
     private var known: List<SeenTeam> = emptyList()
+
+    /**
+     * Where the agent first stood on its island this round: the own team's spawn.
+     */
+    private var home: Vec3? = null
+
+    /**
+     * The bed of each team, kept while it stands when the beds' colours do not tell the teams apart.
+     */
+    private var claimed: Map<String, BlockPos> = emptyMap()
     private val placed = HashSet<BlockPos>()
     private val spawns = HashMap<String, Vec3>()
     private val islandGenerators = HashMap<String, Generator>()
     private val neutralGenerators = ArrayList<Generator>()
+
+    override val ownSpawn: Vec3?
+        get() = home ?: super.ownSpawn
 
     override val ownTeam: BedWarsTeam?
         get() = ownTeamName?.let { name -> known.firstOrNull { it.name == name } }
@@ -132,21 +147,34 @@ public class LevelSenses internal constructor(
 
     override fun scan() {
         val me = self ?: return
+        if (home == null && state == RoundState.PLAYING && !isSpectator && me.onGround()) {
+            home = islandSpawn(super.ownSpawn, me.position(), matchSeconds)
+        }
         val rows = facts.teams
         ownTeamName = facts.ownTeamName ?: rows.firstOrNull { me.scoreboardName in it.memberNames }?.name ?: ownTeamName
         val beds = blocks.find(level, me.blockPosition()) { it.block is BedBlock }.mapNotNull { pos ->
             (level.getBlockState(pos).block as? BedBlock)?.let { it.color to pos }
         }
-        known = rows.map { seeTeam(it, beds) }
+        val colours = beds.associate { (color, pos) -> pos to color }
+        val members = rows.associate { row ->
+            row.name to level.players().filter { it.scoreboardName in row.memberNames && it.isAlive && !it.isSpectator }
+        }
+        val teamColors = rows.associate { it.name to bedColors(it.color) }
+        claimed = claimBeds(
+            beds = beds.map { it.second },
+            teams = rows.sortedByDescending { it.name == ownTeamName }.map { it.name },
+            byColour = colours.values.distinct().size > 1,
+            coloured = { team, bed -> colours[bed] in teamColors.getValue(team) },
+            seen = { team -> if (team == ownTeamName) ownSpawn else middleOf(members.getValue(team)) },
+            claimed = claimed,
+        )
+        known = rows.map { seeTeam(it, members.getValue(it.name)) }
         seeGenerators()
     }
 
-    private fun seeTeam(row: TeamFacts, beds: List<Pair<DyeColor, BlockPos>>): SeenTeam {
+    private fun seeTeam(row: TeamFacts, members: List<Player>): SeenTeam {
         val isOwn = row.name == ownTeamName
-        val colors = bedColors(row.color)
-        val bed = beds.filter { (color, _) -> color in colors }.minByOrNull { (_, pos) ->
-            if (isOwn) ownSpawn?.let { pos.distToCenterSqr(it) } ?: 0.0 else 0.0
-        }?.second
+        val bed = claimed[row.name]
         val spawn = (if (isOwn) ownSpawn else null) ?: bed?.let { Vec3.atBottomCenterOf(it) } ?: spawns[row.name]
         spawn?.let { spawns[row.name] = it }
         return SeenTeam(
@@ -155,20 +183,27 @@ public class LevelSenses internal constructor(
             bed = bed,
             isBedAlive = bed != null && row.isBedAlive,
             memberNames = row.memberNames,
-            members = level.players().filter { it.scoreboardName in row.memberNames && it.isAlive && !it.isSpectator },
+            members = members,
             shopkeeper = spawn?.let { npcNear(it, facts::isShopkeeper) },
             upgrader = spawn?.let { npcNear(it, facts::isUpgrader) },
         )
     }
 
+    /**
+     * The iron and gold of an island drop by the own spawn, or by the bed where the spawn is not known yet.
+     */
     private fun seeGenerators() {
         val bases = ArrayList<AABB>()
         for (team in known) {
-            val center = Vec3.atCenterOf(team.bed ?: continue)
-            val base = AABB.ofSize(center, 16.0, 12.0, 16.0)
-            bases += base
-            items(base) { it == Currency.IRON || it == Currency.GOLD }.minByOrNull { it.distanceToSqr(center) }
-                ?.let { islandGenerators[team.name] = Generator(Currency.IRON, it.position(), team.name) }
+            val centers = listOfNotNull(
+                if (team.name == ownTeamName) home else null,
+                team.bed?.let { Vec3.atCenterOf(it) },
+            )
+            bases += centers.map { AABB.ofSize(it, 16.0, 12.0, 16.0) }
+            centers.firstNotNullOfOrNull { center ->
+                items(AABB.ofSize(center, 16.0, 12.0, 16.0)) { it == Currency.IRON || it == Currency.GOLD }
+                    .minByOrNull { it.distanceToSqr(center) }
+            }?.let { islandGenerators[team.name] = Generator(Currency.IRON, it.position(), team.name) }
         }
         if (spawns.size >= 2) {
             // The neutral generators lie between the islands, within a margin of the farthest one
@@ -243,3 +278,58 @@ public data class TeamFacts(
     public val memberNames: Set<String>,
     public val isBedAlive: Boolean,
 )
+
+/**
+ * The own spawn, once the player stands on the ground at [at] [seconds] into the round: there when it is more than 24
+ * blocks from [start], as servers teleport from the waiting lobby after announcing the start; [start] itself once
+ * the player stayed for 2 seconds, as servers that teleport first. Null while it may still be teleported.
+ *
+ * @agent claude-sonnet-5-5
+ */
+internal fun islandSpawn(start: Vec3?, at: Vec3, seconds: Int): Vec3? = when {
+    start == null || start.distanceTo(at) > 24.0 -> at
+    seconds >= 2 -> start
+    else -> null
+}
+
+/**
+ * The bed of each of [teams], the own team first: by colour where the beds' colours tell the teams apart; else, as
+ * on 1.8 servers whose beds all show red, the free bed nearest to where the team was [seen], within 24 blocks.
+ * Without colours a bed [claimed] before stays its team's while it stands. Each half of a bed counts as the bed.
+ *
+ * @agent claude-sonnet-5-5
+ */
+internal fun claimBeds(
+    beds: List<BlockPos>,
+    teams: List<String>,
+    byColour: Boolean,
+    coloured: (team: String, bed: BlockPos) -> Boolean,
+    seen: (team: String) -> Vec3?,
+    claimed: Map<String, BlockPos>,
+): Map<String, BlockPos> {
+    val claims = LinkedHashMap<String, BlockPos>()
+    if (!byColour) {
+        for (team in teams) claimed[team]?.takeIf { it in beds }?.let { claims[team] = it }
+    }
+    for (team in teams) {
+        if (team in claims) continue
+        val near = seen(team)
+        val free = beds.filter { bed -> claims.values.none { it.distManhattan(bed) <= 1 } }
+        val bed = when {
+            byColour -> free.filter { coloured(team, it) }.minByOrNull { if (near == null) 0.0 else it.distToCenterSqr(near) }
+            near == null -> null
+            else -> free.filter { it.distToCenterSqr(near) <= 24.0 * 24.0 }.minByOrNull { it.distToCenterSqr(near) }
+        }
+        bed?.let { claims[team] = it }
+    }
+    return claims
+}
+
+/**
+ * Where [players] stand on average; null for none.
+ */
+private fun middleOf(players: List<Player>): Vec3? {
+    if (players.isEmpty()) return null
+    val count = players.size.toDouble()
+    return Vec3(players.sumOf { it.x } / count, players.sumOf { it.y } / count, players.sumOf { it.z } / count)
+}

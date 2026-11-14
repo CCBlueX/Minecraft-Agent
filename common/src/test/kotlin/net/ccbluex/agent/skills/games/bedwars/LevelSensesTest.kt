@@ -146,6 +146,32 @@ internal class LevelSensesTest {
     }
 
     @Test
+    fun spawnIsTheIslandWhenTheServerTeleportsAfterTheStart() {
+        val round = Round()
+        val lobby = TestWorld.feet(60, 1, 3)
+        val island = round.me.position()
+        round.me.snapTo(lobby, 0f, 0f)
+        round.facts.state = RoundState.PLAYING
+        round.senses.tick()
+        assertEquals(lobby, round.senses.ownSpawn)
+
+        round.me.snapTo(island, 0f, 0f)
+        round.senses.scanNow()
+        assertEquals(island, round.senses.ownSpawn)
+        assertEquals(island, round.senses.ownTeam?.spawn)
+    }
+
+    @Test
+    fun bedsGoByPlaceWhenEveryBedIsRed() {
+        val round = Round()
+        round.world.set(-10, 1, 0, Blocks.BED.red().defaultBlockState())
+        round.facts.state = RoundState.PLAYING
+        round.senses.tick()
+        assertEquals(BlockPos(10, 1, 0), round.senses.teams[0].bed)
+        assertEquals(BlockPos(-10, 1, 0), round.senses.teams[1].bed)
+    }
+
+    @Test
     fun blocksPlacedWhilePlayingAreThePlayers() {
         val round = Round()
         val pos = BlockPos(3, 1, 3)
