@@ -74,8 +74,13 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
     var ticks = 0L
         private set
 
+    /**
+     * The own island's ground: the spawn at first, once the cage dropped the ground under it.
+     */
     var island: Vec3 = Vec3.ZERO
         private set
+    private var spawn: Vec3 = Vec3.ZERO
+    private var islandSettled = false
     private var startedAt = -1L
     private var lootAt = 0L
 
@@ -145,6 +150,7 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
             return
         }
         if (startedAt < 0) start()
+        settleIsland()
         if (ticks % SYNC_TICKS == 0L) syncChests()
         targets.tick(agent)
         outnumbered.tick(agent)
@@ -196,9 +202,22 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
     private fun start() {
         startedAt = ticks
         lootAt = ticks + lootDelay
-        island = senses.ownSpawn ?: cage.position ?: player.position()
+        spawn = senses.ownSpawn ?: cage.position ?: player.position()
+        island = spawn
         phase = "Playing"
         agent.listener.phase(phase)
+    }
+
+    /**
+     * A cage hangs above its island, so the spawn is not the island's ground. Once the agent stands on the ground
+     * below the spawn, the island is the ground under it.
+     *
+     * @agent claude-sonnet-5-5
+     */
+    private fun settleIsland() {
+        if (islandSettled || !player.onGround() || player.y >= spawn.y - ISLAND_DROP) return
+        islandSettled = true
+        island = terrain.islandGround(spawn) ?: player.position()
     }
 
     /**
@@ -312,18 +331,8 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
     fun middle(): Vec3? {
         middleGround?.let { return it }
         val point = senses.middle ?: chestMiddle() ?: return null
-        val x = Mth.floor(point.x)
-        val z = Mth.floor(point.z)
-        var y = Mth.floor(point.y)
-        val terrain = terrain
-        repeat(MIDDLE_DROP) {
-            if (y <= terrain.minY) return null
-            if (!terrain.isPassable(x, y - 1, z) && terrain.isPassable(x, y, z)) {
-                return Vec3(x + 0.5, y.toDouble(), z + 0.5).also { middleGround = it }
-            }
-            y--
-        }
-        return null
+        return terrain.groundUnder(Mth.floor(point.x), Mth.floor(point.y), Mth.floor(point.z), MIDDLE_DROP)
+            ?.also { middleGround = it }
     }
 
     private fun chestMiddle(): Vec3? {
@@ -344,6 +353,7 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
         const val RETREAT_RADIUS = 1.0
         const val MIN_MIDDLE_CHESTS = 6
         const val MIDDLE_DROP = 200
+        const val ISLAND_DROP = 1.0
         const val LOOT_DELAY_MIN = 20
         const val LOOT_DELAY_MAX = 120
         const val HOLD_MIN = 300
