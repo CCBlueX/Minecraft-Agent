@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(navigation): public teleport routes",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 164, "cachedInput": 11137641, "cacheWrite": 176032, "output": 31500 },
+      "usd": 4.27
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 415, "cachedInput": 0, "cacheWrite": 0, "output": 3 },
+      "usd": 0.00
+    }
+  ]
+}

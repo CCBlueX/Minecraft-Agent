@@ -292,6 +292,23 @@ class TeleportRoutingTest {
     }
 
     @Test
+    fun `every step is at most the step length and clear of blocks`() {
+        val stepLength = 3.0
+        val terrain = flat().fill(5, 1, -6, 5, 12, 6).fill(12, 1, -3, 14, 8, 3).terrain()
+        val start = feet(0, 1, 0)
+        val search = WaypointSearch(terrain, start, listOf(BlockPos(20, 1, 0)), Limits(maxLength = 80.0), stepLength)
+        val route = found(search.advanceToEnd(MAX_SLICES))
+
+        assertEquals(feet(20, 1, 0), route.steps.last().position)
+        var previous = start
+        for (step in route.steps) {
+            assertTrue(previous.distanceTo(step.position) <= stepLength + 1.0E-6, "A step from $previous is too long")
+            assertTrue(terrain.sweep(previous, step.position), "The step from $previous to ${step.position} is blocked")
+            previous = step.position
+        }
+    }
+
+    @Test
     fun `arriving, missing and impossible destinations are told apart`() {
         // A standable cell walled in on every side.
         val terrain = flat().fill(19, 1, -1, 21, 3, 1).fill(20, 1, 0, 20, 2, 0, AIR).terrain()

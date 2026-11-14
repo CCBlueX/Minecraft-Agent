@@ -100,9 +100,11 @@ public class Teleports(private val body: Body) {
     public fun isAvailable(owner: Owner): Boolean = !isMoving && (holder == null || holder === owner)
 
     /**
-     * Starts sending [route] from where the server has the player; null when busy or it begins too far off.
+     * Starts sending [route] for [owner] from where the server has the player, cut into packets as [options] says.
+     * Null while another run moves or another owner holds the player, while riding, without a [Body.teleporter], or
+     * when [route] begins more than two blocks off.
      */
-    internal fun dispatch(
+    public fun dispatch(
         owner: Owner,
         route: Route,
         finish: Teleport.Finish,

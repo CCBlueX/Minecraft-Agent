@@ -102,6 +102,11 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
     override val flight: FlightControl?
         get() = null
 
+    /**
+     * None by default: a client teleport also needs the host to rewrite its own movement packets while
+     * [net.ccbluex.agent.navigation.teleport.Teleports.rewritesMovement] holds and to report setbacks, so a host that
+     * does both overrides this with a [Teleporter] sending its position packets.
+     */
     override val teleporter: Teleporter?
         get() = null
 

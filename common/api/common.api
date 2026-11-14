@@ -429,6 +429,7 @@ public final class net/ccbluex/agent/navigation/teleport/Teleports {
 	public fun <init> (Lnet/ccbluex/agent/navigation/Body;)V
 	public final fun blockChanged (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V
 	public final fun cancel ()V
+	public final fun dispatch (Lnet/ccbluex/agent/navigation/teleport/Owner;Lnet/ccbluex/agent/pathfinder/teleport/Route;Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;Lnet/ccbluex/agent/navigation/teleport/Options;)Lnet/ccbluex/agent/navigation/teleport/Teleport;
 	public final fun getRewritesMovement ()Z
 	public final fun getRun ()Lnet/ccbluex/agent/navigation/teleport/Teleport;
 	public final fun getServerOnGround ()Z
@@ -450,17 +451,26 @@ public final class net/ccbluex/agent/navigation/teleport/Trip {
 	public synthetic fun <init> (Lnet/ccbluex/agent/navigation/teleport/Owner;Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/teleport/Teleports;Lnet/ccbluex/agent/navigation/teleport/Options;Lnet/ccbluex/agent/navigation/Listener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun blockChanged (Lnet/minecraft/core/BlockPos;)V
 	public final fun comeBack ()Z
+	public final fun dispatch (Lnet/ccbluex/agent/pathfinder/teleport/Route;Lnet/ccbluex/agent/navigation/teleport/Teleport$Finish;)Lnet/ccbluex/agent/navigation/teleport/Teleport;
 	public final fun getEyePosition ()Lnet/minecraft/world/phys/Vec3;
 	public final fun getOptions ()Lnet/ccbluex/agent/navigation/teleport/Options;
 	public final fun getPosition ()Lnet/minecraft/world/phys/Vec3;
 	public final fun getRun ()Lnet/ccbluex/agent/navigation/teleport/Teleport;
 	public final fun isAvailable ()Z
 	public final fun isAway ()Z
+	public final fun poll ()Lnet/ccbluex/agent/pathfinder/route/Outcome;
+	public final fun request (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;D)V
 	public final fun request (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;)V
-	public static synthetic fun request$default (Lnet/ccbluex/agent/navigation/teleport/Trip;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;ILjava/lang/Object;)V
+	public final fun request (Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;Ljava/util/function/Consumer;)V
+	public static synthetic fun request$default (Lnet/ccbluex/agent/navigation/teleport/Trip;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;Ljava/util/function/Consumer;ILjava/lang/Object;)V
 	public final fun reset ()V
 	public final fun setOptions (Lnet/ccbluex/agent/navigation/teleport/Options;)V
 	public final fun showReturn ()V
+}
+
+public final class net/ccbluex/agent/navigation/teleport/TripKt {
+	public static final fun route (Lnet/ccbluex/agent/navigation/teleport/Trip;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun route$default (Lnet/ccbluex/agent/navigation/teleport/Trip;Lnet/minecraft/world/phys/Vec3;Ljava/util/List;DLnet/minecraft/world/phys/Vec3;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class net/ccbluex/agent/navigation/walk/AssistedJump {
@@ -936,6 +946,9 @@ public final class net/ccbluex/agent/pathfinder/terrain/DestinationCheck : java/
 }
 
 public final class net/ccbluex/agent/pathfinder/terrain/ReachKt {
+	public static final fun reachPositions (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/AABB;DLnet/minecraft/world/phys/Vec3;)Ljava/util/List;
+	public static final fun reachPositions (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/AABB;DLnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;)Ljava/util/List;
+	public static final fun reachPositions (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/AABB;DLnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;D)Ljava/util/List;
 	public static final fun reachPositions (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/AABB;DLnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;DZ)Ljava/util/List;
 	public static synthetic fun reachPositions$default (Lnet/ccbluex/agent/pathfinder/terrain/Terrain;Lnet/minecraft/world/phys/AABB;DLnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;DZILjava/lang/Object;)Ljava/util/List;
 }

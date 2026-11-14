@@ -33,7 +33,11 @@ import org.slf4j.LoggerFactory
  *
  * @agent claude-opus-5-5
  */
-internal class TestBody(override val player: Player, override val flight: FlightControl? = null) : Body {
+internal class TestBody(
+    override val player: Player,
+    override val flight: FlightControl? = null,
+    override val teleporter: Teleporter? = null,
+) : Body {
 
     var pressed: Input = Input.EMPTY
         private set
@@ -46,7 +50,6 @@ internal class TestBody(override val player: Player, override val flight: Flight
     override var safeWalk = false
     override val latencyMillis = 0
     override val traits = BodyTraits(exactSimulation = false)
-    override val teleporter: Teleporter? = null
 
     override fun press(input: Input, exact: Boolean) {
         pressed = input

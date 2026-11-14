@@ -50,6 +50,7 @@ private val SAMPLES = doubleArrayOf(0.05, 0.275, 0.5, 0.725, 0.95)
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
  */
+@JvmOverloads
 public fun Terrain.reachPositions(
     box: AABB,
     reach: Double,
