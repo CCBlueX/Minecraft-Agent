@@ -24,6 +24,7 @@ import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.HOTBAR_SLOTS
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.isBuildingBlock
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.tags.BlockTags
@@ -130,7 +131,7 @@ internal suspend fun Round.gather(point: Vec3): Any? {
         if (level.getBlockState(pos).isAir) return null
         if (step(point.add(0.0, 0.5, 0.0), DIG_WITHIN, pos, "dig") == Step.BLOCKED) return pos
         goal = "Going to dig"
-        scope.nextTick()
+        waitTicks(1)
     }
     val state = level.getBlockState(pos)
     if (state.isAir || !givesBlock(state)) return null
@@ -150,7 +151,7 @@ internal suspend fun Round.gather(point: Vec3): Any? {
             } else {
                 started = body.startDestroy(pos, Direction.UP)
             }
-            scope.nextTick()
+            waitTicks(1)
         }
         return pos
     } finally {

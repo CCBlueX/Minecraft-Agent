@@ -86,7 +86,7 @@ internal class Flying(private val context: NavigationContext) {
             route.following(path.points, follower)
         } else {
             follower.clear()
-            context.body.press(Input.EMPTY)
+            context.body.press(Input.EMPTY, true)
             when {
                 routes.failed -> route.invalid()
                 routes.isSearching -> route.searching(position, goal, radius, routes.preview)

@@ -22,6 +22,7 @@ package net.ccbluex.agent.skills.games.bedwars
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.skills.games.WayCost
 import net.ccbluex.agent.skills.hold
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.player.Player
@@ -43,7 +44,7 @@ private val STAND_HEIGHTS = intArrayOf(0, -1, -2, 1)
  * @agent claude-opus-5-5
  */
 internal suspend fun Activities.cover() {
-    while (coverOnce("Covering the bed") { true }) scope.nextTick()
+    while (coverOnce("Covering the bed") { true }) waitTicks(1)
 }
 
 /**
@@ -97,7 +98,7 @@ private suspend fun Activities.place(spot: Spot, still: () -> Boolean) {
             skip(target)
             return
         }
-        scope.nextTick()
+        waitTicks(1)
     }
     val face = support(level, target) ?: return
     val against = target.relative(face)
@@ -105,7 +106,7 @@ private suspend fun Activities.place(spot: Spot, still: () -> Boolean) {
     val point = Vec3.atCenterOf(against).add(side.unitVec3.scale(0.5))
     look(point)
     while (tick < placeAt) {
-        scope.nextTick()
+        waitTicks(1)
         if (!still() || !isOpen(level, target) || !isInPlacingReach(target)) return
         look(point)
     }
@@ -185,7 +186,7 @@ internal suspend fun Activities.defend() {
             coverOnce("$name is coming, covering the bed", alarm) -> Unit
             else -> watch(enemy)
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -234,7 +235,7 @@ private suspend fun Activities.intercept(enemy: Player): Boolean {
         val far = enemy.position().distanceTo(threats.base(team)) > GUARD_RANGE
         val careful = team.isBedAlive && far && traits.caution > 0.4
         if (careful && coverOnce("$name is coming, covering the bed") { intruder === enemy }) {
-            scope.nextTick()
+            waitTicks(1)
             continue
         }
         val landing = spot?.takeIf { tick - spotAt < INTERCEPT_TICKS } ?: landing(enemy.position()).also {
@@ -251,7 +252,7 @@ private suspend fun Activities.intercept(enemy: Player): Boolean {
             holdWeapon()
             look(enemy.eyePosition)
         }
-        scope.nextTick()
+        waitTicks(1)
     }
     return true
 }

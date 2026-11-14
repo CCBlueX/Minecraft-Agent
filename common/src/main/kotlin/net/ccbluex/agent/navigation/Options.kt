@@ -89,6 +89,17 @@ public data class Options(
      * Blocks a glide in the air keeps between the body and every block wherever there is room; 0 for none.
      */
     public val glideClearance: Double = 0.0,
+
+    /**
+     * Fewest ticks a movement key stays down once pressed on a plain walk, as a person's tap lasts; 0 for no
+     * minimum. Precise moves such as jumps, climbing and block actions press their keys exactly.
+     */
+    public val minPressTicks: Int = 0,
+
+    /**
+     * Fewest ticks a movement key stays up on a plain walk before it is pressed again; 0 for no minimum.
+     */
+    public val minReleaseTicks: Int = 0,
 ) {
 
     /**

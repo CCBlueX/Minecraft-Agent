@@ -29,14 +29,23 @@ dependencies {
 The mod needs Fabric API and Fabric Language Kotlin. Walk the local player somewhere:
 
 ```kotlin
-val navigation = ClientNavigation()
-navigation.moveTo(Vec3(100.5, 64.0, -20.5))   // stops on arrival
-navigation.follow { target?.position() }    // a goal that moves; null pauses
-navigation.stop()
+val navigation = ClientNavigation()                      // keep it: it hears the world while kept
+navigation.navigator.moveTo(Vec3(100.5, 64.0, -20.5)) { ending -> println(ending) }   // ARRIVED, UNREACHABLE, STOPPED
+navigation.navigator.follow { target?.position() }       // a goal that moves; null pauses
+navigation.navigator.stop()                             // stops
 ```
 
-`navigation.Options` (digging, bridging, parkour, sprinting, look-ahead) go in the constructor or `navigation.options`.
-`ClientBody(maxTurn)` limits how fast the camera turns.
+In suspend code, `TickScope` (package `net.ccbluex.agent.tick`) runs coroutines on the tick of whoever calls
+`scope.tick()`; inside, `navigator.walkTo(goal)` returns the `Ending`, `waitTicks(n)` waits, and `requires { … }` /
+`unchanged { body.level }` end the run quietly once they fail. A host with its own tick loop puts its own `Ticker`
+into the context instead (LiquidBounce: `object : Ticker { override suspend fun tickUntil(stopAt: IntPredicate) =
+net.ccbluex.liquidbounce.event.tickUntil(stopAt) }`), so its guards apply to every library wait.
+
+`navigation.Options` (digging, bridging, parkour, sprinting, look-ahead, `minPressTicks`/`minReleaseTicks` for
+human key timing on plain walks) go in the constructor or `navigation.options`. `ClientBody(turning)` sets how
+movement and aim rotations are turned to (`Turning.linear(degrees)`, or `skillLevel.turning()` from `skills`).
+The navigator presses the keys once per tick (`Body.press(input, exact)`); exact keys (jumps, climbs, block
+actions, flight) must reach the player unchanged, plain walks may be changed by host features.
 
 ## Paper plugin
 

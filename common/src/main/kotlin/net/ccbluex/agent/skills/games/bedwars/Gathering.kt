@@ -22,6 +22,8 @@ package net.ccbluex.agent.skills.games.bedwars
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.skills.shop.Currency
 import net.ccbluex.agent.skills.shop.Wishes
+import net.ccbluex.agent.tick.tickConditional
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.player.Inventory
@@ -53,7 +55,7 @@ private const val OPEN_TICKS = 20
 internal suspend fun Activities.gatherUp() {
     while (true) {
         if (!spare()) gather(nextWish()?.let(::offer)?.currency ?: Currency.IRON)
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -138,7 +140,7 @@ internal suspend fun Activities.ore(resource: Currency) {
                 return
             }
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -163,7 +165,7 @@ private suspend fun Activities.waitForDrops(resource: Currency, at: Vec3): Boole
             since = tick
         }
         if (tick - since > ORE_WAIT_TICKS * (0.5 + traits.patience)) return false
-        scope.nextTick()
+        waitTicks(1)
     }
     return true
 }
@@ -206,7 +208,7 @@ internal suspend fun Activities.spare(): Boolean {
             chestAgainAt = tick + RETRY_TICKS
             return true
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 
     val top = Vec3.atCenterOf(chest).add(0.0, 0.5, 0.0)
@@ -214,7 +216,7 @@ internal suspend fun Activities.spare(): Boolean {
     look(top)
     if (body.containerMenu == null) {
         body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(top, Direction.UP, chest, false))
-        if (!scope.until(OPEN_TICKS) { body.containerMenu != null }) {
+        if (body.containerMenu == null && tickConditional(OPEN_TICKS) { body.containerMenu != null }) {
             chestAgainAt = tick + RETRY_TICKS
             return true
         }

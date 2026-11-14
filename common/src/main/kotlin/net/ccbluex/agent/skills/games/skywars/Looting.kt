@@ -20,6 +20,7 @@
 package net.ccbluex.agent.skills.games.skywars
 
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.entity.ChestBlockEntity
 import net.minecraft.world.phys.Vec3
@@ -116,7 +117,7 @@ internal suspend fun Round.loot(chests: () -> List<BlockPos>, where: String, lef
         if (current != null && loot.isLooting) {
             loot.open(current)
             goal = "Looting"
-            scope.nextTick()
+            waitTicks(1)
             continue
         }
         val next = lootable(chests(), leftovers).minByOrNull { it.distToCenterSqr(player.position()) } ?: return
@@ -131,6 +132,6 @@ internal suspend fun Round.loot(chests: () -> List<BlockPos>, where: String, lef
             unreachable += next
             chest = null
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }

@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.skills.games.duels
 
+import kotlinx.coroutines.launch
 import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
@@ -26,9 +27,10 @@ import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.fight.Rules
 import net.ccbluex.agent.skills.games.GameMode
 import net.ccbluex.agent.skills.games.RoundState
-import net.ccbluex.agent.skills.games.TickScope
 import net.ccbluex.agent.skills.gear.GearScore
 import net.ccbluex.agent.skills.hold
+import net.ccbluex.agent.tick.TickScope
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.world.entity.LivingEntity
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -64,7 +66,7 @@ public class Duels @JvmOverloads constructor(
     override fun tick(agent: Agent) {
         if (!started) {
             started = true
-            scope.start { play(agent) }
+            scope.launch { play(agent) }
         }
         scope.tick()
     }
@@ -76,18 +78,18 @@ public class Duels @JvmOverloads constructor(
 
     private suspend fun play(agent: Agent) {
         enter(agent, "WAITING")
-        while (senses.state == RoundState.LOBBY) scope.nextTick()
+        while (senses.state == RoundState.LOBBY) waitTicks(1)
 
         enter(agent, "COUNTDOWN")
         while (senses.state == RoundState.COUNTDOWN) {
             standReady(agent)
-            scope.nextTick()
+            waitTicks(1)
         }
 
         enter(agent, "FIGHTING")
         while (senses.state == RoundState.PLAYING) {
             fight(agent)
-            scope.nextTick()
+            waitTicks(1)
         }
 
         enter(agent, "ENDED")

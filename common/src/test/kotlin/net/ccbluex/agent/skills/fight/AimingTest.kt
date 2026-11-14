@@ -20,7 +20,13 @@
 package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.math.ViewRotation
+import net.ccbluex.agent.navigation.LookPurpose
+import net.ccbluex.agent.skills.AgentBody
+import net.ccbluex.agent.skills.SkillLevel
+import net.ccbluex.agent.skills.Personality
 import net.minecraft.world.phys.Vec3
+import java.lang.reflect.Proxy
+import java.util.Random
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.test.Test
@@ -43,29 +49,48 @@ class AimingTest {
     }
 
     @Test
-    fun `step turns at most the speed, xRot at 0_7 of it`() {
-        val turned = Aiming.step(
-            ViewRotation(0f, 0f), ViewRotation(90f, 60f), speed = 15.0, noise = 0.0, yRotNoise = 0.0, xRotNoise = 0.0,
-        )
-        assertEquals(15f, turned.yRot, 1e-4f)
-        assertEquals(10.5f, turned.xRot, 1e-4f)
+    fun `jitter puts the noise on the goal, half of it on the xRot`() {
+        val jittered = Aiming.jitter(ViewRotation(10f, 20f), noise = 2.8, yRotNoise = 1.0, xRotNoise = 1.0)
+        assertEquals(12.8f, jittered.yRot, 1e-4f)
+        assertEquals(21.4f, jittered.xRot, 1e-4f)
     }
 
     @Test
-    fun `step takes the short way round and stops on the goal`() {
-        val turned = Aiming.step(
-            ViewRotation(170f, 0f), ViewRotation(-170f, 0f), speed = 25.0, noise = 0.0, yRotNoise = 0.0, xRotNoise = 0.0,
-        )
-        assertEquals(-170f, turned.yRot, 1e-3f)
+    fun `jitter keeps the xRot on the sphere`() {
+        assertEquals(90f, Aiming.jitter(ViewRotation(0f, 89f), noise = 4.0, yRotNoise = 0.0, xRotNoise = 3.0).xRot)
     }
 
     @Test
-    fun `step adds the noise, half of it to xRot`() {
-        val turned = Aiming.step(
-            ViewRotation(0f, 0f), ViewRotation(0f, 0f), speed = 15.0, noise = 2.8, yRotNoise = 1.0, xRotNoise = 1.0,
-        )
-        assertEquals(2.8f, turned.yRot, 1e-4f)
-        assertEquals(1.4f, turned.xRot, 1e-4f)
+    fun `a quick look is a flick the body lands now, a slow one an aim`() {
+        val fight = fight(ViewRotation.ZERO)
+        fight.lookAt(ViewRotation(90f, 0f), 4.0)
+        assertEquals(LookPurpose.STEER, fight.lookPurpose)
+        fight.lookAt(ViewRotation(90f, 0f), 1.0)
+        assertEquals(LookPurpose.AIM, fight.lookPurpose)
+    }
+
+    @Test
+    fun `aim checks read the rotation the server has`() {
+        var sent = ViewRotation(0f, 0f)
+        val fight = fight { sent }
+        assertTrue(fight.aimed(ViewRotation(2f, 0f), 3.0))
+        sent = ViewRotation(45f, 0f)
+        assertFalse(fight.aimed(ViewRotation(2f, 0f), 3.0))
+        assertTrue(fight.aimedXRot(0f, 1.0))
+    }
+
+    private fun fight(sent: ViewRotation) = fight { sent }
+
+    /**
+     * A fight on a body that only knows the rotation the server has.
+     */
+    private fun fight(sent: () -> ViewRotation): BuiltInFight {
+        val type = AgentBody::class.java
+        val body = Proxy.newProxyInstance(type.classLoader, arrayOf(type)) { _, method, _ ->
+            check(method.name == "getSentRotation") { "The aim checks only read the sent rotation: ${method.name}" }
+            sent()
+        } as AgentBody
+        return BuiltInFight(body, SkillLevel.NORMAL, Personality.BALANCED, Rules.DEFAULT, Random(1))
     }
 
     @Test

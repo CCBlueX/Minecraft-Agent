@@ -140,7 +140,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public final fun getShieldCooldown ()I
 	public fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
 	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
-	public final fun getTurnSpeed ()F
+	public final fun getTurning ()Lnet/ccbluex/agent/navigation/Turning;
 	public final fun isBlocking ()Z
 	public fun isCombat1_8 ()Z
 	public final fun isOnGround ()Z
@@ -152,7 +152,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
 	public final fun moveTo (DDDFF)V
 	public fun players ()Ljava/util/List;
-	public fun press (Lnet/minecraft/world/entity/player/Input;)V
+	public fun press (Lnet/minecraft/world/entity/player/Input;Z)V
 	public final fun push (DDD)V
 	public fun releaseHotbarSlot ()V
 	public fun releaseUsingItem ()V
@@ -164,7 +164,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun setSafeWalk (Z)V
 	public final fun setShiftKeyDown (Z)V
 	public final fun setSprinting (Z)V
-	public final fun setTurnSpeed (F)V
+	public final fun setTurning (Lnet/ccbluex/agent/navigation/Turning;)V
 	public fun stab ()V
 	public fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
 	public fun startUsingItem (Lnet/minecraft/world/InteractionHand;)Z

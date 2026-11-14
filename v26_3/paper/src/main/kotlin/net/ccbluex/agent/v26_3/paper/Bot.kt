@@ -21,6 +21,7 @@ package net.ccbluex.agent.v26_3.paper
 
 import java.util.EnumMap
 import java.util.Random
+import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.bukkit.AgentListeners
@@ -128,7 +129,10 @@ public class Bot internal constructor(
     public var isDead: Boolean = false
         internal set
 
-    private var goal: Destination? = null
+    /**
+     * The walk given by [moveTo] or [follow], handed to the navigator again once a game or a fight reset it.
+     */
+    private var walk: DestinationSource? = null
     private var level: Level? = null
     private var engaged: LivingEntity? = null
     private var acting = false
@@ -139,7 +143,10 @@ public class Bot internal constructor(
      * Walks to [location] until it is within [radius], and stays there until another goal or [stop].
      */
     public fun moveTo(location: Location, radius: Double) {
-        goal = Destination.Point(location.clone(), radius)
+        val goal = location.clone()
+        hold(Destination(radius) {
+            goal.takeIf { it.isWorldLoaded && it.world == body?.entity?.world }?.let(::position)
+        })
     }
 
     /**
@@ -147,7 +154,16 @@ public class Bot internal constructor(
      */
     @JvmOverloads
     public fun follow(entity: Entity, radius: Double = FOLLOW_RADIUS) {
-        goal = Destination.Following(entity, radius)
+        hold(Destination(radius) {
+            when {
+                !entity.isValid -> {
+                    stop()
+                    null
+                }
+                entity.world == body?.entity?.world -> position(entity.location)
+                else -> null
+            }
+        })
     }
 
     /**
@@ -176,7 +192,7 @@ public class Bot internal constructor(
         val body = checkNotNull(body) { "Bot $name has no body" }
         val navigator = checkNotNull(navigator)
         val old = agent
-        goal = null
+        walk = null
         old?.stop()
         val agent = if (skills == null && old != null) old else newAgent(body, navigator, skills, old?.personality)
         this.agent = agent
@@ -196,7 +212,7 @@ public class Bot internal constructor(
      * Stops walking, fighting and playing, and lets go of every key.
      */
     public fun stop() {
-        goal = null
+        walk = null
         engaged = null
         agent?.let {
             it.game = null
@@ -297,13 +313,16 @@ public class Bot internal constructor(
     }
 
     private fun walk(body: PaperBody, navigator: Navigator) {
-        val target = goalPosition(body)
-        if (target != null) {
-            navigator.navigate(target, goal?.radius ?: 0.0)
-        } else if (goal != null) {
-            navigator.halt()
-            releaseKeys(body)
-        }
+        val walk = walk ?: return
+        if (!navigator.isInProgress) navigator.follow(walk)
+        // Navigator.halt keeps the keys of the last walk, so they are let go of before every tick of it
+        releaseKeys(body)
+        navigator.tick()
+    }
+
+    private fun hold(source: DestinationSource) {
+        walk = source
+        navigator?.follow(source)
     }
 
     private fun isActing(agent: Agent): Boolean {
@@ -327,28 +346,8 @@ public class Bot internal constructor(
         return Agent(body, navigator, abilities, leaning, settings.skillLevel, agentListeners)
     }
 
-    /**
-     * Where the goal is now, null while it is in another world; a followed entity that is gone ends the walk.
-     */
-    private fun goalPosition(body: PaperBody): Vec3? {
-        val world = body.entity.world
-        return when (val goal = goal) {
-            null -> null
-            is Destination.Point -> goal.location.takeIf { it.isWorldLoaded && it.world == world }?.let(::position)
-            is Destination.Following -> when {
-                !goal.entity.isValid -> {
-                    stop()
-                    null
-                }
-                goal.entity.world == world -> position(goal.entity.location)
-                else -> null
-            }
-        }
-    }
-
-    // Navigator.halt keeps the keys of the last walk
     private fun releaseKeys(body: PaperBody) {
-        body.press(Input.EMPTY)
+        body.press(Input.EMPTY, true)
         body.isShiftKeyDown = settings.sneak
     }
 
@@ -358,16 +357,18 @@ public class Bot internal constructor(
         if (body.anchored != settings.anchored) body.anchored = settings.anchored
         body.isShiftKeyDown = settings.sneak
         body.isSprinting = settings.sprint
-        body.turnSpeed = settings.turnSpeed
+        body.turning = settings.skillLevel.turning(settings.turnSpeed)
     }
 
     override fun toString(): String = "Bot($name)"
 
-    private sealed interface Destination {
-        val radius: Double
+    /**
+     * A goal [point] gives, null while it is in another world.
+     */
+    private class Destination(private val radius: Double, private val point: () -> Vec3?) : DestinationSource {
+        override fun goal(): Vec3? = point()
 
-        class Point(val location: Location, override val radius: Double) : Destination
-        class Following(val entity: Entity, override val radius: Double) : Destination
+        override fun radius(): Double = radius
     }
 
     private companion object {

@@ -42,10 +42,9 @@ internal class Travel {
     private var strandedTicks = 0
 
     /**
-     * Ticks in a row the navigator has been stranded.
+     * The navigator's stranded ticks from before this goal, null until the next walk reads them.
      */
-    val stranded: Int
-        get() = strandedTicks
+    private var strandedBefore: Int? = null
 
     /**
      * Goes to [to], building a bridge where the navigator may; BLOCKED once it gets no closer.
@@ -70,7 +69,15 @@ internal class Travel {
      * Walks to [to]; BLOCKED once the navigator found no way for a while.
      */
     fun walk(agent: Agent, to: Vec3, within: Double): Status {
-        strandedTicks = if (agent.navigator.isStranded) strandedTicks + 1 else 0
+        val navigatorTicks = agent.navigator.strandedTicks
+        val before = strandedBefore
+        val counted = when {
+            before == null -> navigatorTicks
+            navigatorTicks < before -> 0
+            else -> before
+        }
+        strandedBefore = counted
+        strandedTicks = navigatorTicks - counted
         if (isWithin(agent.body.player.position(), to, within)) return Status.ARRIVED
         agent.walkTo(to, within)
         return if (strandedTicks >= STRANDED_TICKS) Status.BLOCKED else Status.MOVING
@@ -80,6 +87,7 @@ internal class Travel {
         goal = null
         closest = Double.MAX_VALUE
         strandedTicks = 0
+        strandedBefore = null
     }
 
     companion object {

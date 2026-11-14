@@ -45,8 +45,8 @@ Kotlin:
 1. Sealed interfaces with exhaustive `when` for moves, steps, phases and events.
 2. Value classes for units and ids. Data classes with defaults for options.
 3. Extension functions live in the file that owns the type. No `!!`, no `lateinit` in the API.
-4. Game modes (`skills.games`) read top to bottom as suspend code driven by the game tick (kotlinx-coroutines-core).
-   The API stays plain calls and callbacks.
+4. Game modes (`skills.games`) read top to bottom as suspend code on a `net.ccbluex.agent.tick.TickScope` (waits:
+   `waitTicks`, `tickConditional`, `tickUntil`; guards: `requires`, `unchanged`).
 
 Readable:
 1. Names say what a thing is: `walk.Moves`, not `WalkMoves`. Where the plain name is a Minecraft class, the
@@ -64,7 +64,9 @@ Stable API:
 3. SemVer. Breaking changes need a major version; removals are deprecated for one minor first.
 4. The game modes in `skills.games` (not `GameMode` itself) are `@ExperimentalAgentApi`: they change while the bots
    get better. `@InternalAgentApi` is for library modules only (they opt in in `agent.publish`); ABI dumps skip it.
-5. Callable from Java: no suspend functions or Kotlin function types in the API.
+5. Callable from Java: every feature has a plain call or callback form (`Navigator.moveTo(goal, radius, Consumer)`,
+   `TickScope.tick()`); suspend functions (`Navigator.walkTo`) are a Kotlin layer over them. Kotlin function types
+   only there and in `@InternalAgentApi`.
 6. Bots report routes, steps, stuck spots, phases and decisions through a listener API, so the library knows
    nothing about the tools that record them.
 

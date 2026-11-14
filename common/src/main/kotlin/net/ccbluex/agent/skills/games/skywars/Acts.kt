@@ -25,6 +25,7 @@ import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.Throws
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.slotOf
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
@@ -95,7 +96,7 @@ internal fun Round.step(to: Vec3, within: Double, key: Any, name: String, toOppo
         agent.navigator.isBuilding -> "Bridging to $name"
         else -> "Going to $name"
     }
-    val stranded = !flying && agent.navigator.isStranded
+    val stranded = if (flying) 0 else agent.navigator.strandedTicks
     return if (progress.check(key, position.distanceTo(to), stranded, ticks)) Step.MOVING else Step.BLOCKED
 }
 
@@ -116,7 +117,7 @@ private suspend fun Round.stay(to: Vec3, within: Double, name: String, there: St
             Step.MOVING -> Unit
             Step.BLOCKED -> return key
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -141,7 +142,7 @@ private suspend fun Round.hunt(plan: Plan): Any? {
             Step.BLOCKED -> return id
             else -> if (plan.thirdParty) goal = "Third-partying $name"
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -165,7 +166,7 @@ internal suspend fun Round.throwPearl(to: Vec3): Boolean {
             thrown = body.useItem(InteractionHand.MAIN_HAND)
             break
         }
-        scope.nextTick()
+        waitTicks(1)
     }
     body.releaseHotbarSlot()
     if (thrown) pearlAt = ticks + PEARL_TICKS
@@ -182,7 +183,7 @@ private suspend fun Round.pickup(plan: Plan): Any? {
         if (item == null || !item.isAlive) return null
         if (step(item.position(), PICKUP_WITHIN, id, "loot") == Step.BLOCKED) return id
         goal = "Picking up loot"
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -200,7 +201,7 @@ private suspend fun Round.regroup(plan: Plan): Any? {
             Step.MOVING -> Unit
             Step.BLOCKED -> return id
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 

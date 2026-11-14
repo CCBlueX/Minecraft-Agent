@@ -29,6 +29,7 @@ import net.ccbluex.agent.skills.shop.affords
 import net.ccbluex.agent.skills.shop.cheapest
 import net.ccbluex.agent.skills.shop.money
 import net.ccbluex.agent.skills.slotOf
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.tags.ItemTags
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
@@ -182,7 +183,7 @@ internal suspend fun Activities.gear() {
             gather(offer.currency)
             goal = "Saving up for ${wish.name}"
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -196,7 +197,7 @@ internal suspend fun Activities.upgrade() {
         val name = upgradeToBuy()?.upgrade ?: return
         val wish = Wish.upgrade(name)
         shop(wish, offer(wish) ?: return)
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -218,7 +219,7 @@ internal suspend fun Activities.shop(wish: Wish, offer: Offer) {
             travel.bridgeTo(agent, at, SHOP_REACH - 1.5, tick)
         }
         if (status == Travel.Status.BLOCKED) return
-        scope.nextTick()
+        waitTicks(1)
     }
     look(at.add(0.0, 1.5, 0.0))
     if (shop.buy(wish)) {

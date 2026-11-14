@@ -20,7 +20,7 @@
 package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.v26_3.fabric.ClientNavigation
-import net.ccbluex.agent.v26_3.fabric.DestinationSource
+import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Options
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext
@@ -44,7 +44,8 @@ internal class TestWalker(
 ) {
 
     private val navigation = ClientNavigation(
-        options = Options(canBreak = build, canPlace = build, riskyJumps = riskyJumps),
+        body = KeyTiming.body(),
+        options = KeyTiming.options(Options(canBreak = build, canPlace = build, riskyJumps = riskyJumps)),
         listener = listener,
     )
 
@@ -66,10 +67,10 @@ internal class TestWalker(
         override fun radius() = this@TestWalker.radius
     }
 
-    fun start(context: ClientGameTestContext) = context.onClient { navigation.follow(source) }
+    fun start(context: ClientGameTestContext) = context.onClient { navigation.navigator.follow(source) }
 
     fun stop(context: ClientGameTestContext) = context.onClient {
-        navigation.stop()
+        navigation.navigator.stop()
         goal = null
     }
 

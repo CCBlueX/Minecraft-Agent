@@ -19,7 +19,10 @@
 
 package net.ccbluex.agent.skills
 
+import net.ccbluex.agent.navigation.LookPurpose
+import net.ccbluex.agent.navigation.Turning
 import java.util.Locale
+import kotlin.math.min
 
 /**
  * How well a bot plays: how fast it clicks, turns and reacts, and how often and how well it uses skills. The skill
@@ -83,7 +86,37 @@ public data class SkillLevel(
      */
     public fun use(blastWeight: Double): Use = melee.towards(blast, blastWeight)
 
+    /**
+     * How a body turns at this level: [LookPurpose.AIM] at 25 times [aim] degrees a tick, [LookPurpose.STEER] four
+     * times as fast, the pitch at 0.7 of the yaw's pace, and anything else at [walkDegrees]; nothing turns faster
+     * than [walkDegrees].
+     */
+    @JvmOverloads
+    public fun turning(walkDegrees: Float = WALK_TURN): Turning {
+        val aimPace = (AIM_SPEED * aim).toFloat()
+        val aiming = paced(aimPace, walkDegrees)
+        val flicking = paced(aimPace * FLICK_SPEED, walkDegrees)
+        val walking = Turning.linear(walkDegrees)
+        return Turning { from, to, purpose ->
+            when (purpose) {
+                LookPurpose.AIM -> aiming
+                LookPurpose.STEER -> flicking
+                LookPurpose.MOVEMENT, LookPurpose.VIEW -> walking
+            }.turn(from, to, purpose)
+        }
+    }
+
+    private fun paced(yRot: Float, most: Float) = Turning.linear(min(yRot, most), min(yRot * X_ROT_SPEED, most))
+
     public companion object {
+        /**
+         * Degrees a tick an aim turns at an aim multiplier of 1.
+         */
+        private const val AIM_SPEED = 25.0
+        private const val FLICK_SPEED = 4f
+        private const val X_ROT_SPEED = 0.7f
+        private const val WALK_TURN = 40f
+
         @JvmField
         public val BEGINNER: SkillLevel = SkillLevel(
             0.4, 0.4, 3.0, 4.0, 0.55, 0.0, 0.8, 0.6, 0.3, 0.0, 0.25,

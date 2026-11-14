@@ -73,12 +73,13 @@ internal class RoofBounce(private val context: NavigationContext) {
         val jump = player.isFallFlying || player.onGround() || bounce.ticks % 2 == 0
         context.body.press(
             Input(direction.forward(), direction.backward(), direction.left(), direction.right(), jump, false, false),
+            true,
         )
 
         context.route.blocks(emptyList(), emptyList())
         context.route.following(listOf(position, bounce.lineEnd), progress)
 
-        context.body.look(ViewRotation(bounce.goal.subtract(position).yRot, X_ROT), LookPurpose.MOVEMENT)
+        context.body.look(ViewRotation(bounce.goal.subtract(position).yRot, X_ROT), LookPurpose.STEER)
         return true
     }
 

@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.InternalAgentApi
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.walk.BlockActions
 import net.ccbluex.agent.navigation.walk.Follower
 import net.ccbluex.agent.navigation.walk.PlacedBlock
 import net.ccbluex.agent.navigation.walk.Planning
-import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.ccbluex.agent.pathfinder.walk.isStraightWalkable
+import net.ccbluex.agent.tick.tickUntil
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
@@ -36,6 +36,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.slf4j.LoggerFactory
+import java.util.function.Consumer
 
 /**
  * Walks the player of [body] to a goal given every tick: straight on where nothing is in the way, else along a
@@ -46,8 +47,10 @@ import org.slf4j.LoggerFactory
  * [Options.placesBridgeFloors] another feature such as Scaffold places their floor and the walk only runs
  * across them; [bridgeAhead] tells when one comes up.
  *
- * The host calls [navigate] or [halt] once every tick, before the keys of the tick are used, and feeds world changes
- * in through [blockChanged], [blockConfirmed] and [levelChanged].
+ * The host calls [navigate], [tick], [press] or [halt] once every tick, before the keys of the tick are used, and
+ * feeds world changes in through [blockChanged], [blockConfirmed] and [levelChanged]. [moveTo] and [follow] hand it a
+ * walk to hold, which every [tick] goes on with until it ends; [walkTo] waits for one in suspend code. Every tick's
+ * keys reach [Body.press] once, timed by [Options.minPressTicks] and [Options.minReleaseTicks] on a plain walk.
  *
  * From LiquidBounce: [Navigator.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/Navigator.kt#L389-L443), [Navigator.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/Navigator.kt#L253-L328), [Navigator.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/Navigator.kt#L120-L166)
  *
@@ -81,21 +84,17 @@ public class Navigator @JvmOverloads constructor(
     private val follower = Follower(context, actions)
     private val heading = Heading(context, follower, actions, lookAhead)
     private val planning = Planning(context, follower)
-    private val travel = Travel(context, ::stopWalking, ::resetWalk)
+    private val course = Course(context, lookAhead, actions, follower, heading, planning)
 
-    /**
-     * Whether the goal is reached by walking straight on, as of the last tick on the ground.
-     */
-    private var straight = false
-    private var straightGoal: Vec3? = null
     private var lastInput: Input = Input.EMPTY
-    private var arrived = false
-    private var failed = false
+    private var walk: Walk? = null
+    private val keystrokes = Keystrokes()
 
     /**
-     * The goal of the last tick navigated, null once halted.
+     * Changes the keys of every tick last, as a rescue that keeps the player from walking off an edge does.
      */
-    private var lastGoal: Vec3? = null
+    @InternalAgentApi
+    public var guard: ((Input) -> Input)? = null
 
     public val isActing: Boolean
         get() = actions.isActive
@@ -135,7 +134,7 @@ public class Navigator @JvmOverloads constructor(
      */
     public val slowdown: String?
         get() {
-            val goal = lastGoal ?: return null
+            val goal = course.lastGoal ?: return null
             return when {
                 player.position().closerThan(goal, APPROACH_DISTANCE) -> "approach"
                 follower.path != null && follower.turnAhead(TURN_LOOK) > SHARP_TURN -> "turn"
@@ -153,7 +152,19 @@ public class Navigator @JvmOverloads constructor(
      * Whether the searches found no way closer to the goal, so the walk stays short of it.
      */
     public val isStranded: Boolean
-        get() = !straight && follower.path == null && (planning.failed || planning.isSettled)
+        get() = course.isStranded
+
+    /**
+     * Ticks in a row the walk has been [isStranded], 0 after a tick without a goal.
+     */
+    public var strandedTicks: Int = 0
+        private set
+
+    /**
+     * Whether the navigator holds a walk given by [moveTo] or [follow].
+     */
+    public val isInProgress: Boolean
+        get() = walk != null
 
     /**
      * Where the walk heads: the aim of a block action, else the way to the next point, else the movement keys.
@@ -167,29 +178,102 @@ public class Navigator @JvmOverloads constructor(
     public fun navigate(goal: Vec3, radius: Double): Boolean {
         startTick()
         val keys = MovementKeys()
-        val plainWalk = move(keys, goal, radius)
-        finishTick(keys)
+        val plainWalk = course.move(keys, goal, radius)
+        strandedTicks = if (isStranded) strandedTicks + 1 else 0
+        val pressed = tickBody.takePressed()
+        val input = pressed ?: keys.toInput(sprint = false)
+        val sprint = heading.sprint && input.isMoving
+        finishTick(
+            if (sprint) input.withKeys(input.jump(), input.shift(), sprint = true) else input,
+            exact = !plainWalk || pressed != null && tickBody.pressedExact,
+        )
         return plainWalk
     }
 
     /**
-     * The keys the last [navigate] pressed, none after [halt].
+     * Walks to [goal] on every [tick] until within [radius]; [ended] hears how it ended. Ends the walk held before
+     * with [Ending.STOPPED].
+     */
+    @JvmOverloads
+    public fun moveTo(goal: Vec3, radius: Double = DestinationSource.DEFAULT_RADIUS, ended: Consumer<Ending>? = null) {
+        hold(Walk(Walk.Fixed(goal, radius), endsOnArrival = true, ended))
+    }
+
+    /**
+     * Walks to the goal [source] gives every [tick], standing still while it gives none; ends only halted.
+     */
+    @JvmOverloads
+    public fun follow(source: DestinationSource, ended: Consumer<Ending>? = null) {
+        hold(Walk(source, endsOnArrival = false, ended))
+    }
+
+    /**
+     * Goes on with the held walk for one tick, or halts without one; true for a plain walk, as [navigate]. A tick
+     * something else moves the player ([navigate] to another goal, [press], [halt]) pauses the walk.
+     */
+    public fun tick(): Boolean {
+        val walk = walk ?: return false.also { halt() }
+        val goal = walk.source.goal()
+        if (this.walk !== walk) {
+            // The source ended or replaced its own walk
+            return false
+        }
+        if (goal == null) {
+            halt()
+            return false
+        }
+        val plainWalk = navigate(goal, walk.source.radius())
+        walk.tick(course.arrived, isStranded)?.let { ending ->
+            this.walk = null
+            walk.end(ending)
+        }
+        return plainWalk
+    }
+
+    /**
+     * Presses [keys] something else picked this tick, such as an ability; the held walk pauses meanwhile.
+     */
+    public fun press(keys: Input, exact: Boolean) {
+        idle()
+        finishTick(keys, exact)
+    }
+
+    internal fun startWalk(goal: Vec3, radius: Double, ended: Consumer<Ending>): Walk =
+        Walk(Walk.Fixed(goal, radius), endsOnArrival = true, ended).also(::hold)
+
+    /**
+     * Lets go of [walk] without a report, if it is still the one held.
+     */
+    internal fun drop(walk: Walk) {
+        if (this.walk === walk) this.walk = null
+    }
+
+    private fun hold(walk: Walk?) {
+        val old = this.walk
+        this.walk = walk
+        old?.end(Ending.STOPPED)
+    }
+
+    /**
+     * The keys the last tick pressed, none after [halt].
      */
     public val input: Input
         get() = lastInput
 
     /**
-     * For ticks without a goal.
+     * For ticks without a goal; presses nothing, the keys are the host's or the user's again.
      */
     public fun halt() {
-        startTick()
-        lastGoal = null
-        arrived = false
-        failed = false
-        travel.halt()
-        stopWalking()
-        tickBody.takePressed()
+        idle()
+        keystrokes.reset()
         lastInput = Input.EMPTY
+    }
+
+    private fun idle() {
+        startTick()
+        strandedTicks = 0
+        course.halt()
+        tickBody.takePressed()
         body.safeWalk = false
     }
 
@@ -249,9 +333,10 @@ public class Navigator @JvmOverloads constructor(
     }
 
     /**
-     * For when the owner stops.
+     * For when the owner stops; ends the held walk with [Ending.STOPPED].
      */
     public fun stop() {
+        hold(null)
         halt()
         planning.forgetStuckSpots()
         lookAhead.reset()
@@ -262,7 +347,7 @@ public class Navigator @JvmOverloads constructor(
      */
     public fun blockChanged(pos: BlockPos) {
         planning.blockChanged(pos)
-        travel.blockChanged(pos)
+        course.blockChanged(pos)
     }
 
     /**
@@ -279,7 +364,7 @@ public class Navigator @JvmOverloads constructor(
         stop()
         actions.levelChanged()
         planning.levelChanged()
-        travel.levelChanged()
+        course.levelChanged()
     }
 
     /**
@@ -303,175 +388,49 @@ public class Navigator @JvmOverloads constructor(
         heading.lookAlongPath()
     }
 
-    private fun finishTick(keys: MovementKeys) {
-        val input = tickBody.takePressed() ?: keys.toInput(sprint = false)
-        val sprint = heading.sprint && input.isMoving
-        lastInput = if (sprint) input.withKeys(input.jump(), input.shift(), sprint = true) else input
-        body.press(lastInput)
-        body.safeWalk = follower.path != null && follower.safeWalk
-    }
-
-    private fun move(keys: MovementKeys, goal: Vec3, radius: Double): Boolean {
-        planning.tick(goal)
-        lastGoal = goal
-        val position = player.position()
-
-        if (player.rootVehicle.position().distanceToSqr(goal) <= Mth.square(radius)) {
-            stop(keys)
-            heading.forgetLook()
-            context.route.done()
-            if (!arrived) {
-                arrived = true
-                context.listener.arrived(goal)
-            }
-            return false
-        }
-        arrived = false
-
-        val options = context.options()
-        if (player.onGround()) {
-            // Goals beyond the path range are walked to in stages; a straight walk there is never checked in full.
-            straight = position.distanceToSqr(goal) <= Mth.square(options.maxLength) &&
-                isStraightWalkable(Terrain.live(body.level), position, goal, radius, context.safeFall())
-        }
-
-        // A ridden vehicle follows the view, which the ride turns itself.
-        if (travel.ride(goal, radius)) {
-            return false
-        }
-
-        if (flies(goal, radius)) {
-            lookAhead.aim(heading.target)
-            return false
-        }
-
-        if (straight) {
-            walkStraight(keys, goal)
-            lookAhead.aim(goal)
-            return true
-        }
-
-        straightGoal = null
-        planning.collect(position)
-
-        val path = follower.path
-        val plainWalk = if (path != null && !follower.isFinished) {
-            followPath(keys).also {
-                // Along a bridge the view keeps to its far end rather than turning with the steps.
-                val ahead = follower.pointAhead(player.position(), lookAhead.distance.toDouble())
-                lookAhead.aim(follower.bridgeTarget ?: ahead)
-            }
-        } else {
-            fallback(keys, goal, radius).also { lookAhead.aim(heading.target) }
-        }
-
-        planning.planIfNeeded(goal, radius, position)
-        reportFailure(goal)
-        return plainWalk
-    }
-
-    private fun reportFailure(goal: Vec3) {
-        if (planning.failed && !failed) {
-            context.logger.debug("No way found to {}", goal)
-            context.listener.failed(goal)
-        }
-        failed = planning.failed
-    }
-
-    private fun flies(goal: Vec3, radius: Double): Boolean {
-        if (!travel.fly(goal, radius, straight)) {
-            return false
-        }
-        heading.target = travel.target
-        heading.sprint = travel.sprint
-        return true
-    }
-
-    private fun walkStraight(keys: MovementKeys, goal: Vec3) {
-        planning.drop()
-        follower.clear()
-        actions.idle()
-
-        straightGoal = goal
-        heading.walkTowards(keys, goal, sprint = true)
-
-        context.route.blocks(emptyList(), emptyList())
-        context.route.following(listOf(player.position(), goal), straightProgress)
-    }
-
-    private fun followPath(keys: MovementKeys): Boolean {
-        val path = follower.path ?: return false
-        val state = follower.tick(keys, body.inputYRot)
-        if (state == FollowState.STUCK) {
-            follower.stuckAt?.let {
-                planning.stuckAt(it)
-                context.logger.debug("Stuck before {}", it)
-                context.listener.stuck(it)
-            }
-        }
-
-        heading.target = follower.target
-        heading.sprint = follower.sprint && (!keys.sneak || follower.dive)
-
-        context.route.blocks(follower.remainingBreaks, follower.remainingPlaces)
-        context.route.following(path.points, follower)
-        return state == FollowState.WALKING && follower.isPlainWalk && !actions.isActive
-    }
-
     /**
-     * Without a path: the rest of the way within the feet block, else on over plain ground while the first path is
-     * searched, else standing still.
+     * The keys of the tick through key timing and the [guard] to the body, once.
      */
-    private fun fallback(keys: MovementKeys, goal: Vec3, radius: Double): Boolean {
-        actions.idle()
-
-        val searching = planning.isSearching
-        val target = context.finalApproach(goal, radius)
-            ?: goal.takeIf { searching && !planning.failed && context.hasHeadway(it) }
-        if (target != null) {
-            heading.walkTowards(keys, target, sprint = target === goal)
-        } else {
-            stop(keys)
-        }
-
-        when {
-            planning.failed -> context.route.invalid()
-            searching -> context.route.searching(player.position(), goal, radius, planning.preview)
-            else -> context.route.done()
-        }
-        return false
+    private fun finishTick(input: Input, exact: Boolean) {
+        val options = context.options()
+        val timed = keystrokes.press(input, exact, options.minPressTicks, options.minReleaseTicks)
+        body.safeWalk = follower.path != null && follower.safeWalk
+        val guarded = guard?.invoke(timed) ?: timed
+        lastInput = guarded
+        body.press(guarded, exact || guarded != timed)
     }
 
-    private fun stop(keys: MovementKeys) {
-        actions.idle()
-        heading.stop(keys)
-    }
+    public companion object {
+        /**
+         * Stranded ticks in a row that end a walk to a fixed goal as [Ending.UNREACHABLE].
+         */
+        public const val UNREACHABLE_TICKS: Int = 40
 
-    private fun stopWalking() {
-        resetWalk()
-        context.route.clear()
-    }
-
-    private fun resetWalk() {
-        planning.reset()
-        follower.clear()
-        actions.idle()
-        straight = false
-        straightGoal = null
-        heading.clear()
-    }
-
-    private val straightProgress = TargetProgress(body.player, { straightGoal != null }) { straightGoal }
-
-    private companion object {
-        const val LOGGER = "Agent/Navigator"
+        private const val LOGGER = "Agent/Navigator"
 
         /**
          * Turns of the path sharper than this within [TURN_LOOK] blocks, and the goal this close, slow down.
          */
-        const val SHARP_TURN = 45f
-        const val TURN_LOOK = 4.0
-        const val APPROACH_DISTANCE = 4.0
+        private const val SHARP_TURN = 45f
+        private const val TURN_LOOK = 4.0
+        private const val APPROACH_DISTANCE = 4.0
     }
 
+}
+
+/**
+ * Walks to [goal] and returns how it ended, waiting on the coroutine's [net.ccbluex.agent.tick.Ticker]; the host
+ * goes on calling [Navigator.tick]. Cancelling the caller or a failing requirement drops the walk without a report.
+ *
+ * @agent claude-opus-5-5
+ */
+public suspend fun Navigator.walkTo(goal: Vec3, radius: Double = DestinationSource.DEFAULT_RADIUS): Ending {
+    var ending: Ending? = null
+    val walk = startWalk(goal, radius) { ending = it }
+    try {
+        tickUntil { ending != null }
+        return checkNotNull(ending)
+    } finally {
+        if (ending == null) drop(walk)
+    }
 }

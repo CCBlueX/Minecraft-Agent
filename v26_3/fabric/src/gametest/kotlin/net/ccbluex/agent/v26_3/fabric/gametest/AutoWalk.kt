@@ -21,9 +21,10 @@ package net.ccbluex.agent.v26_3.fabric.gametest
 
 import com.mojang.authlib.GameProfile
 import net.ccbluex.agent.v26_3.fabric.ClientNavigation
-import net.ccbluex.agent.v26_3.fabric.DestinationSource
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.navigation.DestinationSource
+import net.ccbluex.agent.navigation.Options
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext
 import net.minecraft.client.Minecraft
@@ -51,28 +52,32 @@ internal object AutoWalk {
 
     private var current: ClientNavigation? = null
 
+    /**
+     * The navigation of every walk, with the key timing of the scenario that started it.
+     */
     private val navigation: ClientNavigation
-        get() = current ?: ClientNavigation().also { current = it }
+        get() = (current ?: ClientNavigation(KeyTiming.body()).also { current = it })
+            .also { it.options = KeyTiming.options(Options()) }
 
     private val player: LocalPlayer
         get() = checkNotNull(Minecraft.getInstance().player)
 
     val running: Boolean
-        get() = current?.isRunning == true
+        get() = current?.navigator?.isInProgress == true
 
-    fun goTo(destination: Vec3) = navigation.follow(Goto(BlockPos.containing(destination)))
+    fun goTo(destination: Vec3) = navigation.navigator.follow(Goto(BlockPos.containing(destination)))
 
-    fun follow(target: String) = navigation.follow(Follow(target))
+    fun follow(target: String) = navigation.navigator.follow(Follow(target))
 
     fun walkFacing() {
         val direction = Direction()
         GameTicks.afterPlayerTick.addIfAbsent(direction.tickEnd)
         this.direction = direction
-        navigation.follow(direction)
+        navigation.navigator.follow(direction)
     }
 
     fun stop() {
-        current?.stop()
+        current?.navigator?.stop()
         direction?.let { GameTicks.afterPlayerTick.remove(it.tickEnd) }
         direction = null
     }

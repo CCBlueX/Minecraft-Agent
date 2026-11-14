@@ -22,13 +22,17 @@ package net.ccbluex.agent.v26_3.fabric
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.navigation.Options
-import net.minecraft.world.phys.Vec3
 
 /**
- * Runs a [Navigator] for the local player: every player tick, right after the input read the keys and before the
- * player moves, it walks to the goal of a [DestinationSource] or to a fixed goal, until [stop]. Call it on the client thread.
+ * Runs a [Navigator] for the local player: while it holds a walk ([Navigator.moveTo], [Navigator.follow],
+ * [net.ccbluex.agent.navigation.walkTo]), every player tick right after the input read the keys and before the player
+ * moves, it goes on with the walk; once the walk ended, the body lets go of the player. Call it on the client thread.
  *
- * Block updates, setbacks and level changes reach the navigator while it runs.
+ * It walks the player of the account the game plays as when it is made. In a game that runs several accounts at
+ * once, make it with the account's game loaded; a walk never moves to another account. An idle navigation whose
+ * account stopped playing takes up the account that plays now, as after an account switch.
+ *
+ * Block updates, setbacks and level changes of its account reach the navigator for as long as this navigation is kept.
  *
  * @agent claude-opus-5-5
  */
@@ -45,88 +49,37 @@ public class ClientNavigation @JvmOverloads constructor(
      */
     public var options: Options by navigator::options
 
-    private var source: DestinationSource? = null
-
-    public val isRunning: Boolean
-        get() = source != null
+    private var walked = false
 
     /**
-     * Walks to [goal] and stops once the player, or what it rides, is within [radius] of it.
+     * The name of the account whose player this navigation walks.
      */
-    @JvmOverloads
-    public fun moveTo(goal: Vec3, radius: Double = DestinationSource.DEFAULT_RADIUS) {
-        run(FixedGoal(goal, radius))
+    internal var account: String = currentAccount()
+
+    /**
+     * Neither walking nor about to let go of the player after a walk.
+     */
+    internal val isIdle: Boolean
+        get() = !walked && !navigator.isInProgress
+
+    init {
+        register(this)
     }
 
     /**
-     * Walks to the goal [source] gives every tick, standing still while it gives none, until [stop].
+     * Goes on with the held walk; true if it ticked, so the body has a tick to apply.
      */
-    public fun follow(source: DestinationSource) {
-        run(source)
-    }
-
-    public fun stop() {
-        if (source == null) {
-            return
+    internal fun tick(): Boolean {
+        if (navigator.isInProgress) {
+            walked = true
+            navigator.tick()
+            return true
         }
-        source = null
-        runningNavigations.remove(this)
-        navigator.stop()
-        body.release()
-    }
-
-    private fun run(source: DestinationSource) {
-        this.source = source
-        runningNavigations.addIfAbsent(this)
-    }
-
-    internal fun tick() {
-        val source = source ?: return
-        val goal = source.goal()
-        when {
-            this.source == null -> Unit
-            goal == null -> navigator.halt()
-            else -> navigator.navigate(goal, source.radius())
+        if (walked) {
+            walked = false
+            navigator.stop()
+            body.release()
         }
+        return false
     }
-
-    /**
-     * Arrived once the root vehicle is within [radius], which ends the run.
-     */
-    private inner class FixedGoal(private val goal: Vec3, private val radius: Double) : DestinationSource {
-
-        override fun goal(): Vec3? {
-            if (body.player.rootVehicle.position().distanceTo(goal) > radius) {
-                return goal
-            }
-            stop()
-            return null
-        }
-
-        override fun radius(): Double = radius
-    }
-
-}
-
-/**
- * Where a [ClientNavigation] walks, asked once per tick.
- *
- * @agent claude-opus-5-5
- */
-public fun interface DestinationSource {
-
-    /**
-     * The goal of this tick, or null to stand still.
-     */
-    public fun goal(): Vec3?
-
-    /**
-     * How close to the goal is close enough, in blocks.
-     */
-    public fun radius(): Double = DEFAULT_RADIUS
-
-    public companion object {
-        public const val DEFAULT_RADIUS: Double = 1.0
-    }
-
 }

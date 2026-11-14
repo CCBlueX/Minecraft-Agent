@@ -20,6 +20,7 @@
 package net.ccbluex.agent.skills.games.skywars
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.skills.Agent
@@ -28,8 +29,8 @@ import net.ccbluex.agent.skills.fight.OutnumberedPlan
 import net.ccbluex.agent.skills.fight.Targets
 import net.ccbluex.agent.skills.games.Progress
 import net.ccbluex.agent.skills.games.RoundState
-import net.ccbluex.agent.skills.games.TickScope
 import net.ccbluex.agent.skills.gear.WeaponMemory
+import net.ccbluex.agent.tick.TickScope
 import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
@@ -267,7 +268,7 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
             phase = best.activity.label
             agent.listener.phase(phase)
         }
-        job = scope.start {
+        job = scope.launch {
             val avoid = act(best)
             if (best.same(plan)) finish(avoid)
         }

@@ -32,47 +32,148 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.state.BlockState
+import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArrayList
 
-// What the mixins call. Everything runs on the client thread.
+// What the mixins call. Everything runs on the client thread, for the account the game plays as at that moment: a
+// game that runs several accounts at once ticks each of them with its own player loaded.
 
 /**
  * Ticks a mouse turn keeps navigation's view turns off.
  */
 private const val MOUSE_HOLD_TICKS = 40
 
-internal val runningNavigations = CopyOnWriteArrayList<ClientNavigation>()
+/**
+ * Player ticks of all accounts after which an account that did not tick counts as gone.
+ */
+private const val GONE_AFTER_TICKS = 100
 
 /**
- * The rotation of the last movement packet that had one; null before the first.
+ * Every navigation made and still kept by its owner.
  */
-internal var lastSentRotation: ViewRotation? = null
-    private set
+private val navigations = CopyOnWriteArrayList<WeakReference<ClientNavigation>>()
 
 /**
- * The level whose section copies [levelChanged] drops once the client leaves it.
+ * What the hooks keep for the player of one account.
+ *
+ * @agent claude-opus-5-5
  */
-private var currentLevel: ClientLevel? = null
+private class AccountState {
 
-private var playerTicks = 0
-private var mouseTurnedAt = Int.MIN_VALUE / 2
+    /**
+     * The navigations that went on with a walk in the account's last player tick.
+     */
+    val walking = ArrayList<ClientNavigation>()
+
+    /**
+     * The rotation of the last movement packet that had one; null before the first.
+     */
+    var lastSentRotation: ViewRotation? = null
+
+    /**
+     * The level whose section copies [levelChanged] drops once the player leaves it.
+     */
+    var level: ClientLevel? = null
+
+    var playerTicks = 0
+    var mouseTurnedAt = Int.MIN_VALUE / 2
+
+    /**
+     * The value of [allPlayerTicks] at the account's last player tick.
+     */
+    var tickedAt = 0
+}
+
+private val accounts = HashMap<String, AccountState>()
+
+/**
+ * Player ticks of every account together.
+ */
+private var allPlayerTicks = 0
 
 /**
  * @agent claude-opus-5-5
  */
-internal fun isMouseTurning() = playerTicks - mouseTurnedAt < MOUSE_HOLD_TICKS
+internal fun currentAccount(): String = Minecraft.getInstance().getUser().name
 
 /**
- * In `LocalPlayer.aiStep`, right after the input read the keys: runs the navigations, which press keys and ask for
- * rotations, and applies both before the player moves.
+ * @agent claude-opus-5-5
+ */
+private fun currentState(): AccountState? = accounts[currentAccount()]
+
+/**
+ * The rotation of the last movement packet of the current account that had one; null before the first.
+ */
+internal val lastSentRotation: ViewRotation?
+    get() = currentState()?.lastSentRotation
+
+/**
+ * @agent claude-opus-5-5
+ */
+internal fun isMouseTurning(): Boolean {
+    val state = currentState() ?: return false
+    return state.playerTicks - state.mouseTurnedAt < MOUSE_HOLD_TICKS
+}
+
+/**
+ * A new navigation hears the client's world from now on, until its owner lets go of it.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun register(navigation: ClientNavigation) {
+    navigations.removeIf { it.get() == null }
+    navigations += WeakReference(navigation)
+    // Its account counts as playing until its player had time for a first tick
+    accounts.getOrPut(navigation.account) { AccountState().also { it.tickedAt = allPlayerTicks } }
+}
+
+/**
+ * The navigations of the current account.
+ *
+ * @agent claude-opus-5-5
+ */
+private inline fun forEachNavigation(action: (ClientNavigation) -> Unit) {
+    val account = currentAccount()
+    for (reference in navigations) {
+        reference.get()?.takeIf { it.account == account }?.let(action)
+    }
+}
+
+/**
+ * An idle navigation whose account has not played for a while, after an account switch or a closed connection,
+ * takes up [account].
+ *
+ * @agent claude-opus-5-5
+ */
+private fun ClientNavigation.adopt(account: String) {
+    if (this.account == account || !isIdle) {
+        return
+    }
+    val tickedAt = accounts[this.account]?.tickedAt ?: Int.MIN_VALUE / 2
+    if (allPlayerTicks - tickedAt > GONE_AFTER_TICKS) {
+        this.account = account
+    }
+}
+
+/**
+ * In `LocalPlayer.aiStep`, right after the input read the keys: runs the navigations that hold a walk, which press
+ * keys and ask for rotations, and applies both before the player moves.
  *
  * @agent claude-opus-5-5
  */
 internal fun afterInputTick(player: LocalPlayer, input: ClientInput) {
-    playerTicks++
-    for (navigation in runningNavigations) {
-        navigation.tick()
-        navigation.body.applyTick(player, input)
+    val account = currentAccount()
+    val state = accounts.getOrPut(account, ::AccountState)
+    state.playerTicks++
+    state.tickedAt = ++allPlayerTicks
+    state.walking.clear()
+    for (reference in navigations) {
+        val navigation = reference.get() ?: continue
+        navigation.adopt(account)
+        if (navigation.account == account && navigation.tick()) {
+            state.walking += navigation
+            navigation.body.applyTick(player, input)
+        }
     }
 }
 
@@ -83,7 +184,7 @@ internal fun afterInputTick(player: LocalPlayer, input: ClientInput) {
  * @agent claude-opus-5-5
  */
 internal fun afterMovementSent() {
-    for (navigation in runningNavigations) {
+    for (navigation in currentState()?.walking.orEmpty()) {
         navigation.body.restoreCamera()
         navigation.navigator.turnView()
     }
@@ -93,21 +194,22 @@ internal fun afterMovementSent() {
  * @agent claude-opus-5-5
  */
 internal fun holdsAtLedges(player: Player) =
-    player === Minecraft.getInstance().player && runningNavigations.any { it.body.safeWalk }
+    player === Minecraft.getInstance().player && currentState()?.walking.orEmpty().any { it.body.safeWalk }
 
 /**
  * Whether `Minecraft.continueAttack` must not stop the dig of a navigation while the attack key is up.
  *
  * @agent claude-opus-5-5
  */
-internal fun keepsDestroying() = runningNavigations.any { it.body.isDestroying }
+internal fun keepsDestroying() = currentState()?.walking.orEmpty().any { it.body.isDestroying }
 
 /**
  * @agent claude-opus-5-5
  */
 internal fun packetSent(packet: Packet<*>) {
     if (packet is ServerboundMovePlayerPacket && packet.hasRotation()) {
-        lastSentRotation = ViewRotation(packet.getYRot(0f), packet.getXRot(0f))
+        val state = accounts.getOrPut(currentAccount(), ::AccountState)
+        state.lastSentRotation = ViewRotation(packet.getYRot(0f), packet.getXRot(0f))
     }
 }
 
@@ -115,7 +217,7 @@ internal fun packetSent(packet: Packet<*>) {
  * @agent claude-opus-5-5
  */
 internal fun mouseTurned() {
-    mouseTurnedAt = playerTicks
+    currentState()?.let { it.mouseTurnedAt = it.playerTicks }
 }
 
 /**
@@ -128,7 +230,7 @@ internal fun blockConfirmed(level: ClientLevel, pos: BlockPos, state: BlockState
         return
     }
     val immutable = pos.immutable()
-    runningNavigations.forEach { it.navigator.blockConfirmed(immutable, state) }
+    forEachNavigation { it.navigator.blockConfirmed(immutable, state) }
 }
 
 /**
@@ -140,7 +242,7 @@ internal fun blockChanged(level: ClientLevel, pos: BlockPos) {
     }
     val immutable = pos.immutable()
     SectionCache.blockChanged(level, immutable)
-    runningNavigations.forEach { it.navigator.blockChanged(immutable) }
+    forEachNavigation { it.navigator.blockChanged(immutable) }
 }
 
 /**
@@ -158,17 +260,22 @@ internal fun columnChanged(chunkX: Int, chunkZ: Int) {
  * @agent claude-opus-5-5
  */
 internal fun levelChanged(level: ClientLevel?) {
-    currentLevel?.let(SectionCache::forget)
-    currentLevel = level
-    lastSentRotation = null
-    runningNavigations.forEach { it.navigator.levelChanged() }
+    val account = currentAccount()
+    val state = accounts.getOrPut(account, ::AccountState)
+    state.level?.let(SectionCache::forget)
+    state.level = level
+    state.lastSentRotation = null
+    forEachNavigation { it.navigator.levelChanged() }
+    if (level == null) {
+        accounts.remove(account)
+    }
 }
 
 /**
  * @agent claude-opus-5-5
  */
 internal fun positionCorrected() {
-    for (navigation in runningNavigations) {
+    forEachNavigation { navigation ->
         navigation.body.positionCorrected()
         navigation.navigator.positionCorrected()
     }

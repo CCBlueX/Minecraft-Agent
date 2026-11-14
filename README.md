@@ -29,7 +29,7 @@ dependencies {
 
 ```kotlin
 val navigation = ClientNavigation()
-navigation.moveTo(Vec3(100.5, 64.0, -20.5))
+navigation.navigator.moveTo(Vec3(100.5, 64.0, -20.5)) { ending -> println(ending) }
 ```
 
 ### Server
@@ -47,7 +47,7 @@ val bot = MinecraftAgent.bots().spawn(location, "Steve")
 bot.moveTo(target, 1.0)
 ```
 
-[SKILL.md](SKILL.md) covers the rest: game modes and options.
+[SKILL.md](SKILL.md) covers the rest: game modes, options and the Kotlin coroutine API.
 
 ## Navigation
 

@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(navigation): suspend walks",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 532, "cachedInput": 70912881, "cacheWrite": 634635, "output": 240318 },
+      "usd": 24.07
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 837, "cachedInput": 0, "cacheWrite": 0, "output": 8 },
+      "usd": 0.00
+    }
+  ]
+}

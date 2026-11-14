@@ -82,7 +82,6 @@ internal class BuiltInFight(
     val cps: Double = CPS * skillLevel.cps
     val critChance: Double = if (rules.crits) min(1.0, CRIT_CHANCE * skillLevel.technique) else 0.0
     val wtapChance: Double get() = min(1.0, WTAP_CHANCE * skillLevel.technique * style.wtap)
-    private val aimSpeed = AIM_SPEED * skillLevel.aim
     val reaction: Int = max(0, (REACTION * skillLevel.reaction).roundToInt())
 
     private var engaged: LivingEntity? = null
@@ -115,12 +114,19 @@ internal class BuiltInFight(
      * A skill keeps the fighter from hitting this tick.
      */
     var attackHeld = false
-    var yRot = 0f
-        private set
-    var xRot = 0f
-        private set
+
+    /**
+     * The rotation the server has, which the fighter's aim checks read.
+     */
+    val yRot: Float get() = body.sentRotation.yRot
+    val xRot: Float get() = body.sentRotation.xRot
     private var look: ViewRotation? = null
     private var lookSpeed = 1.0
+
+    /**
+     * Where the fighter turns this tick, with the noise of its hand.
+     */
+    private var aimRotation = ViewRotation.ZERO
 
     /**
      * Until when the target's shield is down after an axe hit.
@@ -183,11 +189,7 @@ internal class BuiltInFight(
             trail.clear()
         }
         val target = found ?: return stand()
-        if (!fighting) {
-            yRot = player.yRot
-            xRot = player.xRot
-            fighting = true
-        }
+        fighting = true
         if (!eatWanted && !hands.holding) hands.holdPrimary()
         seen++
         trail.addFirst(target.position())
@@ -269,7 +271,8 @@ internal class BuiltInFight(
     }
 
     /**
-     * Looks towards [rotation] this tick instead of the target, turning [speed] times as fast.
+     * Looks towards [rotation] this tick instead of the target; at [speed] [FLICK] or more as a flick the body has
+     * to land now ([LookPurpose.STEER]), slower at the aim's pace.
      */
     fun lookAt(rotation: ViewRotation, speed: Double) {
         look = rotation
@@ -285,13 +288,14 @@ internal class BuiltInFight(
 
     private fun aim(target: LivingEntity) {
         val want = look ?: Aiming.rotation(player.eyePosition, aimPoint(target))
-        val turned = Aiming.step(
-            ViewRotation(yRot, xRot), want, aimSpeed * lookSpeed, skillLevel.noise,
-            random.nextGaussian(), random.nextGaussian(),
-        )
-        yRot = turned.yRot
-        xRot = turned.xRot
+        aimRotation = Aiming.jitter(want, skillLevel.noise, random.nextGaussian(), random.nextGaussian())
     }
+
+    /**
+     * How the body turns to this tick's look: a flick it has to land now, or an aim.
+     */
+    val lookPurpose: LookPurpose
+        get() = if (lookSpeed >= FLICK) LookPurpose.STEER else LookPurpose.AIM
 
     /**
      * Where the fighter sees the target: a little behind where it is, at the height of the own eyes on its body.
@@ -302,7 +306,7 @@ internal class BuiltInFight(
         return Vec3(seenAt.x, y, seenAt.z)
     }
 
-    fun aimed(rotation: ViewRotation, tolerance: Double): Boolean = Aiming.aimed(ViewRotation(yRot, xRot), rotation, tolerance)
+    fun aimed(rotation: ViewRotation, tolerance: Double): Boolean = Aiming.aimed(body.sentRotation, rotation, tolerance)
 
     /**
      * Whether the fighter looks at [xRot] at its own yaw, as for a throw at its feet.
@@ -432,12 +436,10 @@ internal class BuiltInFight(
         if (!moveControlled && look == null && footwork.chasing) {
             // Far or across a gap: the navigator walks there and turns the body; the aim picks up where it looks
             agent.walkTo(target.position(), CHASE_RADIUS)
-            yRot = player.yRot
-            xRot = player.xRot
             return
         }
-        agent.press(footwork.input())
-        body.look(ViewRotation(yRot, xRot), LookPurpose.AIM)
+        agent.press(footwork.input(), exact = false)
+        body.look(aimRotation, lookPurpose)
     }
 
     companion object {
@@ -445,10 +447,14 @@ internal class BuiltInFight(
          * Base rates the difficulty multiplies.
          */
         const val CPS = 8.0
-        const val AIM_SPEED = 25.0
         const val REACTION = 4.0
         const val CRIT_CHANCE = 0.5
         const val WTAP_CHANCE = 0.5
+
+        /**
+         * A look this many times as fast as aiming is a flick.
+         */
+        const val FLICK = 3.0
 
         private const val TRAIL = 20
 

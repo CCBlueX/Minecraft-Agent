@@ -35,16 +35,15 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
- * Pure aiming math of the fight: rotations, turning with noise, how close an aim has to be and how to throw.
+ * Pure aiming math of the fight: rotations, the noise of the hand, how close an aim has to be and how to throw.
  *
  * @agent claude-opus-5-5
  */
 internal object Aiming {
 
     /**
-     * Pitch turns this much slower than yaw, and gets half the yaw's noise.
+     * Pitch gets half the yaw's noise.
      */
-    private const val X_ROT_SPEED = 0.7
     private const val X_ROT_NOISE = 0.5
 
     /**
@@ -72,22 +71,11 @@ internal object Aiming {
     }
 
     /**
-     * One tick of turning from [current] towards [want] at [speed] degrees a tick at most, plus the noise: yaw gets
-     * [yRotNoise] times [noise], pitch turns 0.7 times as fast and gets half the noise. Constant speed, no easing.
+     * [want] off by the noise of the hand: yaw by [yRotNoise] times [noise], pitch by half of [xRotNoise] times it.
      */
-    fun step(
-        current: ViewRotation,
-        want: ViewRotation,
-        speed: Double,
-        noise: Double,
-        yRotNoise: Double,
-        xRotNoise: Double,
-    ): ViewRotation {
-        val dyRot = Mth.wrapDegrees(want.yRot - current.yRot).toDouble()
-        val dxRot = (want.xRot - current.xRot).toDouble()
-        val yRot = current.yRot + sign(dyRot) * min(abs(dyRot), speed) + yRotNoise * noise
-        val xRot = current.xRot + sign(dxRot) * min(abs(dxRot), speed * X_ROT_SPEED) +
-            xRotNoise * noise * X_ROT_NOISE
+    fun jitter(want: ViewRotation, noise: Double, yRotNoise: Double, xRotNoise: Double): ViewRotation {
+        val yRot = want.yRot + yRotNoise * noise
+        val xRot = want.xRot + xRotNoise * noise * X_ROT_NOISE
         return ViewRotation(Mth.wrapDegrees(yRot.toFloat()), xRot.toFloat().coerceIn(-90f, 90f))
     }
 

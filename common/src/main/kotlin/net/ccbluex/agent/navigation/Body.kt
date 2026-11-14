@@ -49,13 +49,19 @@ public interface Body {
         get() = player.level()
 
     /**
-     * The keys for this tick, once per [Navigator.navigate]. `sprint` set means sprinting is forced while moving;
-     * unset leaves sprinting to the player.
+     * The keys for this tick, once per tick the [Navigator] moves. `sprint` set means sprinting is forced while
+     * moving. [exact] keys must reach the player as they are, as a jump or a climb needs them: no host feature may
+     * change them, and an unset `sprint` means not to sprint. Other keys are a plain walk, which host features may
+     * change, and an unset `sprint` leaves sprinting to the player.
      */
-    public fun press(input: Input)
+    public fun press(input: Input, exact: Boolean)
 
     /**
-     * At most one [LookPurpose.MOVEMENT] or [LookPurpose.AIM] and one [LookPurpose.VIEW] per tick.
+     * [rotation] is where to end up. [LookPurpose.MOVEMENT], [LookPurpose.AIM] and [LookPurpose.STEER] are turned to
+     * at the body's own pace, except that STEER is taken as given while the player glides on an elytra;
+     * [LookPurpose.VIEW] is taken as given. Of the looks of a tick, STEER wins over AIM and AIM over MOVEMENT; VIEW
+     * only turns the camera. The navigator never counts on a pace: it reads the rotation reached every tick from
+     * [movementYRot], [inputYRot] and [sentRotation].
      */
     public fun look(rotation: ViewRotation, purpose: LookPurpose)
 
@@ -166,6 +172,14 @@ public enum class LookPurpose {
      * The camera, turned the way navigation goes; the client view only, never sent on its own.
      */
     VIEW,
+
+    /**
+     * Worked out for this very tick, and the movement relies on reaching it. While the player glides on an elytra,
+     * as elytra steering and a roof bounce do, bodies apply it as given: turned slower, the glide goes astray.
+     * Otherwise it is a quick turn a skill has to land now, such as a block clutch, which bodies that pace their
+     * turns still pace, as fast as a person flicks.
+     */
+    STEER,
 }
 
 /**

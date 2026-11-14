@@ -22,13 +22,14 @@ package net.ccbluex.agent.skills.games.blitz
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.fight.Outnumbered
 import net.ccbluex.agent.skills.fight.Targets
 import net.ccbluex.agent.skills.games.Progress
 import net.ccbluex.agent.skills.games.RoundState
-import net.ccbluex.agent.skills.games.TickScope
 import net.ccbluex.agent.skills.gear.WeaponMemory
+import net.ccbluex.agent.tick.TickScope
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.ChunkPos
@@ -128,7 +129,7 @@ internal class Round(val agent: Agent, val senses: Senses) {
      */
     private fun restart(act: suspend CoroutineScope.() -> Unit) {
         job?.cancel()
-        job = scope.start(act)
+        job = scope.launch(block = act)
     }
 
     private fun start(fromPedestal: Boolean) {
@@ -274,7 +275,7 @@ internal class Round(val agent: Agent, val senses: Senses) {
         agent.walkTo(goal, radius)
         this.goal = "Going to $label"
         val distance = player.position().distanceTo(goal)
-        if (!progress.check(label, distance, agent.navigator.isStranded, ticks)) {
+        if (!progress.check(label, distance, agent.navigator.strandedTicks, ticks)) {
             unreachableUntil[label] = ticks + RETRY_TICKS
             agent.logger.debug("Unreachable: {}", label)
             resetTarget()

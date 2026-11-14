@@ -248,6 +248,7 @@ internal class Gliding(private val context: NavigationContext) {
         }
         context.body.press(
             Input(direction.forward(), direction.backward(), direction.left(), direction.right(), jump, false, false),
+            true,
         )
         sprint = !glide.hasOpened
 
@@ -270,14 +271,14 @@ internal class Gliding(private val context: NavigationContext) {
     }
 
     private fun steer(glide: Glide) {
-        val rotation = if (player.isFallFlying) {
+        if (player.isFallFlying) {
             val input = glide.steering.steer(player.position(), player.deltaMovement)
             shouldFireRocket = input.shouldFireRocket
-            ViewRotation(input.yRot, input.xRot)
+            // The controller works out this tick's rotation; turned slower, the glide goes astray
+            context.body.look(ViewRotation(input.yRot, input.xRot), LookPurpose.STEER)
         } else {
-            ViewRotation(glide.goal.subtract(player.position()).yRot, 0f)
+            context.body.look(ViewRotation(glide.goal.subtract(player.position()).yRot, 0f), LookPurpose.MOVEMENT)
         }
-        context.body.look(rotation, LookPurpose.MOVEMENT)
     }
 
     /**

@@ -28,6 +28,7 @@ import net.ccbluex.agent.navigation.BodyTraits
 import net.ccbluex.agent.navigation.FlightControl
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.Teleporter
+import net.ccbluex.agent.navigation.Turning
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.ClientInput
@@ -47,9 +48,10 @@ import kotlin.math.roundToInt
  * The local player as a [Body], moved with vanilla means only: the movement keys of the tick, the player's own
  * rotation, the hotbar and [net.minecraft.client.multiplayer.MultiPlayerGameMode] for digging and using items.
  *
- * The rotation the walk faces ([LookPurpose.MOVEMENT]) or aims with ([LookPurpose.AIM]) is turned to at most
- * [maxTurn] degrees a tick in whole mouse steps, and the keys pressed for the old view are turned onto it. The camera
- * looks there too: the way the walk goes, or at the block it places or breaks.
+ * The rotation the walk faces ([LookPurpose.MOVEMENT]), aims with ([LookPurpose.AIM]) or flicks to
+ * ([LookPurpose.STEER]) is turned to as [turning] paces it, in whole mouse steps; STEER while gliding is taken at
+ * once. The keys pressed for the old view are turned onto the new rotation. The camera looks there too: the way the
+ * walk goes, or at the block it places or breaks.
  *
  * While the user turns the mouse, or something outside the navigation owns the rotation
  * ([isRotationOverridden]), the camera is theirs: the player moves and the movement packet goes out with the
@@ -65,9 +67,9 @@ import kotlin.math.roundToInt
 public open class ClientBody @JvmOverloads constructor(
 
     /**
-     * Largest turn towards a movement or aim rotation per tick, in degrees; 180 turns at once.
+     * How movement, aim and steering rotations are turned to; the default turns at once.
      */
-    public var maxTurn: Float = DEFAULT_MAX_TURN,
+    public var turning: Turning = Turning.linear(DEFAULT_MAX_TURN),
 ) : Body {
 
     private val minecraft: Minecraft
@@ -121,6 +123,7 @@ public open class ClientBody @JvmOverloads constructor(
         }
 
     private var pressed: Input? = null
+    private var pressedExact = false
     private var pressedYRot = 0f
     private var ownSlot = NO_SLOT
 
@@ -149,8 +152,9 @@ public open class ClientBody @JvmOverloads constructor(
     internal var isDestroying: Boolean = false
         private set
 
-    override fun press(input: Input) {
+    override fun press(input: Input, exact: Boolean) {
         pressed = input
+        pressedExact = exact
         pressedYRot = inputYRot
     }
 
@@ -162,8 +166,21 @@ public open class ClientBody @JvmOverloads constructor(
                 player.xRot = rotation.xRot.coerceIn(MIN_X_ROT, MAX_X_ROT)
             }
 
-            LookPurpose.MOVEMENT, LookPurpose.AIM -> if (nextPurpose != LookPurpose.AIM) {
-                nextRotation = turn(this.rotation ?: player.let { ViewRotation(it.yRot, it.xRot) }, rotation)
+            LookPurpose.STEER -> {
+                val from = this.rotation ?: player.let { ViewRotation(it.yRot, it.xRot) }
+                nextRotation = if (player.isFallFlying) {
+                    ViewRotation(
+                        from.yRot + Mth.wrapDegrees(rotation.yRot - from.yRot),
+                        rotation.xRot.coerceIn(MIN_X_ROT, MAX_X_ROT),
+                    )
+                } else {
+                    turn(from, rotation, purpose)
+                }
+                nextPurpose = purpose
+            }
+
+            LookPurpose.MOVEMENT, LookPurpose.AIM -> if (nextPurpose == null || nextPurpose == LookPurpose.MOVEMENT) {
+                nextRotation = turn(this.rotation ?: player.let { ViewRotation(it.yRot, it.xRot) }, rotation, purpose)
                 nextPurpose = purpose
             }
         }
@@ -268,7 +285,8 @@ public open class ClientBody @JvmOverloads constructor(
     internal fun applyTick(player: LocalPlayer, input: ClientInput) {
         val view = ViewRotation(player.yRot, player.xRot)
         val last = this.rotation
-        val rotation = nextRotation ?: last?.let { turn(it, view) }?.takeUnless { it.reaches(view) }
+        val rotation = nextRotation
+            ?: last?.let { turn(it, view, LookPurpose.MOVEMENT) }?.takeUnless { it.reaches(view) }
         val viewFollows = rotation != null && !isMouseTurning() && !isRotationOverridden
         this.rotation = rotation.takeUnless { viewFollows }
         nextRotation = null
@@ -291,9 +309,9 @@ public open class ClientBody @JvmOverloads constructor(
         val pressed = pressed
         this.pressed = null
         input.keyPresses = when {
-            // Sprint left unset leaves it to the player's own key
+            // Sprint left unset leaves it to the player's own key, unless the keys are exact
             pressed != null -> pressed.turned(pressedYRot, player.yRot)
-                .copy(sprint = pressed.sprint() || input.keyPresses.sprint())
+                .copy(sprint = pressed.sprint() || !pressedExact && input.keyPresses.sprint())
 
             rotation != null -> input.keyPresses.turned(view.yRot, player.yRot)
             else -> return
@@ -373,12 +391,13 @@ public open class ClientBody @JvmOverloads constructor(
     }
 
     /**
-     * [from] turned towards [to] by at most [maxTurn] on each axis, in whole [viewStep]s.
+     * [from] turned towards [to] as [turning] paces it, in whole [viewStep]s.
      */
-    private fun turn(from: ViewRotation, to: ViewRotation): ViewRotation {
+    private fun turn(from: ViewRotation, to: ViewRotation, purpose: LookPurpose): ViewRotation {
+        val turned = turning.turn(from, to, purpose)
         val step = viewStep
-        val yRot = quantize(Mth.wrapDegrees(to.yRot - from.yRot).coerceIn(-maxTurn, maxTurn), step)
-        val xRot = quantize((to.xRot - from.xRot).coerceIn(-maxTurn, maxTurn), step)
+        val yRot = quantize(Mth.wrapDegrees(turned.yRot - from.yRot), step)
+        val xRot = quantize(turned.xRot - from.xRot, step)
         return ViewRotation(from.yRot + yRot, (from.xRot + xRot).coerceIn(MIN_X_ROT, MAX_X_ROT))
     }
 

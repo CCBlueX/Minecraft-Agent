@@ -78,6 +78,7 @@ internal class Steering(private val body: Body) {
                 false,
                 false,
             ),
+            true,
         )
     }
 
@@ -92,7 +93,7 @@ internal class Steering(private val body: Body) {
         val atJump = jumpTo != null && mount.position().horizontalDistanceTo(jumpTo) < reach
         chargeTicks = if (atJump) chargeTicks + 1 else 0
         val jump = chargeTicks in 1..Vehicle.JUMP_CHARGE_TICKS
-        body.press(Input(aligned, false, false, false, jump, false, false))
+        body.press(Input(aligned, false, false, false, jump, false, false), true)
         if (chargeTicks > Vehicle.JUMP_CHARGE_TICKS + JUMP_RETRY_TICKS) {
             chargeTicks = 0
         }
@@ -100,7 +101,7 @@ internal class Steering(private val body: Body) {
 
     fun stop(sneak: Boolean = false) {
         reset()
-        body.press(Input(false, false, false, false, false, sneak, false))
+        body.press(Input(false, false, false, false, false, sneak, false), true)
     }
 
     /**

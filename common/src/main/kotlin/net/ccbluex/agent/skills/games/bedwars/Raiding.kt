@@ -23,6 +23,7 @@ import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.gear.GearScore
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.shop.Wishes
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.tags.BlockTags
@@ -67,18 +68,18 @@ internal suspend fun Activities.rush() {
                 goal = "Heading home for wool"
                 plan.bridge(game, null)
                 travel.bridgeTo(agent, team.spawn, 2.0, tick)
-                scope.nextTick()
+                waitTicks(1)
                 continue
             }
             if (kitUp(target)) {
-                scope.nextTick()
+                waitTicks(1)
                 continue
             }
             setOut = true
             say(Callout.GoingFor(target.name))
         }
         if (!breakBed(target, bed)) return
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -101,13 +102,13 @@ private suspend fun Activities.breakBed(target: BedWarsTeam, bed: BlockPos): Boo
             travel.forget()
             return false
         }
-        scope.nextTick()
+        waitTicks(1)
     }
     plan.bridge(game, null)
     goal = "Breaking ${target.name}'s bed"
     while (target.isBedAlive && stillTarget() && eyes().distanceTo(centre) <= BED_REACH) {
         dig(digTarget(bed))
-        scope.nextTick()
+        waitTicks(1)
     }
     stopDigging()
     return true
@@ -153,7 +154,7 @@ internal suspend fun Activities.hunt() {
                 return
             }
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -167,7 +168,7 @@ internal suspend fun Activities.help() {
         val brawl = threats.brawl(self, team) ?: return
         goal = "Helping ${brawl.mate.scoreboardName}"
         if (!chase(brawl.enemy)) return
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 

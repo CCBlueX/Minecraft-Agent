@@ -19,9 +19,11 @@
 
 package net.ccbluex.agent.skills.games
 
+import net.ccbluex.agent.navigation.Navigator
+
 /**
  * Whether the agent keeps getting closer to where it goes, a block at a time. A goal it got no closer to for
- * [NO_PROGRESS_TICKS], or the navigator found no way to for [STRANDED_TICKS], is out of reach for now.
+ * [NO_PROGRESS_TICKS], or the navigator found no way to for [Navigator.UNREACHABLE_TICKS], is out of reach for now.
  *
  * @agent claude-opus-5-5
  */
@@ -30,33 +32,36 @@ internal class Progress {
     private var key: Any? = null
     private var since = 0L
     private var distance = Double.MAX_VALUE
-    private var strandedTicks = 0
 
     /**
-     * False once the way to [key], [distance] away now, stopped getting shorter.
+     * The navigator's stranded ticks from before the current key, which do not count against it.
      */
-    fun check(key: Any, distance: Double, stranded: Boolean, now: Long): Boolean {
+    private var strandedBefore = 0
+
+    /**
+     * False once the way to [key], [distance] away now, stopped getting shorter; [strandedTicks] is
+     * [Navigator.strandedTicks].
+     */
+    fun check(key: Any, distance: Double, strandedTicks: Int, now: Long): Boolean {
         if (key != this.key) {
             this.key = key
             since = now
             this.distance = distance
-            strandedTicks = 0
+            strandedBefore = strandedTicks
         } else if (distance < this.distance - MIN_PROGRESS) {
             since = now
             this.distance = distance
         }
-        strandedTicks = if (stranded) strandedTicks + 1 else 0
-        return strandedTicks < STRANDED_TICKS && now - since <= NO_PROGRESS_TICKS
+        if (strandedTicks < strandedBefore) strandedBefore = 0
+        return strandedTicks - strandedBefore < Navigator.UNREACHABLE_TICKS && now - since <= NO_PROGRESS_TICKS
     }
 
     fun reset() {
         key = null
-        strandedTicks = 0
     }
 
     private companion object {
         const val MIN_PROGRESS = 1.0
-        const val STRANDED_TICKS = 40
         const val NO_PROGRESS_TICKS = 200
     }
 }

@@ -26,6 +26,7 @@ import net.ccbluex.agent.navigation.BodyTraits
 import net.ccbluex.agent.navigation.FlightControl
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.Teleporter
+import net.ccbluex.agent.navigation.Turning
 import net.ccbluex.agent.bukkit.BotSkin
 import net.ccbluex.agent.v26_3.paper.body.BotPlayer
 import net.ccbluex.agent.v26_3.paper.body.Digging
@@ -83,19 +84,25 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
     }
 
     /**
-     * The most the body turns in a tick towards a rotation it looks for, in degrees on each axis.
+     * How the body turns towards a rotation it looks for, a tick at a time. A bot sets it from its settings'
+     * difficulty; [LookPurpose.STEER] while gliding on an elytra skips it.
      */
-    public var turnSpeed: Float = DEFAULT_TURN_SPEED
+    public var turning: Turning = Turning.linear(DEFAULT_TURN_SPEED)
 
     private var lookTarget: ViewRotation? = null
+    private var lookPurpose = LookPurpose.VIEW
     private var requested: ViewRotation? = null
+    private var requestedPurpose = LookPurpose.VIEW
     private var requestedRank = -1
     private val digging = Digging(handle)
     private val clicks = InventoryClicks(handle)
     private var releasedSlot = -1
     private val touched = ArrayList<BlockPos>()
 
-    override fun press(input: Input) {
+    /**
+     * A server bot has no host features to change keys, so [exact] changes nothing.
+     */
+    override fun press(input: Input, exact: Boolean) {
         handle.forward = axis(input.forward(), input.backward())
         handle.strafe = axis(input.left(), input.right())
         handle.jump = input.jump()
@@ -104,12 +111,13 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
     }
 
     /**
-     * The rotation is turned to over the next ticks, [turnSpeed] at most per tick; aiming wins over walking.
+     * The rotation is turned to over the next ticks as [turning] paces it; steering wins over aiming over walking.
      */
     override fun look(rotation: ViewRotation, purpose: LookPurpose) {
         val rank = purpose.rank()
         if (rank >= requestedRank) {
             requested = rotation
+            requestedPurpose = purpose
             requestedRank = rank
         }
     }
@@ -422,15 +430,22 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
      * Turns towards the rotation looked for last tick, as a client's rotation reaches the server a tick later.
      */
     internal fun turn() {
-        requested?.let { lookTarget = it }
+        requested?.let {
+            lookTarget = it
+            lookPurpose = requestedPurpose
+        }
         requested = null
         requestedRank = -1
         val target = lookTarget ?: return
-        val yRotLeft = Mth.wrapDegrees(target.yRot - handle.yRot)
-        val xRotLeft = target.xRot - handle.xRot
-        if (abs(yRotLeft) <= turnSpeed && abs(xRotLeft) <= turnSpeed) lookTarget = null
-        val yRot = handle.yRot + yRotLeft.coerceIn(-turnSpeed, turnSpeed)
-        val xRot = (handle.xRot + xRotLeft.coerceIn(-turnSpeed, turnSpeed)).coerceIn(-MAX_X_ROT, MAX_X_ROT)
+        val from = ViewRotation(handle.yRot, handle.xRot)
+        val turned = if (lookPurpose == LookPurpose.STEER && handle.isFallFlying) {
+            target
+        } else {
+            turning.turn(from, target, lookPurpose)
+        }
+        val yRot = from.yRot + Mth.wrapDegrees(turned.yRot - from.yRot)
+        val xRot = turned.xRot.coerceIn(-MAX_X_ROT, MAX_X_ROT)
+        if (abs(Mth.wrapDegrees(target.yRot - yRot)) < REACHED && abs(target.xRot - xRot) < REACHED) lookTarget = null
         handle.look(yRot, xRot)
     }
 
@@ -456,6 +471,7 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
             navigatesInMovementTick = false,
         )
         private const val MAX_X_ROT = 90f
+        private const val REACHED = 1.0E-3f
         // ServerGamePacketListenerImpl's attack cooldown check for a stab
         private const val JAB_COOLDOWN_TICKS = 5
 
@@ -472,6 +488,7 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
             LookPurpose.VIEW -> 0
             LookPurpose.MOVEMENT -> 1
             LookPurpose.AIM -> 2
+            LookPurpose.STEER -> 3
         }
     }
 }

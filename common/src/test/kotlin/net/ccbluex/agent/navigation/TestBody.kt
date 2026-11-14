@@ -48,7 +48,7 @@ internal class TestBody(override val player: Player, override val flight: Flight
     override val traits = BodyTraits(exactSimulation = false)
     override val teleporter: Teleporter? = null
 
-    override fun press(input: Input) {
+    override fun press(input: Input, exact: Boolean) {
         pressed = input
     }
 

@@ -27,6 +27,7 @@ import net.ccbluex.agent.skills.buildingBlocks
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.isBuildingBlock
 import net.ccbluex.agent.skills.slotOf
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
@@ -68,7 +69,7 @@ internal suspend fun Round.holdSpot(what: String, counts: Boolean): Any? {
             here
         } else {
             goal = "Going back to its island"
-            scope.nextTick()
+            waitTicks(1)
             continue
         }
         val facing = enemies().minByOrNull { it.distanceToSqr(player) }?.position()
@@ -84,7 +85,7 @@ internal suspend fun Round.holdSpot(what: String, counts: Boolean): Any? {
         if (here.horizontalDistanceTo(stand) > STAND_WITHIN) {
             agent.walkTo(stand, STAND_WITHIN)
             goal = what
-            scope.nextTick()
+            waitTicks(1)
             continue
         }
         val cell = wall.firstOrNull { canPlaceAt(it) }
@@ -95,7 +96,7 @@ internal suspend fun Round.holdSpot(what: String, counts: Boolean): Any? {
             goal = what
             val eye = player.eyePosition
             agent.body.look(ViewRotation(ViewRotation.fromVector(facing.subtract(eye)).yRot, 0f), LookPurpose.AIM)
-            scope.nextTick()
+            waitTicks(1)
         }
     }
 }
@@ -153,11 +154,11 @@ internal suspend fun Round.place(below: BlockPos) {
     body.look(rotation, LookPurpose.AIM)
     var ticks = 0
     do {
-        scope.nextTick()
+        waitTicks(1)
         agent.takeMovement()
         body.look(rotation, LookPurpose.AIM)
     } while (!agent.navigator.canClick(below, Direction.UP) && ticks++ < 20)
     agent.navigator.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(hit, Direction.UP, below, false))
     body.releaseHotbarSlot()
-    scope.nextTick()
+    waitTicks(1)
 }

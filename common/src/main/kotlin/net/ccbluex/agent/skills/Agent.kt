@@ -30,7 +30,8 @@ import org.slf4j.LoggerFactory
 
 /**
  * One bot that plays. Its host ticks it once per game tick, after the body's own tick input: the game mode first,
- * then the abilities, then the navigator once with the walk goal the tick ended with.
+ * then the abilities, then the navigator once: with the walk goal the tick ended with, the keys an ability pressed,
+ * or else the walk the navigator holds. Every key goes through the void rescue's guard.
  *
  * From LiquidBounce: [GameBotBlitz.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/games/GameBotBlitz.kt#L340-L355), [GameBotSkyWars.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/games/GameBotSkyWars.kt#L265-L297)
  *
@@ -72,6 +73,8 @@ public class Agent @JvmOverloads constructor(
     private var walkRadius = 0.0
     private var movementTaken = false
     private var pressed: Input? = null
+    private var pressedExact = false
+    private val guard: (Input) -> Input = { skills.voidRescue?.guard(this, it) ?: it }
 
     /**
      * Walks towards [goal] this tick, within [radius]. The last call in a tick wins; abilities tick after the game
@@ -91,10 +94,12 @@ public class Agent @JvmOverloads constructor(
 
     /**
      * An ability presses [input] this tick instead of walking; the void rescue still holds it back at an edge.
+     * [exact] as in [net.ccbluex.agent.navigation.Body.press].
      */
-    internal fun press(input: Input) {
+    internal fun press(input: Input, exact: Boolean) {
         movementTaken = true
         pressed = input
+        pressedExact = exact
     }
 
     public fun tick() {
@@ -112,15 +117,17 @@ public class Agent @JvmOverloads constructor(
         skills.fight?.tick(this)
 
         val goal = walkGoal
-        val keys = if (movementTaken || goal == null) {
-            navigator.halt()
-            pressed ?: return
-        } else {
-            navigator.navigate(goal, walkRadius)
-            navigator.input
+        val pressed = pressed
+        navigator.guard = guard
+        try {
+            when {
+                movementTaken -> if (pressed != null) navigator.press(pressed, pressedExact) else navigator.halt()
+                goal != null -> navigator.navigate(goal, walkRadius)
+                else -> navigator.tick()
+            }
+        } finally {
+            navigator.guard = null
         }
-        val guarded = skills.voidRescue?.guard(this, keys) ?: keys
-        if (guarded != keys || pressed != null) body.press(guarded)
     }
 
     /**

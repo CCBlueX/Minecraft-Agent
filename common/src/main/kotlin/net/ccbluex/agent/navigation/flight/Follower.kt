@@ -103,14 +103,14 @@ internal class Follower(private val context: NavigationContext, private val hand
 
         val route = route?.also(::advance)
         if (route == null || route.isFinished) {
-            context.body.press(Input.EMPTY)
+            context.body.press(Input.EMPTY, true)
             return FollowState.FINISHED
         }
 
         if (!abilities.isFlying) {
             // A double jump starts creative flight.
             val jump = takeOffTicks++ % 2 == 0
-            context.body.press(Input(false, false, false, false, jump, false, false))
+            context.body.press(Input(false, false, false, false, jump, false, false), true)
             return FollowState.WALKING
         }
 
@@ -154,7 +154,7 @@ internal class Follower(private val context: NavigationContext, private val hand
         val sneak = error.y < -sinkTolerance && !jump && !leaves
         val input =
             Input(direction.forward(), direction.backward(), direction.left(), direction.right(), jump, sneak, false)
-        context.body.press(input)
+        context.body.press(input, true)
         pressed = input
         sprint = moves && error.horizontalDistance() > SPRINT_DISTANCE
     }

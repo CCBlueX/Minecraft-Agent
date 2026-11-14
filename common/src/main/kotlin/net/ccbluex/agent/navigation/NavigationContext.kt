@@ -51,8 +51,15 @@ internal class TickBody(val host: Body, private val options: () -> Options) : Bo
 
     private var pressed: Input? = null
 
-    override fun press(input: Input) {
+    /**
+     * Whether the keys held back are exact, see [Body.press].
+     */
+    var pressedExact: Boolean = false
+        private set
+
+    override fun press(input: Input, exact: Boolean) {
         pressed = input
+        pressedExact = exact
     }
 
     override fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean {

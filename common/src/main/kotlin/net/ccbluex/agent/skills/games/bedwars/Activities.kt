@@ -20,16 +20,18 @@
 package net.ccbluex.agent.skills.games.bedwars
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.games.RoundState
-import net.ccbluex.agent.skills.games.TickScope
 import net.ccbluex.agent.skills.shop.Catalogue
 import net.ccbluex.agent.skills.shop.Currency
 import net.ccbluex.agent.skills.shop.Wishes
+import net.ccbluex.agent.tick.TickScope
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
@@ -197,9 +199,9 @@ internal class Activities(
     private fun isLanding(): Boolean {
         if (backFromRespawn) {
             backFromRespawn = false
-            landing = scope.start {
-                scope.ticks(MIN_RESPAWN_TICKS)
-                while (!self.onGround()) scope.nextTick()
+            landing = scope.launch {
+                waitTicks(MIN_RESPAWN_TICKS)
+                while (!self.onGround()) waitTicks(1)
             }
         }
         if (landing?.isActive != true) return false
@@ -261,7 +263,7 @@ internal class Activities(
             }
             activity = best
             cancel()
-            job = scope.start {
+            job = scope.launch {
                 carryOut(best)
                 if (activity == best) {
                     finished = best

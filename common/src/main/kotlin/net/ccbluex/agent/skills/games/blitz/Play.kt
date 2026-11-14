@@ -20,6 +20,7 @@
 package net.ccbluex.agent.skills.games.blitz
 
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.world.phys.Vec3
 
 private const val CENTER_TICKS = 45 * Round.TICKS_PER_SECOND
@@ -67,7 +68,7 @@ private suspend fun Round.lootCenter() {
     while (true) {
         val attacked = targets.hitsTaken(DEFEND_TICKS) > 0
         if (attacked && engage() || isLooting() || pickUpGear()) {
-            scope.nextTick()
+            waitTicks(1)
             continue
         }
         if (opponent != null) stopFight("center chests first")
@@ -85,7 +86,7 @@ private suspend fun Round.lootCenter() {
             gearUp(done)
             return
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -126,7 +127,7 @@ private suspend fun Round.gearUp(reason: String) {
             val fed = agent.skills.eat?.wantsToEat != true
             if (fed && ticks - since >= GEAR_TICKS || ticks - since >= MAX_GEAR_TICKS) break
         }
-        scope.nextTick()
+        waitTicks(1)
     }
     hungerCheckAt = ticks + HUNGER_RETRY_TICKS
 }
@@ -158,7 +159,7 @@ private fun Round.gearReason(): String? {
 private suspend fun Round.hunt() {
     while (true) {
         if (engage() || isLooting() || pickUpGear()) {
-            scope.nextTick()
+            waitTicks(1)
             continue
         }
         val reason = gearReason()
@@ -168,7 +169,7 @@ private suspend fun Round.hunt() {
             continue
         }
         huntStep()
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -228,7 +229,7 @@ internal suspend fun Round.prepare() {
             val chest = pickChest { Vec3.atCenterOf(it).closerThan(position, PREPARE_CHEST_RANGE) }
             if (chest != null) openChest(chest) else resetTarget()
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
 
@@ -248,6 +249,6 @@ internal suspend fun Round.deathmatch() {
                 pickChest { true }?.let { openChest(it) } ?: explore()
             }
         }
-        scope.nextTick()
+        waitTicks(1)
     }
 }
