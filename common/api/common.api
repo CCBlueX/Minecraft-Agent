@@ -2048,7 +2048,6 @@ public final class net/ccbluex/agent/skills/games/bedwars/Generator {
 
 public final class net/ccbluex/agent/skills/games/bedwars/LevelSenses : net/ccbluex/agent/skills/games/LevelRoundSenses, net/ccbluex/agent/skills/games/bedwars/Senses {
 	public fun <init> (Lnet/minecraft/world/level/Level;Lnet/ccbluex/agent/skills/games/bedwars/LevelSenses$Facts;)V
-	public final fun blockChanged (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V
 	public fun getGenerators ()Ljava/util/List;
 	public fun getOwnSpawn ()Lnet/minecraft/world/phys/Vec3;
 	public fun getOwnTeam ()Lnet/ccbluex/agent/skills/games/bedwars/BedWarsTeam;
@@ -2057,6 +2056,7 @@ public final class net/ccbluex/agent/skills/games/bedwars/LevelSenses : net/ccbl
 	public fun isRespawning ()Z
 	public fun isRespawning (Lnet/minecraft/world/entity/player/Player;)Z
 	public fun isTeammate (Lnet/minecraft/world/entity/Entity;)Z
+	public final fun received (Lnet/minecraft/network/protocol/Packet;)V
 	public fun teamOf (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/skills/games/bedwars/BedWarsTeam;
 }
 

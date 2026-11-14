@@ -55,7 +55,8 @@ public fun interface Turning {
 
         /**
          * A turn as a hand eases into a look: [share] of what is left a tick, at least [least] degrees and at most
-         * [most], the pitch at most [xRotMost]; the yaw takes the short way round.
+         * [most], the pitch at most [xRotMost]; the yaw takes the short way round. A [LookPurpose.STEER] flick is
+         * not eased: it goes straight to [to], for [humanPaced] to bound.
          */
         @JvmStatic
         @JvmOverloads
@@ -64,7 +65,8 @@ public fun interface Turning {
             xRotMost: Float = most * X_ROT_SHARE,
             share: Float = EASE_SHARE,
             least: Float = EASE_LEAST,
-        ): Turning = Turning { from, to, _ ->
+        ): Turning = Turning { from, to, purpose ->
+            if (purpose == LookPurpose.STEER) return@Turning to
             ViewRotation(
                 from.yRot + easedStep(Mth.wrapDegrees(to.yRot - from.yRot), most, share, least),
                 from.xRot + easedStep(to.xRot - from.xRot, xRotMost, share, least),

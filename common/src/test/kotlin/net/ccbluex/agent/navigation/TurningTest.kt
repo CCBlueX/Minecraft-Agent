@@ -64,6 +64,15 @@ internal class TurningTest {
     }
 
     /**
+     * A clutch flick on a client body: eased, it took 5 ticks.
+     */
+    @Test
+    fun `an eased body flicks at the flick pace`() {
+        val client = Turning.humanPaced(Turning.eased())
+        assertEquals(ViewRotation(90f, 78f), client.turn(ViewRotation(0f, 25f), ViewRotation(140f, 78f), LookPurpose.STEER))
+    }
+
+    /**
      * The BedWars GEAR flip: the look turned between the shopkeeper and the generator, about 180 degrees apart, every
      * 10 ticks, and the host turned at 180 degrees a tick (the old angle smoother): 317 ticks of over 90 degrees in
      * one run.

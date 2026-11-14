@@ -31,7 +31,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
@@ -77,7 +76,7 @@ internal object Clutch {
         val body = agent.body
         val player = body.player
         val level = body.level
-        val landing = landingCells(player)
+        val landing = landingCells(player.position(), player.deltaMovement, player.bbWidth.toDouble())
         // Already placed, or about to land on something
         if (landing.any { !level.getBlockState(it).canBeReplaced() }) return true
         val slot = player.inventory.slotOf(::isBuildingBlock)
@@ -105,13 +104,13 @@ internal object Clutch {
     }
 
     /**
-     * The cells one level below the feet that the body's box covers once its fall without keys gets down to their
-     * top, nearest first.
+     * The cells one level below the feet that a box [width] wide at [start] covers once its fall without keys from
+     * [startMotion] gets down to their top, nearest first.
      */
-    private fun landingCells(player: Player): List<BlockPos> {
-        val top = Mth.floor(player.y)
-        var position = player.position()
-        var motion = player.deltaMovement
+    fun landingCells(start: Vec3, startMotion: Vec3, width: Double): List<BlockPos> {
+        val top = Mth.floor(start.y)
+        var position = start
+        var motion = startMotion
         for (tick in 0 until FALL_TICKS) {
             if (position.y + motion.y <= top) {
                 position = position.add(motion.x, 0.0, motion.z)
@@ -120,7 +119,7 @@ internal object Clutch {
             position = position.add(motion)
             motion = Vec3(motion.x * AIR_DRAG, (motion.y - GRAVITY) * VERTICAL_DRAG, motion.z * AIR_DRAG)
         }
-        val half = player.bbWidth / 2.0
+        val half = width / 2.0
         val cells = ArrayList<BlockPos>(4)
         for (x in Mth.floor(position.x - half)..Mth.floor(position.x + half - 1.0E-7)) {
             for (z in Mth.floor(position.z - half)..Mth.floor(position.z + half - 1.0E-7)) {
