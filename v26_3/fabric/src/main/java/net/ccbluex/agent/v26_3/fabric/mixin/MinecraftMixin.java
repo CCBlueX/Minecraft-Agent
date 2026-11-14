@@ -24,6 +24,7 @@ import net.ccbluex.agent.v26_3.fabric.ClientHooks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -57,6 +58,20 @@ abstract class MinecraftMixin {
     )
     private boolean agent$keepDestroying(MultiPlayerGameMode gameMode) {
         return !ClientHooks.keepsDestroying();
+    }
+
+    /**
+     * With the use key up, vanilla releases any item in use every tick, also one a body started.
+     */
+    @WrapWithCondition(
+        method = "handleKeybinds",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;releaseUsingItem(Lnet/minecraft/world/entity/player/Player;)V"
+        )
+    )
+    private boolean agent$keepUsing(MultiPlayerGameMode gameMode, Player player) {
+        return !ClientHooks.keepsUsing();
     }
 
 }

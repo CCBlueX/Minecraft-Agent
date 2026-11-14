@@ -33,6 +33,7 @@ import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.state.BlockState
 import java.lang.ref.WeakReference
+import java.util.WeakHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 // What the mixins call. Everything runs on the client thread, for the account the game plays as at that moment: a
@@ -202,6 +203,34 @@ internal fun holdsAtLedges(player: Player) =
  * @agent claude-opus-5-5
  */
 internal fun keepsDestroying() = currentState()?.walking.orEmpty().any { it.body.isDestroying }
+
+/**
+ * Bodies that started an item use vanilla must not release, with the account they use it on.
+ */
+private val usingBodies = WeakHashMap<ClientBody, String>()
+
+/**
+ * Whether [body] keeps the item use it started going, on the current account, until the player stops using it.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun keepUsing(body: ClientBody, keep: Boolean) {
+    if (keep) usingBodies[body] = currentAccount() else usingBodies.remove(body)
+}
+
+/**
+ * Whether `Minecraft.handleKeybinds` must not release the item a body uses while the use key is up.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun keepsUsing(): Boolean {
+    val account = currentAccount()
+    if (Minecraft.getInstance().player?.isUsingItem != true) {
+        usingBodies.values.removeIf { it == account }
+        return false
+    }
+    return account in usingBodies.values
+}
 
 /**
  * @agent claude-opus-5-5

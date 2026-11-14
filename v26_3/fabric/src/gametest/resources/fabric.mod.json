@@ -28,6 +28,7 @@
       "net.ccbluex.agent.v26_3.fabric.gametest.WalkEndingGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.TurningGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.KeyTimingGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.EatingGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkNavigationGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkBlockedGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkClimbGameTest",
@@ -49,6 +50,7 @@
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.WalkEndingGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.TurningGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.KeyTimingGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.EatingGameTest",
       "net.ccbluex.gametest.harness.ResultsGameTest"
     ]
   },

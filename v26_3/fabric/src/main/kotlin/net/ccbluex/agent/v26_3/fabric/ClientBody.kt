@@ -274,6 +274,8 @@ public open class ClientBody @JvmOverloads constructor(
             player.swing(hand, stack.interactAnimation, false)
         }
         player.itemUsed(hand)
+        // Vanilla lets go of a use whose key is up the next tick; an eat or a raised shield has to last
+        keepUsing(this, player.isUsingItem)
         return true
     }
 
@@ -369,6 +371,7 @@ public open class ClientBody @JvmOverloads constructor(
             stopDestroy()
         }
         releaseHotbarSlot()
+        keepUsing(this, false)
     }
 
     /**

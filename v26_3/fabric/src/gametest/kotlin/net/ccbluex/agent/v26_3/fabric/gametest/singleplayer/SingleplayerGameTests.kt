@@ -22,6 +22,7 @@ package net.ccbluex.agent.v26_3.fabric.gametest.singleplayer
 import net.ccbluex.agent.v26_3.fabric.gametest.autoWalk
 import net.ccbluex.agent.v26_3.fabric.gametest.autoWalkStages
 import net.ccbluex.agent.v26_3.fabric.gametest.blockSight
+import net.ccbluex.agent.v26_3.fabric.gametest.eating
 import net.ccbluex.agent.v26_3.fabric.gametest.elytraTravel
 import net.ccbluex.agent.v26_3.fabric.gametest.flightNavigation
 import net.ccbluex.agent.v26_3.fabric.gametest.keyTiming
@@ -150,3 +151,8 @@ public class TurningGameTest : SingleplayerGameTest(turning)
  * @agent claude-opus-5-5
  */
 public class KeyTimingGameTest : SingleplayerGameTest(keyTiming)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class EatingGameTest : SingleplayerGameTest(eating)
