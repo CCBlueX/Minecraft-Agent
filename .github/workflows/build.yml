@@ -46,8 +46,9 @@ jobs:
         # Snapshots from main, releases from tags; skipped until the repository has the maven.ccbluex.net token
         if: github.event_name == 'push' && env.HAS_MAVEN_TOKEN == 'true'
         env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_TOKEN_NAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_TOKEN_SECRET }}
+          ORG_GRADLE_PROJECT_mavenUrl: https://maven.ccbluex.net/${{ startsWith(github.ref, 'refs/tags/v') && 'releases' || 'snapshots' }}
+          ORG_GRADLE_PROJECT_mavenUsername: ${{ secrets.MAVEN_TOKEN_NAME }}
+          ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_TOKEN_SECRET }}
         run: ./gradlew publish ${VERSION:-}
       - name: Upload the plugin
         uses: actions/upload-artifact@v7

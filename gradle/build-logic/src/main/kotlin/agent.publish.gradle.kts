@@ -32,6 +32,8 @@ val javadocJar = tasks.register<Jar>("javadocJar") {
     from(tasks.named("dokkaGeneratePublicationJavadoc"))
 }
 
+val mavenUrl = providers.gradleProperty("mavenUrl")
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -40,28 +42,53 @@ publishing {
             artifactId = "minecraft-agent-${projectDir.name}"
             pom {
                 name = "Minecraft Agent ${projectDir.name}"
+                description = provider { project.description }
                 url = "https://github.com/CCBlueX/Minecraft-Agent"
+                inceptionYear = "2026"
                 licenses {
                     license {
-                        name = "GNU General Public License v3.0"
+                        name = "GNU General Public License v3.0 or later"
                         url = "https://www.gnu.org/licenses/gpl-3.0.txt"
+                    }
+                }
+                organization {
+                    name = "CCBlueX"
+                    url = "https://ccbluex.net"
+                }
+                developers {
+                    developer {
+                        id = "ccbluex"
+                        name = "CCBlueX"
+                        url = "https://github.com/CCBlueX"
                     }
                 }
                 scm {
                     url = "https://github.com/CCBlueX/Minecraft-Agent"
+                    connection = "scm:git:https://github.com/CCBlueX/Minecraft-Agent.git"
+                    developerConnection = "scm:git:git@github.com:CCBlueX/Minecraft-Agent.git"
+                }
+                issueManagement {
+                    system = "GitHub"
+                    url = "https://github.com/CCBlueX/Minecraft-Agent/issues"
                 }
             }
         }
     }
+    // `publish` uploads to -PmavenUrl with -PmavenUsername and -PmavenPassword (or ORG_GRADLE_PROJECT_mavenUrl, ...)
     repositories {
-        maven {
-            name = "CCBlueX"
-            url = uri("https://maven.ccbluex.net/" + if (snapshot) "snapshots" else "releases")
-            credentials {
-                username = providers.environmentVariable("MAVEN_USERNAME").orNull
-                password = providers.environmentVariable("MAVEN_PASSWORD").orNull
+        if (mavenUrl.isPresent) {
+            maven {
+                name = "maven"
+                url = uri(mavenUrl.get())
+                credentials(PasswordCredentials::class)
             }
         }
+    }
+}
+
+tasks.named("publish") {
+    doFirst {
+        check(mavenUrl.isPresent) { "publish needs the repository: -PmavenUrl=<url> -PmavenUsername=... -PmavenPassword=..." }
     }
 }
 

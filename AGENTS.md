@@ -38,6 +38,8 @@ timeout 600 flock /tmp/minecraft-agent-gradle.lock ./gradlew -Dorg.gradle.jvmarg
   `net.ccbluex.gametest.harness.ResultsGameTest` last. `-PgameTestOnly=WalkSneak,WalkSwim` runs only those. Server
   tests run with `GAMETEST_SERVER_ADDRESS` and `GAMETEST_SERVER_ANTICHEAT`. Count the `✓`/`✗` lines or read the
   `N passed, M failed` summary (`ResultsGameTest` prints them); the exit status alone proves nothing.
+- Kotlin and Fabric Language Kotlin follow LiquidBounce's `gradle/libs.versions.toml`; LiquidBounce consumes the
+  published modules. `publish` takes `-PmavenUrl`, `-PmavenUsername`, `-PmavenPassword`.
 
 ## Code rules
 

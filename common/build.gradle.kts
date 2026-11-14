@@ -5,6 +5,8 @@ plugins {
     `java-test-fixtures`
 }
 
+description = "Player movement simulation, route searches and route following, and skills: fighting, eating, looting, gear, shopping, void rescue, and game modes"
+
 kotlin {
     compilerOptions.optIn.add("net.ccbluex.agent.ExperimentalAgentApi")
 }

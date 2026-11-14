@@ -4,6 +4,8 @@ plugins {
     id("agent.publish")
 }
 
+description = "Server bots as a Paper plugin"
+
 kotlin {
     compilerOptions.optIn.add("net.ccbluex.agent.ExperimentalAgentApi")
 }
