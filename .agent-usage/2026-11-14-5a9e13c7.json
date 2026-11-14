@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): bedwars shop wool category",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 90, "cachedInput": 3544187, "cacheWrite": 72614, "output": 24961 },
+      "usd": 1.79
+    }
+  ]
+}

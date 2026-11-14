@@ -43,4 +43,17 @@ class ShopVisitsTest {
     fun `without a failure the shop may be visited`() {
         assertEquals(true, ShopVisits().mayVisit(0))
     }
+
+    @Test
+    fun `a shop failing again and again is left alone for a while`() {
+        val visits = ShopVisits()
+        visits.failed(0)
+        visits.failed(100)
+        visits.failed(200)
+        assertEquals(false, visits.mayVisit(200 + ShopVisits.AWAY_TICKS))
+        assertEquals(true, visits.mayVisit(200 + ShopVisits.GIVE_UP_TICKS))
+        visits.bought()
+        visits.failed(2000)
+        assertEquals(true, visits.mayVisit(2000 + ShopVisits.AWAY_TICKS))
+    }
 }

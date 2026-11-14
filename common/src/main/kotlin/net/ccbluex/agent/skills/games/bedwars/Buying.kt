@@ -258,22 +258,31 @@ private const val FACE_TOLERANCE = 12f
 
 /**
  * When the agent goes to the shop: not again for [AWAY_TICKS] after a purchase failed, which the shop refuses to
- * retry that long anyway. Going back each tick turned the look between keeper and generator every few ticks.
+ * retry that long anyway. Going back each tick turned the look between keeper and generator every few ticks. After
+ * [FAILS] failures in a row it stays away for [GIVE_UP_TICKS], so a shop it cannot read is not polled all round.
  *
  * @agent claude-opus-5-5
  */
 internal class ShopVisits {
 
     private var againAt = Long.MIN_VALUE
+    private var fails = 0
 
     fun mayVisit(tick: Long): Boolean = tick >= againAt
 
     fun failed(tick: Long) {
-        againAt = tick + AWAY_TICKS
+        fails++
+        againAt = tick + if (fails % FAILS == 0) GIVE_UP_TICKS else AWAY_TICKS
+    }
+
+    fun bought() {
+        fails = 0
     }
 
     companion object {
         const val AWAY_TICKS = 100L
+        const val GIVE_UP_TICKS = 1200L
+        const val FAILS = 3
     }
 }
 
@@ -291,7 +300,10 @@ internal fun Activities.bought() {
     val upgrade = purchasing
     purchasing = null
     rethink()
-    if (agent.skills.shop?.lastPurchase == true && !upgrade.isNullOrEmpty()) say(Callout.BoughtUpgrade(upgrade))
+    if (agent.skills.shop?.lastPurchase == true) {
+        shopVisits.bought()
+        if (!upgrade.isNullOrEmpty()) say(Callout.BoughtUpgrade(upgrade))
+    }
 }
 
 /**
