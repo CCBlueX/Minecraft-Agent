@@ -17,7 +17,7 @@ import kotlin.system.exitProcess
 
 private const val USAGE = "Usage: --main <main checkout> --api <Dokka HTML folder or none> --out <folder> " +
     "[--static <folder copied as is, such as clips/>]"
-private const val SKILL = "skills/minecraft-agent/SKILL.md"
+private const val SKILL = "SKILL.md"
 
 /**
  * Writes the site for a checkout of the main branch. Missing inputs get a placeholder line on their page.
