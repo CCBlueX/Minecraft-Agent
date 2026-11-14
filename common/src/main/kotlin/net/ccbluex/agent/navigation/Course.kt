@@ -251,6 +251,6 @@ internal class Course(
         heading.clear()
     }
 
-    private val straightProgress = TargetProgress(body.player, { straightGoal != null }) { straightGoal }
+    private val straightProgress = TargetProgress(body, { straightGoal != null }) { straightGoal }
 
 }

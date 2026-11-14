@@ -368,7 +368,7 @@ internal class Gliding(private val context: NavigationContext) {
 
     private fun hasGround(goal: Vec3) = Terrain.live(level).isStandable(BlockPos.containing(goal))
 
-    private val progress = TargetProgress(context.body.player, { isActive }) { glide?.landing }
+    private val progress = TargetProgress(context.body, { isActive }) { glide?.landing }
 
     /**
      * A glide from take-off to touch-down: planned along [path], or a cruise without one.

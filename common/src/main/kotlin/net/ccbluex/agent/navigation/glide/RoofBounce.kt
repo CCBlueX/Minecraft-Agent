@@ -109,7 +109,7 @@ internal class RoofBounce(private val context: NavigationContext) {
         return bounce
     }
 
-    private val progress = TargetProgress(context.body.player, { isActive }) { bounce?.lineEnd }
+    private val progress = TargetProgress(context.body, { isActive }) { bounce?.lineEnd }
 
     private class Bounce(val goal: Vec3, val floor: Double, var lineEnd: Vec3) {
         var ticks = 0

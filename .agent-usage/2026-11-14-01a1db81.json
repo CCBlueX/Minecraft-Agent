@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(navigation): navigator before player exists",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 58, "cachedInput": 8084474, "cacheWrite": 29566, "output": 8914 },
+      "usd": 2.03
+    }
+  ]
+}

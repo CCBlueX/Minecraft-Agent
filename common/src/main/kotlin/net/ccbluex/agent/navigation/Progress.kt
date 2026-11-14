@@ -19,7 +19,6 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 
 /**
@@ -40,14 +39,14 @@ public interface Progress {
 }
 
 /**
- * [player] heading straight for [target] while [moving].
+ * The player of [body] heading straight for [target] while [moving].
  *
  * From LiquidBounce: [RouteView.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/render/route/RouteView.kt#L52-L63)
  *
  * @agent claude-opus-5-5
  */
 internal class TargetProgress(
-    private val player: Player,
+    private val body: Body,
     private val moving: () -> Boolean,
     private val target: () -> Vec3?,
 ) : Progress {
@@ -58,6 +57,6 @@ internal class TargetProgress(
     override val ahead: List<Vec3>
         get() = listOfNotNull(target())
 
-    override fun head(partialTicks: Float): Vec3 = player.getPosition(partialTicks)
+    override fun head(partialTicks: Float): Vec3 = body.player.getPosition(partialTicks)
 
 }
