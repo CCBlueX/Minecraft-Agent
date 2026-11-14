@@ -171,7 +171,7 @@ internal fun Round.engage(): Boolean {
  * @agent claude-opus-5-5
  */
 private fun Round.evade(): Boolean {
-    val threats = targets.around().filter { isComing(it) }
+    val threats = targets.around().filter { isThreat(it) }
     val closest = threats.minByOrNull { it.distanceToSqr(player) }
     val away = if (threats.isEmpty()) null else outnumbered.retreatPoint(agent, threats)
     val fight = agent.skills.fight
@@ -197,18 +197,29 @@ private fun Round.evade(): Boolean {
 }
 
 /**
- * Within fight range and walking towards the agent, or already close.
+ * Whether [other] is kept away from: as [isThreat] says, by its distance and how fast it comes closer.
  *
  * From LiquidBounce: [GameBotBlitz.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/games/GameBotBlitz.kt#L759-L767)
  *
  * @agent claude-opus-5-5
  */
-private fun Round.isComing(other: Player): Boolean {
-    val distance = other.distanceTo(player).toDouble()
-    if (distance > FIGHT_RANGE) return false
+private fun Round.isThreat(other: Player): Boolean {
     val step = other.position().subtract(other.xo, other.yo, other.zo)
     val toAgent = player.position().subtract(other.position()).normalize()
-    return distance <= CLOSE_RANGE || step.dot(toAgent) >= APPROACH_SPEED
+    return isThreat(other.distanceTo(player).toDouble(), step.dot(toAgent), evading)
+}
+
+/**
+ * Whether a player [distance] blocks away, coming closer at [approach] blocks a tick, is kept away from: within
+ * [FIGHT_RANGE] and coming, or already close. Once the agent keeps away it goes on until the player is past
+ * [FIGHT_RANGE] and [FIGHT_MARGIN], even standing still: one that pauses by a chest still reaches it in a step.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun isThreat(distance: Double, approach: Double, evading: Boolean): Boolean = when {
+    evading -> distance <= FIGHT_RANGE + FIGHT_MARGIN
+    distance > FIGHT_RANGE -> false
+    else -> distance <= CLOSE_RANGE || approach >= APPROACH_SPEED
 }
 
 /**
