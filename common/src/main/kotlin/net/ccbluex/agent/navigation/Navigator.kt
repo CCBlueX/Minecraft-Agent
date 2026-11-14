@@ -273,16 +273,24 @@ public class Navigator @JvmOverloads constructor(
      */
     public fun halt() {
         idle()
-        keystrokes.reset()
-        lastInput = Input.EMPTY
+        releaseKeys()
     }
 
     private fun idle() {
         startTick()
+        clearWalk()
+    }
+
+    private fun clearWalk() {
         strandedTicks = 0
         course.halt()
         tickBody.takePressed()
         body.safeWalk = false
+    }
+
+    private fun releaseKeys() {
+        keystrokes.reset()
+        lastInput = Input.EMPTY
     }
 
     /**
@@ -369,7 +377,12 @@ public class Navigator @JvmOverloads constructor(
      * The player went to another level or reconnected.
      */
     public fun levelChanged() {
-        stop()
+        // Like reset, but without a tick: the player of the level left behind may be gone already
+        hold(null)
+        clearWalk()
+        releaseKeys()
+        planning.forgetStuckSpots()
+        lookAhead.reset()
         actions.levelChanged()
         planning.levelChanged()
         course.levelChanged()
