@@ -72,7 +72,6 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
     var holdsSprint: Boolean = false
     var safeWalk: Boolean = false
 
-    val tabEntries: TabEntries = TabEntries(this)
     private val moveEvents = MoveEvents(this)
 
     private var anchor: Vec3? = null
@@ -131,7 +130,6 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
             setPos(anchor)
             deltaMovement = Vec3.ZERO
         }
-        tabEntries.tick()
         if (isDeadOrDying && ++deadTicks >= CORPSE_TICKS && !isRemoved) {
             discard()
         }
@@ -150,7 +148,6 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
         super.onRemoval(reason)
         if (reason == RemovalReason.CHANGED_DIMENSION) return
         spawned -= this
-        tabEntries.forget()
         val id = getUUID()
         val server = level().server
         val packet = ClientboundPlayerInfoRemovePacket(listOf(id))

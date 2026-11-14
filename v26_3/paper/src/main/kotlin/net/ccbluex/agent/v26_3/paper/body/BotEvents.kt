@@ -46,11 +46,12 @@ import org.bukkit.event.world.WorldUnloadEvent
  */
 internal class BotEvents(private val bots: Bots) : Listener {
 
-    // Fires before the spawn packet; a client spawns a player only with an info entry for it
+    // Fires before the spawn packet; a client spawns a player only with an info entry for it. The entry stays,
+    // unlisted, as a real player's does: clients take players without one for server NPCs
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onTrack(event: PlayerTrackEntityEvent) {
         val bot = (event.entity as CraftEntity).handle as? BotPlayer ?: return
-        bot.tabEntries.show((event.player as CraftPlayer).handle)
+        (event.player as CraftPlayer).handle.connection.send(bot.infoPacket())
     }
 
     // After the anticheats, which still see the hit
