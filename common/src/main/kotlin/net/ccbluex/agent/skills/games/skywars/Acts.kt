@@ -123,9 +123,11 @@ private suspend fun Round.stay(to: Vec3, within: Double, name: String, there: St
 
 /**
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 private suspend fun Round.hunt(plan: Plan): Any? {
     val id = plan.targetId ?: return null
+    var held: Vec3? = null
     while (true) {
         val enemy = agent.body.level.getEntity(id) as? LivingEntity
         if (enemy == null || !enemy.isAlive || !senses.isOpponent(enemy)) return null
@@ -138,12 +140,26 @@ private suspend fun Round.hunt(plan: Plan): Any? {
                 id
             }
         }
-        when (step(enemy.position(), HUNT_WITHIN, id, name, toOpponent = true)) {
+        val goalPoint = followGoal(held, enemy.position(), player.position())
+        held = goalPoint
+        when (step(goalPoint, HUNT_WITHIN, id, name, toOpponent = true)) {
             Step.BLOCKED -> return id
             else -> if (plan.thirdParty) goal = "Third-partying $name"
         }
         waitTicks(1)
     }
+}
+
+/**
+ * The goal to walk to for an enemy at [enemy]: while it is far off, the goal [held] from before until the enemy got
+ * more than [GOAL_SLACK] away from it, as a route is searched again whenever the goal moves and a bridge in the
+ * making stands still meanwhile.
+ *
+ * @agent claude-sonnet-5-5
+ */
+internal fun followGoal(held: Vec3?, enemy: Vec3, from: Vec3): Vec3 {
+    val far = from.horizontalDistanceTo(enemy) > STICKY_DISTANCE
+    return if (held != null && far && held.distanceToSqr(enemy) <= GOAL_SLACK * GOAL_SLACK) held else enemy
 }
 
 /**
@@ -212,5 +228,7 @@ private const val AIM_TICKS = 6
 private const val MIDDLE_WITHIN = 4.0
 private const val DOOM_WITHIN = 6.0
 private const val HUNT_WITHIN = 1.0
+private const val STICKY_DISTANCE = 10.0
+private const val GOAL_SLACK = 4.0
 private const val PICKUP_WITHIN = 0.5
 private const val REGROUP_WITHIN = 3.0

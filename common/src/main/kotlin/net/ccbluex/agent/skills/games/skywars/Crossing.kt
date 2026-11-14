@@ -107,7 +107,7 @@ internal class Crossing(private val switch: FlightSwitch, private val options: O
             else -> null
         }
         val way = if (blocker == null) "fly" else "bridge"
-        val key = "$way $blocker $goal"
+        val key = "$way $blocker"
         if (key != decision) {
             decision = key
             agent.decide("travel via $way", 0.0, "${blocker ?: "clear"} $wants")

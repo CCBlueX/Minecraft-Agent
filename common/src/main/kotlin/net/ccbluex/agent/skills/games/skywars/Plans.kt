@@ -250,9 +250,10 @@ internal object Plans {
     const val NOISE = 6.0
 
     /**
-     * What sticking with the current plan is worth, so the agent does not flip between two close choices.
+     * What sticking with the current plan is worth: another plan has to be this much better to take over, so a plan
+     * runs until it ends or something clearly beats it, and the agent does not flip between close choices.
      */
-    const val COMMIT = 12.0
+    const val COMMIT = 25.0
 
     const val DOOM_SCORE = 150.0
     const val DOOM_DISTANCE = 10.0

@@ -155,6 +155,17 @@ class PlansTest {
     }
 
     @Test
+    fun aStartedPlanRunsUntilSomethingClearlyBeatsIt() {
+        val holding = Plan(Activity.HOLD, 34.0)
+        val hunt = Plan(Activity.HUNT, 52.0, targetId = 1)
+        val picked = Plans.pick(listOf(holding.copy(), hunt), holding, 0.0, Random(1), chestUnderway = false)
+        assertEquals(Activity.HOLD, picked.activity)
+        val clearly = hunt.copy(score = 34.0 + Plans.COMMIT + 1)
+        val switched = Plans.pick(listOf(holding.copy(), clearly), holding, 0.0, Random(1), chestUnderway = false)
+        assertEquals(Activity.HUNT, switched.activity)
+    }
+
+    @Test
     fun chestUnderwayIsNotLeftForAnotherChest() {
         val current = Plan(Activity.LOOT, 60.0)
         val middle = Plan(Activity.MIDDLE, 100.0, point = Vec3(30.0, 0.0, 0.0))

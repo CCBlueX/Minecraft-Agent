@@ -70,6 +70,7 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
     val leftoverDelay = random.nextInt(LEFTOVER_MIN, LEFTOVER_MAX + 1)
 
     var phase = "Waiting"
+    private var announced = phase
     var goal: String? = null
     var ticks = 0L
         private set
@@ -205,6 +206,7 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
         spawn = senses.ownSpawn ?: cage.position ?: player.position()
         island = spawn
         phase = "Playing"
+        announced = phase
         agent.listener.phase(phase)
     }
 
@@ -283,13 +285,16 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
         plan = best
         if (best.same(current) && job?.isActive == true) return
 
+        // A fight cancels the job but keeps the plan: going on with it is no new decision.
+        val resumed = best.same(current)
         job?.cancel()
         planAt = ticks
         progress.reset()
         chest = null
-        agent.decide(best.activity.name.lowercase(), best.score, best.reason)
-        if (phase != best.activity.label) {
-            phase = best.activity.label
+        if (!resumed) agent.decide(best.activity.name.lowercase(), best.score, best.reason)
+        phase = best.activity.label
+        if (announced != phase) {
+            announced = phase
             agent.listener.phase(phase)
         }
         job = scope.launch {
