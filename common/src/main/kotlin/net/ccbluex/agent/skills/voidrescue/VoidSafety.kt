@@ -35,7 +35,8 @@ import net.minecraft.world.phys.Vec3
 
 /**
  * The built-in [VoidRescue]. On the ground it holds back moves that would drop the agent into the void, as little as
- * keeps it up ([EdgeHold]), except while the navigator bridges on purpose. Once a fall into the void is under way,
+ * keeps it up ([EdgeHold]), except while the navigator bridges on purpose. That includes ticks without keys: a
+ * player let go of at an edge, such as when a plan changes, slides on with its momentum. Once a fall into the void is under way,
  * knocked off or stepped off, it puts blocks under the fall ([Clutch]), else steers back towards the last safe ground
  * in the air and throws an ender pearl back to it or its spawn.
  *
@@ -85,6 +86,8 @@ internal class VoidSafety : VoidRescue {
         val body = agent.body
         val player = body.player
         if (falling || isFlying(agent) || !player.onGround() || agent.navigator.isBuilding) return input
+        // No keys and no momentum: nothing moves the player off the edge
+        if (input == Input.EMPTY && player.deltaMovement.horizontalDistanceSqr() < AT_REST) return input
         val hold = EdgeHold.of(body, input)
         if (hold == EdgeHold.NONE) return input
         body.safeWalk = true
@@ -137,6 +140,11 @@ internal class VoidSafety : VoidRescue {
          * Blocks below a player searched for something to land on.
          */
         const val VOID_DEPTH = 40.0
+
+        /**
+         * Squared blocks a tick below which a player on the ground counts as standing still.
+         */
+        private const val AT_REST = 1.0E-6
 
         private const val PEARL_RANGE = 36.0
         private const val PEARL_TICKS = 40L

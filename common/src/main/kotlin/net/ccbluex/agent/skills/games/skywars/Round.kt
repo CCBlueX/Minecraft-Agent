@@ -266,6 +266,11 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
     }
 
     private fun decide() {
+        // A plan that changes mid bridge lets go of the sneak at the edge, so it waits until the bridge is crossed.
+        if (job?.isActive == true && isBridging()) {
+            decideAt = ticks + BRIDGE_RECHECK
+            return
+        }
         decideAt = ticks + DECIDE_TICKS + random.nextInt(DECIDE_SPREAD)
         avoided.values.removeIf { it <= ticks }
         threats.forgetStalled()
@@ -292,6 +297,8 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
             if (best.same(plan)) finish(avoid)
         }
     }
+
+    private fun isBridging(): Boolean = agent.navigator.isBuilding || player.onGround() && player.isCrouching
 
     /**
      * Drops the plan, leaving [avoid] alone for a while when it could not be got to.
@@ -348,6 +355,7 @@ internal class Round(val agent: Agent, val senses: Senses, options: Options) {
     companion object {
         const val DECIDE_TICKS = 30
         const val DECIDE_SPREAD = 20
+        const val BRIDGE_RECHECK = 5
         const val AVOID_TICKS = 400
         const val SYNC_TICKS = 20
         const val RETREAT_RADIUS = 1.0

@@ -110,11 +110,14 @@ public class Agent @JvmOverloads constructor(
 
         game?.tick(this)
         skills.voidRescue?.tick(this)
-        skills.eat?.tick(this)
-        skills.gear?.tick(this)
-        skills.shop?.tick(this)
-        skills.loot?.tick(this)
-        skills.fight?.tick(this)
+        // A fall into the void owns the hotbar and the keys: eating or swapping weapons then drops the blocks
+        if (skills.voidRescue?.isRescuing != true) {
+            skills.eat?.tick(this)
+            skills.gear?.tick(this)
+            skills.shop?.tick(this)
+            skills.loot?.tick(this)
+            skills.fight?.tick(this)
+        }
 
         val goal = walkGoal
         val pressed = pressed
@@ -128,6 +131,7 @@ public class Agent @JvmOverloads constructor(
         } finally {
             navigator.guard = null
         }
+        idleKeys(navigator.input, guard)?.let { body.press(it, true) }
     }
 
     /**
@@ -151,4 +155,16 @@ public class Agent @JvmOverloads constructor(
         logger.debug("{} ({}): {}", label, score, reason)
         listener.decision(label, score, reason)
     }
+}
+
+/**
+ * The keys to press on a tick that pressed none, from the void rescue's [guard], or null for none: a player let go of
+ * at an edge, such as when a plan changes, slides on with its momentum, and the navigator guards only the keys it
+ * presses.
+ *
+ * @agent claude-sonnet-5-5
+ */
+internal fun idleKeys(last: Input, guard: (Input) -> Input): Input? {
+    if (last != Input.EMPTY) return null
+    return guard(Input.EMPTY).takeIf { it != Input.EMPTY }
 }
