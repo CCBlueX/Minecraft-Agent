@@ -376,16 +376,14 @@ public class Navigator @JvmOverloads constructor(
     }
 
     /**
-     * The server set the player back to another position. A setback repeated near the last one marks the feet block
-     * the player was refused at as a stuck spot, so the walk is searched again around it.
+     * The server set the player back to another position. Setbacks repeated close together mark every feet block
+     * the player was refused at there as stuck spots, so the walk is searched again around them.
      */
     public fun positionCorrected() {
         val refused = tickStart ?: player.position()
         context.logger.debug("Set back from {}", refused)
         follower.positionCorrected()
-        if (setbacks.refuses(refused, ticks)) {
-            planning.stuckAt(BlockPos.containing(refused))
-        }
+        setbacks.refused(refused, ticks).forEach(planning::stuckAt)
     }
 
     /**

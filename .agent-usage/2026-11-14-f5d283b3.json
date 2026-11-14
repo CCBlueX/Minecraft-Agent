@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(navigation): walk up stairs",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 54, "cachedInput": 15948944, "cacheWrite": 39924, "output": 24427 },
+      "usd": 4.00
+    }
+  ]
+}

@@ -30,8 +30,13 @@ import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.block.StairBlock
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.Half
 import net.minecraft.world.phys.Vec3
 
 private const val RISE_MARGIN = 0.01
@@ -39,13 +44,31 @@ private const val JUMP_REACH = 1.5
 private const val PREDICT_TICKS = 20
 
 /**
- * Whether [mover] jumps on [step]: up a rise in reach, up ladders and out of water level with it.
+ * Whether [mover] jumps on [step]: up a rise in reach, up ladders and out of water level with it; never up stairs,
+ * which a player walks up a half block at a time.
  *
  * @agent claude-fable-5-2
  * @agent claude-opus-5-5
  */
 internal fun wantsJump(step: Step, mover: Player): Boolean =
-    wantsJump(step, mover.position(), mover.isStable, mover.isInWater)
+    !leadsOntoStairs(step, mover.level()) && wantsJump(step, mover.position(), mover.isStable, mover.isInWater)
+
+/**
+ * Whether [step] leads onto stairs set the right way up, at its feet or under them: the step up walks onto them,
+ * and a jump there is never needed. Sprint jumps up a stair ramp were set back by a server's anti-cheat.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun leadsOntoStairs(step: Step, level: BlockGetter): Boolean {
+    val feet = BlockPos.containing(step.feet)
+    return isWalkableStair(level.getBlockState(feet)) || isWalkableStair(level.getBlockState(feet.below()))
+}
+
+/**
+ * @agent claude-opus-5-5
+ */
+internal fun isWalkableStair(state: BlockState): Boolean =
+    state.block is StairBlock && state.getValue(StairBlock.HALF) == Half.BOTTOM
 
 /**
  * Whether a mover at [position], [stable] or [inWater], jumps on [step].

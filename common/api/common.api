@@ -300,13 +300,32 @@ public abstract interface class net/ccbluex/agent/navigation/Teleporter {
 }
 
 public abstract interface class net/ccbluex/agent/navigation/Turning {
+	public static final field CALM_TURN F
 	public static final field Companion Lnet/ccbluex/agent/navigation/Turning$Companion;
+	public static final field FLICK_TURN F
+	public static fun eased ()Lnet/ccbluex/agent/navigation/Turning;
+	public static fun eased (F)Lnet/ccbluex/agent/navigation/Turning;
+	public static fun eased (FF)Lnet/ccbluex/agent/navigation/Turning;
+	public static fun eased (FFF)Lnet/ccbluex/agent/navigation/Turning;
+	public static fun eased (FFFF)Lnet/ccbluex/agent/navigation/Turning;
+	public static fun humanPaced (Lnet/ccbluex/agent/navigation/Turning;)Lnet/ccbluex/agent/navigation/Turning;
+	public static fun instant ()Lnet/ccbluex/agent/navigation/Turning;
 	public static fun linear (F)Lnet/ccbluex/agent/navigation/Turning;
 	public static fun linear (FF)Lnet/ccbluex/agent/navigation/Turning;
 	public abstract fun turn (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)Lnet/ccbluex/agent/math/ViewRotation;
 }
 
 public final class net/ccbluex/agent/navigation/Turning$Companion {
+	public static final field CALM_TURN F
+	public static final field FLICK_TURN F
+	public final fun eased ()Lnet/ccbluex/agent/navigation/Turning;
+	public final fun eased (F)Lnet/ccbluex/agent/navigation/Turning;
+	public final fun eased (FF)Lnet/ccbluex/agent/navigation/Turning;
+	public final fun eased (FFF)Lnet/ccbluex/agent/navigation/Turning;
+	public final fun eased (FFFF)Lnet/ccbluex/agent/navigation/Turning;
+	public static synthetic fun eased$default (Lnet/ccbluex/agent/navigation/Turning$Companion;FFFFILjava/lang/Object;)Lnet/ccbluex/agent/navigation/Turning;
+	public final fun humanPaced (Lnet/ccbluex/agent/navigation/Turning;)Lnet/ccbluex/agent/navigation/Turning;
+	public final fun instant ()Lnet/ccbluex/agent/navigation/Turning;
 	public final fun linear (F)Lnet/ccbluex/agent/navigation/Turning;
 	public final fun linear (FF)Lnet/ccbluex/agent/navigation/Turning;
 	public static synthetic fun linear$default (Lnet/ccbluex/agent/navigation/Turning$Companion;FFILjava/lang/Object;)Lnet/ccbluex/agent/navigation/Turning;

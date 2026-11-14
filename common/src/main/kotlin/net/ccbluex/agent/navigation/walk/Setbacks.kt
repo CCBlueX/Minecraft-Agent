@@ -19,28 +19,31 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
 
 /**
- * Where the server set the player back. One setback can be lag; a second one close to it soon after is a spot the
- * server refuses, which walking the same way again only repeats.
+ * Where the server set the player back. One setback can be lag; setbacks soon after each other, each close to one of
+ * those before, are one spot the server refuses, such as a climb set back a little further up each time. Walking
+ * the same way again only repeats them.
  *
  * @agent claude-opus-5-5
  */
 internal class Setbacks {
 
-    private var last: Vec3? = null
+    private val spot = ArrayList<Vec3>()
     private var lastTick = 0L
 
     /**
-     * Notes a setback of the player from [at] on [tick]; true if it repeats the one before.
+     * Notes a setback of the player from [at] on [tick]; the feet blocks of the refused spot once it is set back
+     * there more than once, else none.
      */
-    fun refuses(at: Vec3, tick: Long): Boolean {
-        val before = last
-        val repeated = before != null && tick - lastTick <= WINDOW_TICKS && before.closerThan(at, RADIUS)
-        last = at
+    fun refused(at: Vec3, tick: Long): Set<BlockPos> {
+        val joins = tick - lastTick <= WINDOW_TICKS && spot.any { it.closerThan(at, RADIUS) }
+        if (!joins) spot.clear()
+        spot += at
         lastTick = tick
-        return repeated
+        return if (spot.size > 1) spot.mapTo(LinkedHashSet(), BlockPos::containing) else emptySet()
     }
 
     private companion object {
