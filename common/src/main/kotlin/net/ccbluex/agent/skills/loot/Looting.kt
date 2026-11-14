@@ -36,6 +36,8 @@ import kotlin.math.abs
  * The built-in [Loot]: walks within reach of the chest, aims at it and clicks it until its menu opens (at most
  * [MAX_CLICKS], [SCREEN_TICKS] apart, never while eating), then takes one wanted stack every [TAKE_TICKS] and closes
  * the chest once nothing in it is wanted. A chest it cannot finish within [CHEST_TICKS] is given up until the refill.
+ * A tick without [open] for the chest lets go of it, so a game mode that keeps away from players or backs off walks
+ * there rather than to the chest.
  *
  * From LiquidBounce: [Chests.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/Chests.kt#L68-L74), [Chests.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/Chests.kt#L267-L290)
  *
@@ -44,6 +46,7 @@ import kotlin.math.abs
 internal class Looting(override val chests: Chests, private val wanted: Wanted) : Loot {
 
     private var chest: BlockPos? = null
+    private var asked = false
     private var since = 0L
     private var clicks = 0
     private var clickedAt = NEVER
@@ -53,10 +56,14 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
         get() = chest != null
 
     override fun open(chest: BlockPos): Boolean {
-        if (chest == this.chest) return true
+        if (chest == this.chest) {
+            asked = true
+            return true
+        }
         if (chests.isOpened(chest)) return false
         chests.add(chest)
         this.chest = chest.immutable()
+        asked = true
         clicks = 0
         clickedAt = NEVER
         openedAt = NEVER
@@ -64,8 +71,22 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
         return true
     }
 
+    /**
+     * Whether the chest was asked for since the last tick; the next tick needs another [open].
+     */
+    internal fun stillWanted(): Boolean {
+        val wanted = asked
+        asked = false
+        if (!wanted) chest = null
+        return wanted
+    }
+
     override fun tick(agent: Agent) {
         val pos = chest ?: return
+        if (!stillWanted()) {
+            if (agent.body.containerMenu != null) agent.body.closeContainer()
+            return
+        }
         val body = agent.body
         if (since == NEVER) since = agent.ticks
         if (body.level.getBlockEntity(pos) !is Container) {

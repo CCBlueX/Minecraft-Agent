@@ -36,7 +36,8 @@ public interface Loot {
 
     /**
      * Goes to [chest], opens it and takes what is wanted; walking there is part of it. True while it does so, also
-     * when called again for the chest it is on; false when the chest is done or no container.
+     * when called again for the chest it is on; false when the chest is done or no container. Called on every tick
+     * the chest is wanted: a tick without the call lets go of it, as the agent turned to something else.
      */
     public fun open(chest: BlockPos): Boolean
 

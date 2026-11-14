@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): loot lets go of chests",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 94, "cachedInput": 20270410, "cacheWrite": 35635, "output": 20217 },
+      "usd": 4.74
+    }
+  ]
+}
