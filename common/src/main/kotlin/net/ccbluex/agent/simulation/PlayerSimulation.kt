@@ -34,4 +34,15 @@ public interface PlayerSimulation {
     public val pos: Vec3
 
     public fun tick()
+
+    /**
+     * A player that stays at [pos].
+     *
+     * From LiquidBounce: [PlayerSimulation.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/entity/PlayerSimulation.kt#L28-L32)
+     */
+    public data class Rigid(override val pos: Vec3) : PlayerSimulation {
+        override fun tick() {
+            // Stays where it is
+        }
+    }
 }

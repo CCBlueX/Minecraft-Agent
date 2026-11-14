@@ -51,6 +51,14 @@ public interface SimulationHooks {
      */
     public fun slowedByItemUse(): Boolean = true
 
+    /**
+     * Whether the host holds the player back at ledges as sneaking does, without sneaking (safe walk). Asked once
+     * when the simulation is made.
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun isStayingOnGroundSurface(): Boolean = false
+
     public companion object {
         @JvmField
         public val VANILLA: SimulationHooks = object : SimulationHooks {}

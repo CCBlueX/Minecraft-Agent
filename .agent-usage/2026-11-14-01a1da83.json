@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(simulation): forecasts, arrows, falls",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 456, "cachedInput": 49402876, "cacheWrite": 428674, "output": 124813 },
+      "usd": 15.81
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 419, "cachedInput": 0, "cacheWrite": 0, "output": 3 },
+      "usd": 0.00
+    }
+  ]
+}

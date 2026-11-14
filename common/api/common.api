@@ -1190,6 +1190,51 @@ public final class net/ccbluex/agent/simulation/ElytraMotion {
 	public final fun yRotTowards (DD)F
 }
 
+public final class net/ccbluex/agent/simulation/FallingPlayer {
+	public fun <init> (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;Z)V
+	public fun <init> (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;ZLnet/ccbluex/agent/simulation/SimulationHooks;)V
+	public fun <init> (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;ZLnet/ccbluex/agent/simulation/SimulationHooks;Lnet/minecraft/world/phys/Vec3;)V
+	public fun <init> (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;ZLnet/ccbluex/agent/simulation/SimulationHooks;Lnet/minecraft/world/phys/Vec3;F)V
+	public synthetic fun <init> (Lnet/minecraft/world/entity/player/Player;Lnet/ccbluex/agent/simulation/SimulatedInput;ZLnet/ccbluex/agent/simulation/SimulationHooks;Lnet/minecraft/world/phys/Vec3;FILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun canReachBeforeLanding (Lnet/minecraft/core/BlockPos;I)Z
+	public final fun canReachBeforeLanding (Lnet/minecraft/core/BlockPos;IZ)Z
+	public static synthetic fun canReachBeforeLanding$default (Lnet/ccbluex/agent/simulation/FallingPlayer;Lnet/minecraft/core/BlockPos;IZILjava/lang/Object;)Z
+	public final fun fallPath (FI)Ljava/util/List;
+	public final fun findCollision (I)Lnet/ccbluex/agent/simulation/FallingPlayer$Landing;
+}
+
+public final class net/ccbluex/agent/simulation/FallingPlayer$Landing {
+	public fun <init> (Lnet/minecraft/core/BlockPos;ILnet/minecraft/world/phys/Vec3;)V
+	public final fun component1 ()Lnet/minecraft/core/BlockPos;
+	public final fun component2 ()I
+	public final fun component3 ()Lnet/minecraft/world/phys/Vec3;
+	public final fun copy (Lnet/minecraft/core/BlockPos;ILnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/simulation/FallingPlayer$Landing;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/simulation/FallingPlayer$Landing;Lnet/minecraft/core/BlockPos;ILnet/minecraft/world/phys/Vec3;ILjava/lang/Object;)Lnet/ccbluex/agent/simulation/FallingPlayer$Landing;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPos ()Lnet/minecraft/core/BlockPos;
+	public final fun getPositionBeforeMovement ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getTick ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/simulation/Forecast {
+	public fun <init> (Lnet/ccbluex/agent/simulation/SimulatedPlayer;)V
+	public final fun asSimulation ()Lnet/ccbluex/agent/simulation/PlayerSimulation;
+	public final fun getInput ()Lnet/ccbluex/agent/simulation/SimulatedInput;
+	public final fun getSnapshotAt (I)Lnet/ccbluex/agent/simulation/PlayerSnapshot;
+	public final fun getSnapshotsBetween (Lkotlin/ranges/IntRange;)Ljava/util/List;
+	public final fun simulate ()Lkotlin/sequences/Sequence;
+	public final fun simulateBetween (Lkotlin/ranges/IntRange;)Lkotlin/sequences/Sequence;
+	public final fun simulateUntil (I)V
+}
+
+public final class net/ccbluex/agent/simulation/Forecasts {
+	public fun <init> ()V
+	public final fun clear ()V
+	public final fun of (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/simulation/Forecast;
+}
+
 public final class net/ccbluex/agent/simulation/MotionTraits {
 	public static final field Companion Lnet/ccbluex/agent/simulation/MotionTraits$Companion;
 	public static final field DEFAULT Lnet/ccbluex/agent/simulation/MotionTraits;
@@ -1252,7 +1297,69 @@ public abstract interface class net/ccbluex/agent/simulation/PlayerSimulation {
 	public abstract fun tick ()V
 }
 
+public final class net/ccbluex/agent/simulation/PlayerSimulation$Rigid : net/ccbluex/agent/simulation/PlayerSimulation {
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;)V
+	public final fun component1 ()Lnet/minecraft/world/phys/Vec3;
+	public final fun copy (Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/simulation/PlayerSimulation$Rigid;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/simulation/PlayerSimulation$Rigid;Lnet/minecraft/world/phys/Vec3;ILjava/lang/Object;)Lnet/ccbluex/agent/simulation/PlayerSimulation$Rigid;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getPos ()Lnet/minecraft/world/phys/Vec3;
+	public fun hashCode ()I
+	public fun tick ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/simulation/PlayerSnapshot {
+	public fun <init> (Lnet/ccbluex/agent/simulation/SimulatedPlayer;)V
+	public fun <init> (Lnet/minecraft/world/phys/Vec3;DLnet/minecraft/world/phys/Vec3;ZZ)V
+	public final fun component1 ()Lnet/minecraft/world/phys/Vec3;
+	public final fun component2 ()D
+	public final fun component3 ()Lnet/minecraft/world/phys/Vec3;
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun copy (Lnet/minecraft/world/phys/Vec3;DLnet/minecraft/world/phys/Vec3;ZZ)Lnet/ccbluex/agent/simulation/PlayerSnapshot;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/simulation/PlayerSnapshot;Lnet/minecraft/world/phys/Vec3;DLnet/minecraft/world/phys/Vec3;ZZILjava/lang/Object;)Lnet/ccbluex/agent/simulation/PlayerSnapshot;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeltaMovement ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getFallDistance ()D
+	public final fun getHasBackedOffEdge ()Z
+	public final fun getOnGround ()Z
+	public final fun getPos ()Lnet/minecraft/world/phys/Vec3;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/ccbluex/agent/simulation/PositionExtrapolation {
+	public static final field Companion Lnet/ccbluex/agent/simulation/PositionExtrapolation$Companion;
+	public static fun constant (Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public abstract fun getPositionInTicks (D)Lnet/minecraft/world/phys/Vec3;
+	public static fun linear (Lnet/minecraft/world/entity/Entity;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public static fun linear (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public static fun of (Lnet/ccbluex/agent/simulation/Forecast;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public static fun of (Lnet/minecraft/world/entity/Entity;Lnet/ccbluex/agent/simulation/Forecasts;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+}
+
+public final class net/ccbluex/agent/simulation/PositionExtrapolation$Companion {
+	public final fun constant (Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public final fun linear (Lnet/minecraft/world/entity/Entity;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public final fun linear (Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public final fun of (Lnet/ccbluex/agent/simulation/Forecast;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+	public final fun of (Lnet/minecraft/world/entity/Entity;Lnet/ccbluex/agent/simulation/Forecasts;)Lnet/ccbluex/agent/simulation/PositionExtrapolation;
+}
+
+public final class net/ccbluex/agent/simulation/SimulatedArrow {
+	public fun <init> (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/level/EntityGetter;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)V
+	public fun <init> (Lnet/minecraft/world/level/Level;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)V
+	public fun <init> (Lnet/minecraft/world/level/Level;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Z)V
+	public synthetic fun <init> (Lnet/minecraft/world/level/Level;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDeltaMovement ()Lnet/minecraft/world/phys/Vec3;
+	public final fun getPos ()Lnet/minecraft/world/phys/Vec3;
+	public final fun isInGround ()Z
+	public final fun tick ()Lnet/minecraft/world/phys/HitResult;
+}
+
 public final class net/ccbluex/agent/simulation/SimulatedInput {
+	public static final field Companion Lnet/ccbluex/agent/simulation/SimulatedInput$Companion;
 	public fun <init> (Lnet/minecraft/world/entity/player/Input;)V
 	public fun <init> (Lnet/minecraft/world/entity/player/Input;Z)V
 	public fun <init> (Lnet/minecraft/world/entity/player/Input;ZZ)V
@@ -1261,10 +1368,15 @@ public final class net/ccbluex/agent/simulation/SimulatedInput {
 	public final fun getIgnoresEdgeBackOff ()Z
 	public final fun getKeys ()Lnet/minecraft/world/entity/player/Input;
 	public final fun getMoveVector ()Lnet/minecraft/world/phys/Vec2;
+	public static final fun guess (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/simulation/SimulatedInput;
 	public final fun hasForwardImpulse ()Z
 	public final fun setForceStayOnGroundSurface (Z)V
 	public final fun setIgnoresEdgeBackOff (Z)V
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/simulation/SimulatedInput$Companion {
+	public final fun guess (Lnet/minecraft/world/entity/player/Player;)Lnet/ccbluex/agent/simulation/SimulatedInput;
 }
 
 public final class net/ccbluex/agent/simulation/SimulatedPlayer : net/minecraft/world/entity/player/Player, net/ccbluex/agent/simulation/PlayerSimulation {
@@ -1303,6 +1415,7 @@ public final class net/ccbluex/agent/simulation/SimulatedPlayer$Companion {
 public abstract interface class net/ccbluex/agent/simulation/SimulationHooks {
 	public static final field Companion Lnet/ccbluex/agent/simulation/SimulationHooks$Companion;
 	public static final field VANILLA Lnet/ccbluex/agent/simulation/SimulationHooks;
+	public fun isStayingOnGroundSurface ()Z
 	public fun itemUseMultiplier (F)Lnet/minecraft/world/phys/Vec2;
 	public fun move (Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;
 	public fun slowedByItemUse ()Z

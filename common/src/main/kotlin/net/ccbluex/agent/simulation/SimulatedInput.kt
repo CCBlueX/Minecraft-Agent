@@ -19,7 +19,10 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.math.copy
+import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.minecraft.world.entity.player.Input
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec2
 
 /**
@@ -51,13 +54,50 @@ public class SimulatedInput @JvmOverloads constructor(
 
     override fun toString(): String = "SimulatedInput($keys)"
 
-    private companion object {
-        const val MIN_FORWARD_IMPULSE = 1.0E-5f
+    public companion object {
+        private const val MIN_FORWARD_IMPULSE = 1.0E-5f
+
+        /**
+         * Horizontal speed per tick above which a player counts as sprinting, a little over walking speed.
+         */
+        private const val MAX_WALKING_SPEED = 0.121
+
+        /**
+         * Horizontal speed per tick below which a player counts as holding no movement key.
+         */
+        private const val MIN_MOVING_SPEED = 0.05
+
+        /**
+         * The keys [player] most likely holds, read from how it moved in its last tick: the movement keys towards
+         * that move, sprint when faster than walking, jump while in the air.
+         *
+         * From LiquidBounce: [SimulatedPlayer.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/entity/SimulatedPlayer.kt#L376-L405)
+         *
+         * @agent claude-opus-5-5
+         */
+        @JvmStatic
+        public fun guess(player: Player): SimulatedInput {
+            val move = player.position().subtract(player.oldPosition())
+            val speedSqr = move.horizontalDistanceSqr()
+            val direction = if (speedSqr > MIN_MOVING_SPEED * MIN_MOVING_SPEED) {
+                getDirectionalInputTowards(move, player.yRot)
+            } else {
+                Input.EMPTY
+            }
+
+            return SimulatedInput(
+                direction.copy(
+                    jump = !player.onGround(),
+                    sneak = player.isShiftKeyDown,
+                    sprint = speedSqr >= MAX_WALKING_SPEED * MAX_WALKING_SPEED,
+                ),
+            )
+        }
 
         /**
          * 1 for only the positive key, -1 for only the negative one, else 0.
          */
-        fun impulse(positive: Boolean, negative: Boolean): Float = when {
+        private fun impulse(positive: Boolean, negative: Boolean): Float = when {
             positive == negative -> 0f
             positive -> 1f
             else -> -1f

@@ -80,6 +80,8 @@ public class SimulatedPlayer private constructor(
 
     private val isSlowDueToUsingItem = itemUseEffects?.canSprint() == false && hooks.slowedByItemUse()
 
+    private val safeWalk = hooks.isStayingOnGroundSurface()
+
     private val sneakingSpeed by lazy {
         hooks.sneakingSpeed(getAttributeValue(Attributes.SNEAKING_SPEED)).toFloat()
     }
@@ -289,7 +291,7 @@ public class SimulatedPlayer private constructor(
     }
 
     private fun staysOnGroundSurface() =
-        !input.ignoresEdgeBackOff && (input.keys.shift || input.forceStayOnGroundSurface)
+        !input.ignoresEdgeBackOff && (input.keys.shift || input.forceStayOnGroundSurface || safeWalk)
 
     override fun isStayingOnGroundSurface(): Boolean = probesLedge || staysOnGroundSurface()
 
