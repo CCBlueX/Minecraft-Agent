@@ -26,6 +26,7 @@ import net.ccbluex.agent.simulation.PlayerMotion
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
+import kotlin.math.abs
 
 /**
  * Makes one parkour step by simulating the player every tick: jumps where it works, else walks back to the run-up.
@@ -98,6 +99,11 @@ public class Leap {
         // Away from the run-up, only a jump with room to spare beats walking back to it; a run once started goes on.
         val now = jumps.fromHere(state, yRot, step.to, step.feet.y, jump.aim)
             ?.takeIf { ready || running || it.margin >= LIVE_MARGIN }
+        // The run is simulated facing the aim from its second tick on; a body turning at its own pace turns there first.
+        if (now != null && !running && !faces(state, yRot, now.aim)) {
+            target = now.aim
+            return approach(state, yRot, stop(jump), now.aim)
+        }
         running = now != null
         if (now != null) {
             target = now.aim
@@ -125,6 +131,9 @@ public class Leap {
         val atStop = stop.horizontalDistanceToSqr(state.x, state.z) < Mth.square(Jump.RUN_UP_TOLERANCE)
         return stillTicks > 0 && (atStop || stillTicks >= STILL_TICKS)
     }
+
+    private fun faces(state: PlayerMotion, yRot: Float, aim: Vec3) =
+        abs(Mth.wrapDegrees(aim.subtract(state.position).yRot - yRot)) <= MAX_FACING_OFF
 
     /**
      * After no jump worked from the run-up of [jump]: once a run-up with more room, then a stop further back.
@@ -205,6 +214,11 @@ public class Leap {
         const val READY_SPEED = 0.03
         const val STILL_TICKS = 5
         const val LIVE_MARGIN = 0.35
+
+        /**
+         * Degrees the facing may be off the aim for a run at a jump to start.
+         */
+        const val MAX_FACING_OFF = 15f
 
         val SNEAKS = booleanArrayOf(false, true)
 

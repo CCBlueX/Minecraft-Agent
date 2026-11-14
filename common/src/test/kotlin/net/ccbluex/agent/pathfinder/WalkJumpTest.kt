@@ -34,6 +34,7 @@ import net.ccbluex.agent.pathfinder.walk.Step
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LadderBlock
 import net.minecraft.world.phys.Vec3
@@ -77,9 +78,19 @@ class WalkJumpTest {
 
     /**
      * Whether the player, standing at [start], makes the jump from [from] to [to] with [Leap] at the keys and
-     * the camera on the target.
+     * the camera on the target. With [startYRot], it starts facing that way and turns [turnShare] of the way left to
+     * the target a tick, as a client body eases into a turn.
+     *
+     * @agent claude-opus-5-5
      */
-    private fun leap(world: TestWorld, start: Vec3, from: BlockPos, to: BlockPos): Boolean {
+    private fun leap(
+        world: TestWorld,
+        start: Vec3,
+        from: BlockPos,
+        to: BlockPos,
+        startYRot: Float? = null,
+        turnShare: Float = 1f,
+    ): Boolean {
         val terrain = world.terrain()
         val jumps = Jumps(terrain, abilities())
         val toHeight = terrain.standHeight(to.x, to.y, to.z)
@@ -92,11 +103,12 @@ class WalkJumpTest {
         state.reset(start, PlayerMotion.RESTING, onGround = true)
         val leap = Leap()
         var look = feet
+        var yRot = startYRot ?: look.subtract(state.x, state.y, state.z).yRot
         repeat(MAX_LEAP_TICKS) {
-            val yRot = look.subtract(state.x, state.y, state.z).yRot
             val input = leap.decide(state, yRot, step, jump, jumps)
             look = leap.target ?: feet
             state.tick(yRot, input.forward, input.strafe, input.jump, input.sprint, input.shift)
+            yRot += Mth.wrapDegrees(look.subtract(state.x, state.y, state.z).yRot - yRot) * turnShare
             if (state.standsOn(to.x, to.y, to.z) || state.standsOn(to.x, to.y - 1, to.z)) {
                 return true
             }
@@ -221,6 +233,14 @@ class WalkJumpTest {
         for (start in listOf(Vec3(0.5, 1.0, 0.5), Vec3(0.37, 1.0, 0.42), Vec3(0.7, 1.0, 0.65))) {
             assertTrue(leap(world, start, BlockPos(0, 1, 0), BlockPos(4, 1, 0)), "no landing from $start")
         }
+    }
+
+    @Test
+    fun `a diagonal jump started facing away is turned to before the run`() {
+        // The first jump of the diagonal parkour game test, facing along +z as the player is put there.
+        val world = TestWorld().fill(0, 0, 0, 0, 0, 0).fill(4, 0, 3, 4, 0, 3)
+        val start = Vec3(0.5, 1.0, 0.5)
+        assertTrue(leap(world, start, BlockPos(0, 1, 0), BlockPos(4, 1, 3), startYRot = 0f, turnShare = 0.45f))
     }
 
     @Test

@@ -54,4 +54,38 @@ internal class TurningTest {
         val turned = Turning.linear(10f, 5f).turn(ViewRotation(0f, 0f), ViewRotation(30f, 30f), LookPurpose.AIM)
         assertEquals(ViewRotation(10f, 5f), turned)
     }
+
+    @Test
+    fun `an eased turn takes a share of what is left, at most the calm pace`() {
+        val eased = Turning.eased()
+        assertEquals(Turning.CALM_TURN, eased.turn(ViewRotation(0f, 0f), ViewRotation(170f, 0f), LookPurpose.MOVEMENT).yRot)
+        assertEquals(9f, eased.turn(ViewRotation(0f, 0f), ViewRotation(20f, 0f), LookPurpose.MOVEMENT).yRot, 1e-4f)
+        assertEquals(1f, eased.turn(ViewRotation(0f, 0f), ViewRotation(1f, 0f), LookPurpose.MOVEMENT).yRot, 1e-4f)
+    }
+
+    /**
+     * The BedWars GEAR flip: the look turned between the shopkeeper and the generator, about 180 degrees apart, every
+     * 10 ticks, and the host turned at 180 degrees a tick (the old angle smoother): 317 ticks of over 90 degrees in
+     * one run.
+     */
+    @Test
+    fun `a host turning at 180 a tick is paced as a person turns`() {
+        val host = Turning.linear(180f)
+        assertEquals(180f, maxYRotStep(host, LookPurpose.MOVEMENT), 1e-3f)
+        assertEquals(Turning.CALM_TURN, maxYRotStep(Turning.humanPaced(host), LookPurpose.MOVEMENT), 1e-3f)
+        assertEquals(Turning.CALM_TURN, maxYRotStep(Turning.humanPaced(host), LookPurpose.AIM), 1e-3f)
+        assertEquals(Turning.FLICK_TURN, maxYRotStep(Turning.humanPaced(host), LookPurpose.STEER), 1e-3f)
+    }
+
+    private fun maxYRotStep(turning: Turning, purpose: LookPurpose): Float {
+        var look = ViewRotation(0f, 0f)
+        var most = 0f
+        for (tick in 0 until 200) {
+            val goal = ViewRotation(if (tick / 10 % 2 == 0) 179f else -1f, 0f)
+            val turned = turning.turn(look, goal, purpose)
+            most = maxOf(most, kotlin.math.abs(turned.yRot - look.yRot))
+            look = turned
+        }
+        return most
+    }
 }

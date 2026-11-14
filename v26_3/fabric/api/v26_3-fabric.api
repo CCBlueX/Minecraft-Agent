@@ -17,6 +17,7 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/navig
 	public fun isRotationOverridden ()Z
 	public fun isViewTakenOver ()Z
 	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
+	protected final fun pace (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)Lnet/ccbluex/agent/math/ViewRotation;
 	public fun press (Lnet/minecraft/world/entity/player/Input;Z)V
 	public fun releaseHotbarSlot ()V
 	public fun selectHotbarSlot (I)V

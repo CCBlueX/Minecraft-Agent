@@ -43,7 +43,8 @@ net.ccbluex.liquidbounce.event.tickUntil(stopAt) }`), so its guards apply to eve
 
 `navigation.Options` (digging, bridging, parkour, sprinting, look-ahead, `minPressTicks`/`minReleaseTicks` for
 human key timing on plain walks) go in the constructor or `navigation.options`. `ClientBody(turning)` sets how
-movement and aim rotations are turned to (`Turning.linear(degrees)`, or `skillLevel.turning()` from `skills`).
+movement and aim rotations are turned to (`Turning.linear(degrees)`, `skillLevel.turning()` from `skills`, or
+`Turning.instant()` when a rotation system of the host paces the turns).
 The navigator presses the keys once per tick (`Body.press(input, exact)`); exact keys (jumps, climbs, block
 actions, flight) must reach the player unchanged, plain walks may be changed by host features.
 

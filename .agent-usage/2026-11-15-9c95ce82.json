@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "change": "fix(navigation): human-paced turning",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 252, "cachedInput": 16854123, "cacheWrite": 184708, "output": 42265 },
+      "usd": 5.69
+    }
+  ]
+}

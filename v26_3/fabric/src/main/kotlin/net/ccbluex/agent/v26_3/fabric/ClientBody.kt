@@ -50,8 +50,9 @@ import kotlin.math.roundToInt
  * rotation, the hotbar and [net.minecraft.client.multiplayer.MultiPlayerGameMode] for digging and using items.
  *
  * The rotation the walk faces ([LookPurpose.MOVEMENT]), aims with ([LookPurpose.AIM]) or flicks to
- * ([LookPurpose.STEER]) is turned to as [turning] paces it, in whole mouse steps; STEER while gliding is taken at
- * once. The keys pressed for the old view are turned onto the new rotation. The camera looks there too: the way the
+ * ([LookPurpose.STEER]) is turned to as [turning] paces it, never faster than a person turns
+ * ([Turning.humanPaced]), in whole mouse steps; STEER while gliding is taken at once. The keys pressed for the old
+ * view are turned onto the new rotation. The camera looks there too: the way the
  * walk goes, or at the block it places or breaks.
  *
  * While the user turns the mouse, or something outside the navigation owns the rotation
@@ -61,17 +62,24 @@ import kotlin.math.roundToInt
  * than where that rotation points.
  *
  * [ClientNavigation] drives it. A client with its own rotation and input handling overrides [look], [press] and the
- * rotation members and calls the navigator from its own input hook instead.
+ * rotation members, turns through [pace] and calls the navigator from its own input hook instead. When its rotation
+ * system paces the turns, it sets [Turning.instant], so they are not paced twice.
  *
  * @agent claude-opus-5-5
  */
-public open class ClientBody @JvmOverloads constructor(
+public open class ClientBody @JvmOverloads constructor(turning: Turning = Turning.eased()) : Body {
 
     /**
-     * How movement, aim and steering rotations are turned to; the default turns at once.
+     * How movement, aim and steering rotations are turned to; the default eases in as a hand does, and
+     * [Turning.instant] leaves the pace to the host's own rotation system.
      */
-    public var turning: Turning = Turning.linear(DEFAULT_MAX_TURN),
-) : Body {
+    public var turning: Turning = turning
+        set(value) {
+            field = value
+            paced = Turning.humanPaced(value)
+        }
+
+    private var paced = Turning.humanPaced(turning)
 
     private val minecraft: Minecraft
         get() = Minecraft.getInstance()
@@ -192,13 +200,13 @@ public open class ClientBody @JvmOverloads constructor(
                         rotation.xRot.coerceIn(MIN_X_ROT, MAX_X_ROT),
                     )
                 } else {
-                    turn(from, rotation, purpose)
+                    pace(from, rotation, purpose)
                 }
                 nextPurpose = purpose
             }
 
             LookPurpose.MOVEMENT, LookPurpose.AIM -> if (nextPurpose == null || nextPurpose == LookPurpose.MOVEMENT) {
-                nextRotation = turn(this.rotation ?: player.let { ViewRotation(it.yRot, it.xRot) }, rotation, purpose)
+                nextRotation = pace(this.rotation ?: player.let { ViewRotation(it.yRot, it.xRot) }, rotation, purpose)
                 nextPurpose = purpose
             }
         }
@@ -306,7 +314,7 @@ public open class ClientBody @JvmOverloads constructor(
         val view = ViewRotation(player.yRot, player.xRot)
         val last = this.rotation
         val rotation = nextRotation
-            ?: last?.let { turn(it, view, LookPurpose.MOVEMENT) }?.takeUnless { it.reaches(view) }
+            ?: last?.let { pace(it, view, LookPurpose.MOVEMENT) }?.takeUnless { it.reaches(view) }
         val viewFollows = rotation != null && !isMouseTurning() && !isRotationOverridden
         this.rotation = rotation.takeUnless { viewFollows }
         nextRotation = null
@@ -413,10 +421,10 @@ public open class ClientBody @JvmOverloads constructor(
     }
 
     /**
-     * [from] turned towards [to] as [turning] paces it, in whole [viewStep]s.
+     * [from] turned towards [to] as [turning] paces it, never faster than a person turns, in whole [viewStep]s.
      */
-    private fun turn(from: ViewRotation, to: ViewRotation, purpose: LookPurpose): ViewRotation {
-        val turned = turning.turn(from, to, purpose)
+    protected fun pace(from: ViewRotation, to: ViewRotation, purpose: LookPurpose): ViewRotation {
+        val turned = paced.turn(from, to, purpose)
         val step = viewStep
         val yRot = quantize(Mth.wrapDegrees(turned.yRot - from.yRot), step)
         val xRot = quantize(turned.xRot - from.xRot, step)
@@ -443,7 +451,6 @@ public open class ClientBody @JvmOverloads constructor(
     }
 
     private companion object {
-        const val DEFAULT_MAX_TURN = 180f
         const val NO_SLOT = -1
         const val MIN_X_ROT = -90f
         const val MAX_X_ROT = 90f
