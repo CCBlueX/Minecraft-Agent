@@ -24,14 +24,17 @@ import net.ccbluex.agent.v26_3.fabric.gametest.autoWalkStages
 import net.ccbluex.agent.v26_3.fabric.gametest.blockSight
 import net.ccbluex.agent.v26_3.fabric.gametest.elytraTravel
 import net.ccbluex.agent.v26_3.fabric.gametest.flightNavigation
+import net.ccbluex.agent.v26_3.fabric.gametest.keyTiming
 import net.ccbluex.agent.v26_3.fabric.gametest.parkourAssist
 import net.ccbluex.agent.v26_3.fabric.gametest.parkourEdge
 import net.ccbluex.agent.v26_3.fabric.gametest.playerMotion
 import net.ccbluex.agent.v26_3.fabric.gametest.playerSimulation
 import net.ccbluex.agent.v26_3.fabric.gametest.rideNavigation
 import net.ccbluex.agent.v26_3.fabric.gametest.tunnelGlide
+import net.ccbluex.agent.v26_3.fabric.gametest.turning
 import net.ccbluex.agent.v26_3.fabric.gametest.walkBlocked
 import net.ccbluex.agent.v26_3.fabric.gametest.walkClimb
+import net.ccbluex.agent.v26_3.fabric.gametest.walkEnding
 import net.ccbluex.agent.v26_3.fabric.gametest.walkNavigation
 import net.ccbluex.agent.v26_3.fabric.gametest.walkParkour
 import net.ccbluex.agent.v26_3.fabric.gametest.walkParkourSpeed
@@ -132,3 +135,18 @@ public class PlayerSimulationGameTest : SingleplayerGameTest(playerSimulation)
  * @agent claude-opus-5-5
  */
 public class BlockSightGameTest : SingleplayerGameTest(blockSight)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class WalkEndingGameTest : SingleplayerGameTest(walkEnding)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class TurningGameTest : SingleplayerGameTest(turning)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class KeyTimingGameTest : SingleplayerGameTest(keyTiming)

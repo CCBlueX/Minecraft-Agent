@@ -101,13 +101,13 @@ internal val tunnelGlide: GameTestScope.() -> Unit = {
         awaitClient("the fall") { !checkNotNull(it.player).onGround() }
         context.onClient {
             navigation = ClientNavigation(options = Options(glideClearance = CLEARANCE), listener = listener).also {
-                it.moveTo(GOAL, ARRIVAL)
+                it.navigator.moveTo(GOAL, ARRIVAL)
             }
         }
-        flyCavern { navigation?.isRunning == false }
+        flyCavern { navigation?.navigator?.isInProgress == false }
         check(touches.isEmpty()) { "The navigator reported touching ${touches.size} blocks: ${touches.take(5)}" }
     } finally {
-        context.onClient { navigation?.stop() }
+        context.onClient { navigation?.navigator?.stop() }
     }
 }
 

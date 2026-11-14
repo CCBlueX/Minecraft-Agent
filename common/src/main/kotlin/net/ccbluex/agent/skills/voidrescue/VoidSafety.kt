@@ -76,7 +76,7 @@ internal class VoidSafety : VoidRescue {
 
         agent.takeMovement()
         if (!Clutch.tick(agent)) {
-            safeGround?.let { agent.press(steering(player.position(), it, body.inputYRot)) }
+            safeGround?.let { agent.press(steering(player.position(), it, body.inputYRot), exact = true) }
             throwPearlBack(agent)
         }
     }
