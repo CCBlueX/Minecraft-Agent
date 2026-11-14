@@ -106,13 +106,14 @@ private fun GameTestScope.checkBoat(y: Int) {
         context.onClient { AutoWalk.goTo(Vec3(42.0, y.toDouble(), 0.0)) }
         check(context.fromClient { AutoWalk.running }) { "goTo did not start the navigation" }
 
-        awaitPlayer(context, BOAT_TICKS, "Did not arrive across the lake") { player ->
+        val took = awaitPlayer(context, BOAT_TICKS, "Did not arrive across the lake") { player ->
             val boat = player.vehicle as? AbstractBoat
             if (boat != null) {
                 farthestAfloat = maxOf(farthestAfloat, boat.x)
             }
             !AutoWalk.running
         }
+        logTicks("Riding the boat", took)
     }
 
     val (position, riding) = client { mc ->
@@ -144,7 +145,8 @@ private fun GameTestScope.checkHorse(y: Int) {
     unhurt("Riding the horse") {
         context.onClient { AutoWalk.goTo(Vec3(44.0, y + 3.0, 50.0)) }
         check(context.fromClient { AutoWalk.running }) { "goTo did not start the navigation" }
-        awaitPlayer(context, HORSE_TICKS, "Did not ride up to the ledge") { !AutoWalk.running }
+        val took = awaitPlayer(context, HORSE_TICKS, "Did not ride up to the ledge") { !AutoWalk.running }
+        logTicks("Riding the horse", took)
     }
 
     val (position, riding) = client { mc ->

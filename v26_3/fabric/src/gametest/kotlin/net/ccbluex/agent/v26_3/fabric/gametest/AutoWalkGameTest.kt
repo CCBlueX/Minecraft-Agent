@@ -112,7 +112,7 @@ private fun GameTestScope.checkDirection(y: Int) {
     var stops = 0
     watched("walking the way it faces") {
         var last = context.playerPosition()
-        repeat(DIRECTION_TICKS) {
+        repeat(DIRECTION_TICKS) { tick ->
             ticks(1)
             val (position, onGround) = context.fromClient { mc ->
                 val player = checkNotNull(mc.player)
@@ -123,6 +123,7 @@ private fun GameTestScope.checkDirection(y: Int) {
             }
             last = position
             if (position.x > DIRECTION_END) {
+                logTicks("AutoWalk walking the way it faces", tick)
                 return@watched
             }
         }
@@ -147,7 +148,8 @@ private fun GameTestScope.checkGoto(y: Int) {
     check(context.fromClient { AutoWalk.running }) { "goTo did not start the navigation" }
 
     watched("going around the room") {
-        awaitPlayer(context, 600, "Did not arrive behind the closed room") { !AutoWalk.running }
+        val took = awaitPlayer(context, 600, "Did not arrive behind the closed room") { !AutoWalk.running }
+        logTicks("AutoWalk going around the room", took)
     }
     val position = context.playerPosition()
     check(position.distanceTo(destination) <= 1.1) { "The navigation stopped at $position, not at $destination" }
@@ -174,6 +176,7 @@ private fun GameTestScope.checkSprint(y: Int) {
                 sprinting++
             }
             if (context.fromClient { !AutoWalk.running }) {
+                logTicks("AutoWalk sprinting along", elapsed)
                 return@watched
             }
         }
@@ -199,9 +202,10 @@ private fun GameTestScope.checkFollow(y: Int) {
         context.onClient { AutoWalk.follow("Twin") }
         check(context.fromClient { AutoWalk.running }) { "follow did not start the navigation" }
         watched("following") {
-            awaitPlayer(context, FOLLOW_TICKS, "Did not walk up to the followed player") {
+            val took = awaitPlayer(context, FOLLOW_TICKS, "Did not walk up to the followed player") {
                 it.position().distanceTo(twin) <= FOLLOW_DISTANCE
             }
+            logTicks("AutoWalk following", took)
         }
     } finally {
         context.onClient { mc ->

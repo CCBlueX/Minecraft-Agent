@@ -96,13 +96,14 @@ internal class TestWalker(
         observe: (LocalPlayer) -> Unit = {},
     ) = walking(context, goal) {
         TurnWatch.watch(context, title, acting) {
-            await(context, ticks, "$failure to $goal") {
+            val took = await(context, ticks, "$failure to $goal") {
                 context.fromClient { mc ->
                     val player = checkNotNull(mc.player)
                     observe(player)
                     player.position().arrivedAt(goal, radius)
                 }
             }
+            logTicks(title, took)
         }
     }
 }

@@ -224,12 +224,13 @@ internal fun goto(
     check(context.fromClient { AutoWalk.running }) { "goTo did not start the navigation" }
 
     var flew = false
-    repeat(ticks) {
+    repeat(ticks) { tick ->
         val (arrived, now) = context.fromClient { mc -> !AutoWalk.running to flying(checkNotNull(mc.player)) }
         flew = flew || now
         if (arrived) {
             val position = context.playerPosition()
             check(position.distanceTo(goal) <= arrival) { "The navigation stopped at $position going $what" }
+            logTicks("Going $what", tick)
             return flew
         }
         context.waitTick()

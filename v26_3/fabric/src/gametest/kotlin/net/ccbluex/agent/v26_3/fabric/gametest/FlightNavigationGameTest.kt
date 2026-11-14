@@ -116,13 +116,14 @@ private fun GameTestScope.checkElytra(y: Int) {
     unhurt("Gliding down") {
         context.onClient { AutoWalk.goTo(destination) }
         var glided = false
-        await(context, GOTO_TICKS, "Did not glide to $destination") {
+        val took = await(context, GOTO_TICKS, "Did not glide to $destination") {
             val (arrived, gliding) = context.fromClient { mc ->
                 !AutoWalk.running to checkNotNull(mc.player).isFallFlying
             }
             glided = glided || gliding
             arrived
         }
+        logTicks("Gliding down", took)
         val position = context.playerPosition()
         check(position.distanceTo(destination) <= ARRIVAL) { "The navigation stopped at $position" }
         check(glided) { "Got down from the tower without gliding" }

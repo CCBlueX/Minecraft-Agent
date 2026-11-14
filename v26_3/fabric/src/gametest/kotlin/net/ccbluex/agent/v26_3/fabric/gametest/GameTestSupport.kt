@@ -156,21 +156,29 @@ internal inline fun GameTestScope.unhurt(what: String, block: () -> Unit) {
 }
 
 /**
- * Waits up to [ticks] for [condition] and fails with [failure] and where the player stopped.
+ * Waits up to [ticks] for [condition] and fails with [failure] and where the player stopped; the ticks it waited.
  *
  * From LiquidBounce: [NavigationGameTests.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/gametest/kotlin/net/ccbluex/liquidbounce/gametest/navigation/NavigationGameTests.kt#L165-L173)
  *
  * @agent claude-fable-5-2
+ * @agent claude-opus-5-5
  */
-internal inline fun await(context: ClientGameTestContext, ticks: Int, failure: String, condition: () -> Boolean) {
-    repeat(ticks) {
+internal inline fun await(context: ClientGameTestContext, ticks: Int, failure: String, condition: () -> Boolean): Int {
+    repeat(ticks) { tick ->
         if (condition()) {
-            return
+            return tick
         }
         context.waitTick()
     }
     error("$failure within $ticks ticks, stopped at ${context.playerPosition()}")
 }
+
+/**
+ * Logs how many ticks [what] took to reach its goal, the number the speed of the walks is compared by.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun logTicks(what: String, ticks: Int) = logger.info("TICKS {}: {}", what, ticks)
 
 /**
  * From LiquidBounce: [NavigationGameTests.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/gametest/kotlin/net/ccbluex/liquidbounce/gametest/navigation/NavigationGameTests.kt#L175-L180)

@@ -93,7 +93,7 @@ public class WalkBlockedGameTest : ServerGameTest(walkBlocked)
 private fun GameTestScope.standingTicks(goal: Vec3): Int {
     var standing = 0
     var last = context.playerPosition()
-    await(context, DETOUR_TICKS, "Did not walk through the other gap to $goal") {
+    val took = await(context, DETOUR_TICKS, "Did not walk through the other gap to $goal") {
         val position = context.playerPosition()
         if (position.horizontalDistanceTo(last) < STANDING) {
             standing++
@@ -101,5 +101,6 @@ private fun GameTestScope.standingTicks(goal: Vec3): Int {
         last = position
         position.arrivedAt(goal, GOAL_RADIUS)
     }
+    logTicks("Walking through the other gap", took)
     return standing
 }

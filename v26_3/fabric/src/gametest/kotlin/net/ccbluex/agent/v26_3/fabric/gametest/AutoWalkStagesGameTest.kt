@@ -99,6 +99,7 @@ private fun GameTestScope.checkFarGoto(y: Int) {
                 last = position
             }
         }
+        logTicks("Walking to the far destination", elapsed)
     }
 
     val position = context.playerPosition()
