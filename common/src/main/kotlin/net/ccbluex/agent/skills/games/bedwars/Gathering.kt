@@ -33,7 +33,7 @@ import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
 /**
- * A real teammate this close to a generator or a dropped resource has it.
+ * A leader this close to a generator or a dropped resource has it.
  */
 internal const val OCCUPIED = 3.0
 
@@ -61,7 +61,7 @@ internal suspend fun Activities.gatherUp() {
 
 /**
  * One tick on the own generator of [resource], or the iron one; between iron and gold when they lie side by side.
- * A real teammate standing there has it.
+ * A leader standing there has it.
  *
  * @agent claude-opus-5-5
  */
@@ -74,7 +74,7 @@ internal fun Activities.gather(resource: Currency) {
     var at = generator.position
     val other = ownGenerator(if (generator.resource == Currency.GOLD) Currency.IRON else Currency.GOLD)
     if (other != null && other.position.horizontalDistanceTo(at) < 3.5) at = at.add(other.position).scale(0.5)
-    val mate = realTeammates().firstOrNull { it.position().distanceTo(at) < OCCUPIED }
+    val mate = leaders().firstOrNull { it.position().distanceTo(at) < OCCUPIED }
     if (mate != null) {
         val aside = team.spawn.subtract(at).multiply(1.0, 0.0, 1.0)
         val spot = if (aside.lengthSqr() < 1.0E-3) team.spawn else at.add(aside.normalize().scale(OCCUPIED + 1))
@@ -188,13 +188,13 @@ private fun Activities.hasEnough(resource: Currency): Boolean {
 }
 
 /**
- * Takes what the agent will not need to the team chest, for its real teammates; false with nothing to spare. Whole
- * stacks move with a shift click, so a stack bigger than what is spare stays.
+ * Takes what the agent will not need to the team chest, for its leaders; false with nothing to spare or no leader.
+ * Whole stacks move with a shift click, so a stack bigger than what is spare stays.
  *
  * @agent claude-opus-5-5
  */
 internal suspend fun Activities.spare(): Boolean {
-    if (tick < chestAgainAt || realTeammates().isEmpty()) return false
+    if (tick < chestAgainAt || leaders().isEmpty()) return false
     val spare = Currency.entries.associateWith { maxOf(0, count(it) - need(it)) }
     val worth = (spare[Currency.IRON] ?: 0) >= SPARE_IRON || (spare[Currency.GOLD] ?: 0) >= SPARE_GOLD ||
         (spare[Currency.EMERALD] ?: 0) > 0 || (spare[Currency.DIAMOND] ?: 0) > 0

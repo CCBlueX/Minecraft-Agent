@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): bedwars leaders take drops",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": {
+        "input": 158,
+        "cachedInput": 20565043,
+        "cacheWrite": 74303,
+        "output": 28900
+      },
+      "usd": 5.29
+    }
+  ]
+}

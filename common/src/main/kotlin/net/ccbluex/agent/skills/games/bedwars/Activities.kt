@@ -382,10 +382,10 @@ internal class Activities(
     }
 
     /**
-     * Teammates who are real players and still play.
+     * Teammates the agent serves who still play: its [BedWars.leaders].
      */
-    fun realTeammates(): List<Player> =
-        team.members.filter { it !== self && !senses.isBot(it) && !it.isSpectator && it.level() === self.level() }
+    fun leaders(): List<Player> =
+        team.members.filter { it !== self && game.isLeader(it) && !it.isSpectator && it.level() === self.level() }
 
     fun eyes(): Vec3 = self.eyePosition
 

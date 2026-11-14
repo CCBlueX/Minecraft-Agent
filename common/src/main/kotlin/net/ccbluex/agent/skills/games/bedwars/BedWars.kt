@@ -31,9 +31,9 @@ import java.util.Random
  * Bed Wars as an agent plays it, any team size. Every two seconds or so it weighs what it could do: cover the bed,
  * defend the base, gear up, gather, fetch diamonds or emerald, buy team upgrades, rush a bed, hunt a bedless team or
  * help a teammate, by the state of the round, its traits and what its teammates in [match] already do. Enemies close
- * by or at the bed are fought whatever it does. It leaves generators to real teammates, puts what it has to spare
- * into the team chest for them, and tells its team what it is up to through [callouts]. Buying goes through the
- * agent's shop ability; without one it plans with what it has.
+ * by or at the bed are fought whatever it does. It leaves generators and drops to its [leaders], puts what it has to
+ * spare into the team chest for them, and tells its team what it is up to through [callouts]. Buying goes through
+ * the agent's shop ability; without one it plans with what it has.
  *
  * @agent claude-opus-5-5
  */
@@ -44,6 +44,10 @@ public class BedWars @JvmOverloads constructor(
     public val strategy: Strategy = Strategy.ADAPTIVE,
     callouts: Callouts = Callouts.NONE,
     random: Random = Random(),
+    /**
+     * Names of the players the agent serves; without any it keeps every resource for itself. Any case.
+     */
+    public val leaders: Set<String> = emptySet(),
 ) : GameMode {
 
     private val activities = Activities(this, senses, match, strategy, callouts, random)
@@ -70,16 +74,18 @@ public class BedWars @JvmOverloads constructor(
     }
 
     /**
-     * Whether the agent may pick [item] up: never one a real teammate stands by.
+     * Whether the agent may pick [item] up: never one a leader stands by.
      */
     public fun takes(item: ItemEntity): Boolean {
+        if (leaders.isEmpty()) return true
         val team = senses.ownTeam ?: return true
-        val self = activities.player
         return team.members.none { mate ->
-            mate !== self && !senses.isBot(mate) && !mate.isSpectator && mate.level() === item.level() &&
+            isLeader(mate) && !mate.isSpectator && mate.level() === item.level() &&
                 mate.position().distanceTo(item.position()) < OCCUPIED
         }
     }
+
+    internal fun isLeader(player: Player): Boolean = leaders.any { it.equals(player.scoreboardName, ignoreCase = true) }
 
     internal fun bedDestroyed(team: String, breaker: Player?) {
         activities.bedDestroyed(team, breaker)
