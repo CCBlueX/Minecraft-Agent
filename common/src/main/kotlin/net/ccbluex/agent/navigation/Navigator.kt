@@ -25,6 +25,7 @@ import net.ccbluex.agent.navigation.walk.BlockActions
 import net.ccbluex.agent.navigation.walk.Follower
 import net.ccbluex.agent.navigation.walk.PlacedBlock
 import net.ccbluex.agent.navigation.walk.Planning
+import net.ccbluex.agent.navigation.walk.Setbacks
 import net.ccbluex.agent.tick.tickUntil
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -89,6 +90,13 @@ public class Navigator @JvmOverloads constructor(
     private var lastInput: Input = Input.EMPTY
     private var walk: Walk? = null
     private val keystrokes = Keystrokes()
+    private val setbacks = Setbacks()
+    private var ticks = 0L
+
+    /**
+     * Where the player stood when the last tick began, the move a setback refuses starting there.
+     */
+    private var tickStart: Vec3? = null
 
     /**
      * Changes the keys of every tick last, as a rescue that keeps the player from walking off an edge does.
@@ -368,17 +376,24 @@ public class Navigator @JvmOverloads constructor(
     }
 
     /**
-     * The server set the player back to another position.
+     * The server set the player back to another position. A setback repeated near the last one marks the feet block
+     * the player was refused at as a stuck spot, so the walk is searched again around it.
      */
     public fun positionCorrected() {
-        context.logger.debug("Set back to {}", player.position())
+        val refused = tickStart ?: player.position()
+        context.logger.debug("Set back from {}", refused)
         follower.positionCorrected()
+        if (setbacks.refuses(refused, ticks)) {
+            planning.stuckAt(BlockPos.containing(refused))
+        }
     }
 
     /**
      * What happens at the start of every tick: the camera turn, block actions and the rotation for this tick.
      */
     private fun startTick() {
+        ticks++
+        tickStart = player.position()
         if (!viewTurned) {
             lookAhead.tick()
         }
