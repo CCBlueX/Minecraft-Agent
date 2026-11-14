@@ -33,15 +33,14 @@ import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.ClipContext
-import net.minecraft.world.level.Level
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 
 /**
  * Blocks put under a fall into the void, one level below the feet: into the cells the body comes down on, clicked
- * onto a block beside or under them, else into a cell next to those that a block can be clicked onto, which the next
- * one then leans on. The look leads the click by a tick, so it is aimed from where the eyes will be.
+ * onto a block beside or under them, else into the nearest cell around them that one can be clicked onto, which the
+ * next one then leans on, up to [CHAIN] cells out. The look leads the click by a tick, so it is aimed from where the eyes will be.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -57,6 +56,11 @@ internal object Clutch {
     val LOOK = LookPurpose.STEER
     private const val PLACE_REACH = 4.5
     private const val HALF = 0.5
+
+    /**
+     * How many cells out from where the body comes down the chain of blocks may start.
+     */
+    private const val CHAIN = 4
 
     /**
      * Air movement of a player without keys, per tick.
@@ -79,10 +83,14 @@ internal object Clutch {
         val slot = player.inventory.slotOf(::isBuildingBlock)
         if (slot < 0) return false
 
-        val cells = landing + landing.flatMap { cell -> Direction.Plane.HORIZONTAL.map(cell::relative) }.distinct()
         val eyes = player.eyePosition.add(player.deltaMovement)
-        val seed = player.uuid.mostSignificantBits
-        val aim = cells.firstNotNullOfOrNull { supportFace(level, it, eyes, seed) } ?: return false
+        val placement = nextPlacement(
+            landing, eyes, player.uuid.mostSignificantBits,
+            isOpen = { level.getBlockState(it).canBeReplaced() },
+            isSolid = { pos -> level.getBlockState(pos).let { !it.getCollisionShape(level, pos).isEmpty } },
+        ) ?: return false
+        val cells = placement.cells
+        val aim = placement.aim
 
         // Nobody places while eating: a use still held goes first
         if (body.isUsingItem) body.releaseUsingItem()
@@ -124,14 +132,43 @@ internal object Clutch {
     }
 
     /**
+     * The next block to put in: the nearest cell to [landing] that a block can be clicked onto, looking at most
+     * [CHAIN] cells away from it over open ones, so a player knocked a few blocks off a bridge or an island still
+     * gets a chain of blocks that leads out to where it falls. [Placement.cells] are the cells a click may fill.
+     */
+    fun nextPlacement(
+        landing: List<BlockPos>,
+        eyes: Vec3,
+        seed: Long,
+        isOpen: (BlockPos) -> Boolean,
+        isSolid: (BlockPos) -> Boolean,
+    ): Placement? {
+        val seen = LinkedHashSet<BlockPos>()
+        var ring = landing.filter(isOpen)
+        seen += ring
+        repeat(CHAIN + 1) {
+            val aim = ring.firstNotNullOfOrNull { supportFace(it, eyes, seed, isSolid) }
+            if (aim != null) return Placement(seen.toList(), aim)
+            ring = ring.flatMap { cell -> Direction.Plane.HORIZONTAL.map(cell::relative) }
+                .filter { it !in seen && isOpen(it) }.distinct()
+            seen += ring
+        }
+        return null
+    }
+
+    /**
+     * What to place next: [aim] is the point to look at, on the block a click fills one of [cells] from.
+     */
+    class Placement(val cells: List<BlockPos>, val aim: Vec3)
+
+    /**
      * The [clickPoint] of the nearest face within reach of [eyes] that a block for [cell] can be clicked onto.
      */
-    private fun supportFace(level: Level, cell: BlockPos, eyes: Vec3, seed: Long): Vec3? {
-        if (!level.getBlockState(cell).canBeReplaced()) return null
+    private fun supportFace(cell: BlockPos, eyes: Vec3, seed: Long, isSolid: (BlockPos) -> Boolean): Vec3? {
         var aim: Vec3? = null
         for (face in SUPPORTS) {
             val support = cell.relative(face)
-            if (level.getBlockState(support).getCollisionShape(level, support).isEmpty) continue
+            if (!isSolid(support)) continue
             val point = clickPoint(support, face.opposite, seed xor support.asLong())
             val distance = eyes.distanceToSqr(point)
             if (distance > PLACE_REACH * PLACE_REACH) continue

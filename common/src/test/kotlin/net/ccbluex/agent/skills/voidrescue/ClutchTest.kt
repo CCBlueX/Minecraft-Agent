@@ -21,11 +21,15 @@ package net.ccbluex.agent.skills.voidrescue
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.SkillLevel
+import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
+import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
+import kotlin.test.assertNotNull
 
 /**
  * How fast a bot looks down for a clutch. In the ring8 arena the pitch of every clutch climbed 10.5 degrees a tick
@@ -57,5 +61,36 @@ class ClutchTest {
     fun theClutchLooksDownWithinTwoTicksAndAroundWithinFour() {
         assertTrue(ticksToLookDown(Clutch.LOOK) <= 2)
         assertTrue(ticksToLookDown(Clutch.LOOK, yRot = 180f) <= 5)
+    }
+
+    /**
+     * A knock-off: clutch blocks at y 70 at x -18..-16.
+     */
+    private val platform = setOf(BlockPos(-18, 70, 20), BlockPos(-17, 70, 20), BlockPos(-16, 70, 19))
+    private val landing = listOf(BlockPos(-14, 70, 17))
+    private val eyes = Vec3(-14.3, 73.4, 17.2)
+
+    private fun next(solid: Set<BlockPos>, from: List<BlockPos> = landing) =
+        Clutch.nextPlacement(from, eyes, 1L, isOpen = { it !in solid }, isSolid = { it in solid })
+
+    @Test
+    fun aKnockThreeCellsPastTheLastBlockStillStartsAChain() {
+        val placement = assertNotNull(next(platform))
+        val aimed = BlockPos.containing(placement.aim.add(-0.01, 0.0, 0.0))
+        assertEquals(BlockPos(-16, 70, 19), aimed, "clicked onto the platform's side")
+        assertTrue(BlockPos(-15, 70, 19) in placement.cells)
+    }
+
+    @Test
+    fun theChainGrowsTowardsWhereTheBodyComesDown() {
+        val grown = platform + BlockPos(-15, 70, 19)
+        val placement = assertNotNull(next(grown))
+        assertTrue(BlockPos(-15, 70, 18) in placement.cells)
+        assertTrue(BlockPos(-16, 70, 18) !in placement.cells, "the nearest supported ring is the one that counts")
+    }
+
+    @Test
+    fun nothingWithinTheChainReachGivesNoPlacement() {
+        assertNull(next(setOf(BlockPos(-30, 70, 40))))
     }
 }

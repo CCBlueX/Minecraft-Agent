@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): clutch chains from support",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 82, "cachedInput": 14727920, "cacheWrite": 46489, "output": 26061 },
+      "usd": 1.92
+    }
+  ]
+}
