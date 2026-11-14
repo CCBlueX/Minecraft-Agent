@@ -26,6 +26,9 @@ import net.ccbluex.agent.skills.games.RoundFacts
 import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.shop.Currency
 import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
+import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
@@ -42,9 +45,10 @@ import net.minecraft.world.phys.Vec3
  * nearest to where the team was seen. Its island is the agent's spawn, where the agent stands after the teleport
  * from the waiting lobby, or the bed; its generator the iron or gold lying by the bed, the neutral generators the
  * diamonds and emeralds lying between the islands, its shopkeepers the entities the facts name near the island.
- * Blocks that appear while the round plays count as placed by players.
+ * Blocks that appear while the round plays count as placed by players, as the server's block update packets tell:
+ * a block set in the level can also be the client taking back its own prediction.
  *
- * The host calls [tick] every client tick and [blockChanged] for every block the server changes.
+ * The host calls [tick] every client tick and [received] for every packet the server sends.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -132,9 +136,17 @@ public class LevelSenses internal constructor(
     override fun isPlayerPlaced(pos: BlockPos): Boolean = pos in placed
 
     /**
-     * The server changed the block at [pos] to [state]; one that appears while the round plays was placed by someone.
+     * A packet the server sent. Block and section updates are the server's word on which blocks stand; one that appears
+     * while the round plays was placed by someone. Other packets are ignored.
      */
-    public fun blockChanged(pos: BlockPos, state: BlockState) {
+    public fun received(packet: Packet<*>) {
+        when (packet) {
+            is ClientboundBlockUpdatePacket -> blockChanged(packet.pos, packet.blockState)
+            is ClientboundSectionBlocksUpdatePacket -> packet.runUpdates(::blockChanged)
+        }
+    }
+
+    private fun blockChanged(pos: BlockPos, state: BlockState) {
         if (this.state != RoundState.PLAYING) {
             return
         }

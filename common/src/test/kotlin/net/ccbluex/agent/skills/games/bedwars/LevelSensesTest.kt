@@ -28,8 +28,14 @@ import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.games.playerNamed
 import net.ccbluex.agent.skills.games.scanNow
 import net.ccbluex.agent.skills.shop.Currency
+import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Holder
+import net.minecraft.core.SectionPos
 import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundBlockDestructionPacket
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
+import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.item.ItemEntity
@@ -37,7 +43,13 @@ import net.minecraft.world.item.DyeColor
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.GameType
+import net.minecraft.world.level.biome.Biome
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.chunk.LevelChunkSection
+import net.minecraft.world.level.chunk.PalettedContainer
+import net.minecraft.world.level.chunk.PalettedContainerRO
+import net.minecraft.world.level.chunk.Strategy
 import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -176,15 +188,39 @@ internal class LevelSensesTest {
         val round = Round()
         val pos = BlockPos(3, 1, 3)
         round.facts.state = RoundState.COUNTDOWN
-        round.senses.blockChanged(pos, TestWorld.STONE)
+        round.senses.received(ClientboundBlockUpdatePacket(pos, TestWorld.STONE))
         assertFalse(round.senses.isPlayerPlaced(pos))
 
         round.facts.state = RoundState.PLAYING
-        round.senses.blockChanged(BlockPos.MutableBlockPos(3, 1, 3), TestWorld.STONE)
+        round.senses.received(ClientboundBlockUpdatePacket(BlockPos.MutableBlockPos(3, 1, 3), TestWorld.STONE))
         assertTrue(round.senses.isPlayerPlaced(pos))
 
-        round.senses.blockChanged(pos, TestWorld.AIR)
+        round.senses.received(ClientboundBlockUpdatePacket(pos, TestWorld.AIR))
         assertFalse(round.senses.isPlayerPlaced(pos))
+    }
+
+    @Test
+    fun sectionUpdatesAreServerWordToo() {
+        val round = Round()
+        round.facts.state = RoundState.PLAYING
+        val pos = BlockPos(3, 1, 3)
+        val states = PalettedContainer(Blocks.AIR.defaultBlockState(), Strategy.createForBlockStates(Block.BLOCK_STATE_REGISTRY))
+        // The packet reads no biomes
+        @Suppress("UNCHECKED_CAST")
+        val section = LevelChunkSection(states, states as PalettedContainerRO<Holder<Biome>>)
+        section.setBlockState(3, 1, 3, TestWorld.STONE)
+        val changed = ShortOpenHashSet().apply { add(SectionPos.sectionRelativePos(pos)) }
+        round.senses.received(ClientboundSectionBlocksUpdatePacket(SectionPos.of(pos), changed, section))
+        assertTrue(round.senses.isPlayerPlaced(pos))
+        assertFalse(round.senses.isPlayerPlaced(pos.above()))
+    }
+
+    @Test
+    fun otherPacketsPlaceNothing() {
+        val round = Round()
+        round.facts.state = RoundState.PLAYING
+        round.senses.received(ClientboundBlockDestructionPacket(1, BlockPos(3, 1, 3), 5))
+        assertFalse(round.senses.isPlayerPlaced(BlockPos(3, 1, 3)))
     }
 
     @Test

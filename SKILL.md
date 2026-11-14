@@ -106,6 +106,7 @@ built in; bots use what they hold.
 
 A client host does not implement them: `bedwars.LevelSenses(level, facts)`, `skywars.LevelSenses(level, facts, chests)`
 and `blitz.LevelSenses(level, facts, chests)` read beds, generators, chests, players and the border from the level; the
-host supplies only what the server says in text (`RoundFacts`) and calls `tick()` every client tick.
+host supplies only what the server says in text (`RoundFacts`) and calls `tick()` every client tick. The Bed Wars
+one also takes every packet the server sends through `received(packet)`: block updates tell which blocks players placed.
 
 API docs: https://ccbluex.github.io/Minecraft-Agent/api/
