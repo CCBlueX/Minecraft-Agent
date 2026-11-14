@@ -1897,9 +1897,11 @@ public final class net/ccbluex/agent/skills/games/bedwars/BedWars : net/ccbluex/
 	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;)V
 	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;)V
 	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;Ljava/util/Random;)V
-	public synthetic fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;Ljava/util/Random;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;Ljava/util/Random;Ljava/util/Set;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/skills/games/bedwars/Senses;Lnet/ccbluex/agent/skills/games/bedwars/Match;Lnet/ccbluex/agent/skills/games/bedwars/Strategy;Lnet/ccbluex/agent/skills/games/bedwars/Callouts;Ljava/util/Random;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun damaged (Lnet/ccbluex/agent/skills/Agent;Lnet/minecraft/world/entity/Entity;)V
 	public fun getGoal ()Ljava/lang/String;
+	public final fun getLeaders ()Ljava/util/Set;
 	public final fun getMatch ()Lnet/ccbluex/agent/skills/games/bedwars/Match;
 	public fun getName ()Ljava/lang/String;
 	public fun getPhase ()Ljava/lang/String;
