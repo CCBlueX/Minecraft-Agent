@@ -146,6 +146,12 @@ internal class BuiltInFight(
     var eatWanted = false
         private set
 
+    /**
+     * Straight down as this fighter looks it: a little short of the 90 degrees a hand never stops at.
+     */
+    var down = DOWN_MOST
+        private set
+
     override val isHealing: Boolean get() = runner.active?.heals == true
     override val isBusy: Boolean get() = runner.active != null
     override val stats: Stats get() = tally.snapshot()
@@ -189,7 +195,10 @@ internal class BuiltInFight(
             trail.clear()
         }
         val target = found ?: return stand()
-        fighting = true
+        if (!fighting) {
+            down = DOWN_MOST - random.nextFloat() * DOWN_SPREAD
+            fighting = true
+        }
         if (!eatWanted && !hands.holding) hands.holdPrimary()
         seen++
         trail.addFirst(target.position())
@@ -477,5 +486,11 @@ internal class BuiltInFight(
          */
         private const val MEAL_HP = 4f
         private const val MEAL_RANGE = 3.5
+
+        /**
+         * The pitch of [down], rolled per fight within [DOWN_SPREAD] degrees under [DOWN_MOST].
+         */
+        private const val DOWN_MOST = 89.4f
+        private const val DOWN_SPREAD = 3f
     }
 }

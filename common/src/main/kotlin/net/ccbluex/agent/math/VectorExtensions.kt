@@ -19,9 +19,13 @@
 
 package net.ccbluex.agent.math
 
+import net.ccbluex.agent.InternalAgentApi
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.core.Vec3i
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
+import java.util.Random
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -148,3 +152,33 @@ public operator fun Vec3i.component2(): Int = y
  * From LiquidBounce: [MinecraftVectorExtensions.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/math/MinecraftVectorExtensions.kt#L93-L93)
  */
 public operator fun Vec3i.component3(): Int = z
+
+/**
+ * A click lands at least this far from the middle of a face along each of its axes, and at most [CLICK_MOST].
+ */
+private const val CLICK_LEAST = 0.08
+private const val CLICK_MOST = 0.35
+
+/**
+ * Where a hand clicks [face] of the block at [pos]: off its middle along both axes of the face, the way [seed] says,
+ * so the look is never an exact angle such as straight along an axis, and never the same for two blocks.
+ *
+ * @agent claude-opus-5-5
+ */
+@InternalAgentApi
+public fun clickPoint(pos: BlockPos, face: Direction, seed: Long): Vec3 {
+    val random = Random(seed)
+    fun along(axis: Direction.Axis, middle: Double): Double {
+        if (face.axis == axis) return middle
+        val offset = CLICK_LEAST + random.nextDouble() * (CLICK_MOST - CLICK_LEAST)
+        return if (random.nextBoolean()) middle + offset else middle - offset
+    }
+    val middle = Vec3.atCenterOf(pos).add(face.stepX * HALF_BLOCK, face.stepY * HALF_BLOCK, face.stepZ * HALF_BLOCK)
+    return Vec3(
+        along(Direction.Axis.X, middle.x),
+        along(Direction.Axis.Y, middle.y),
+        along(Direction.Axis.Z, middle.z),
+    )
+}
+
+private const val HALF_BLOCK = 0.5

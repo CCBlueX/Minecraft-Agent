@@ -54,7 +54,8 @@ internal class Heading(
     private var lastLookYRot = Float.NaN
 
     /**
-     * Where the walk heads: the aim of a block action, else the way to the next point, else the movement keys.
+     * Where the walk heads: the aim of a block action, else the way to the next point, else the movement keys. Only
+     * the yaw steers; the pitch stays where the view is, never a fixed angle.
      */
     fun rotation(lastInput: Input): ViewRotation {
         actions.rotation?.let { return it }
@@ -62,9 +63,9 @@ internal class Heading(
         val target = target
         val yRot = target?.let(::lookYRot)
         if (target == null || yRot == null || yRot.isNaN()) {
-            return ViewRotation(player.getInputYRot(lastInput), 0f)
+            return ViewRotation(player.getInputYRot(lastInput), player.xRot)
         }
-        return ViewRotation(yRot, if (follower.dive) diveXRot(target) else 0f)
+        return ViewRotation(yRot, if (follower.dive) diveXRot(target) else player.xRot)
     }
 
     // Looking the way the walk goes lets the keys press forward under movement correction, so the player can sprint.

@@ -124,14 +124,14 @@ internal class WebEscape : Technique(Skill.WEB_ESCAPE, 85, 40) {
         fight.moveControlled = true
         if (pouredAt == 0L) {
             // Straight down the ray stops at the web, and the water goes into the free cell above it
-            fight.lookXRot(90f, 4.0)
-            if (!fight.aimedXRot(90f, AIM_TOLERANCE)) return fight.tick - since < AIM_TICKS
+            fight.lookXRot(fight.down, 4.0)
+            if (!fight.aimedXRot(fight.down, AIM_TOLERANCE)) return fight.tick - since < AIM_TICKS
             if (!fight.hands.mainHand.isOf(Items.WATER_BUCKET) || !fight.hands.use()) return false
             pouredAt = fight.tick
             return true
         }
         val water = water(fight) ?: return false
-        val xRot = if (water.y + 0.5 > fight.player.eyeY) -90f else 90f
+        val xRot = if (water.y + 0.5 > fight.player.eyeY) -fight.down else fight.down
         fight.lookXRot(xRot, 4.0)
         // Flowing water takes a few ticks to wash the web out
         if (webbed(fight) && fight.tick - pouredAt < WASH_TICKS) return true

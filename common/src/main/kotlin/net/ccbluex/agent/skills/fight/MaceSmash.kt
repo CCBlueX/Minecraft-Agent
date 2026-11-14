@@ -104,7 +104,7 @@ internal class MaceSmash(private val min: Double, private val max: Double) : Tec
         when (phase) {
             Phase.JUMP -> {
                 // Looking down before the jump: the charge has to go off at the feet, early in the rise, to lift far
-                fight.lookXRot(90f, 8.0)
+                fight.lookXRot(fight.down, 8.0)
                 fight.jump = fight.xRot >= 70 && elapsed >= windup
                 if (!player.onGround() && rising) {
                     phase(fight, Phase.LAUNCH)
@@ -113,7 +113,7 @@ internal class MaceSmash(private val min: Double, private val max: Double) : Tec
                 }
             }
             Phase.LAUNCH -> {
-                fight.lookXRot(90f, 4.0)
+                fight.lookXRot(fight.down, 4.0)
                 if (fight.xRot >= 75) {
                     if (!fight.hands.hold { it.isOf(Items.WIND_CHARGE) }) return false
                     fight.hands.use()

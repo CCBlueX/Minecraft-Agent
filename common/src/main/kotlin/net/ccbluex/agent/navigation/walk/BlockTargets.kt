@@ -20,6 +20,7 @@
 package net.ccbluex.agent.navigation.walk
 
 import net.ccbluex.agent.math.ViewRotation
+import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.hotbar
 import net.ccbluex.agent.navigation.pick
@@ -105,7 +106,7 @@ internal class BlockTargets(private val context: NavigationContext) {
     /**
      * The click that places a block at [pos] against a neighbour, turning least from the rotation sent last. Below
      * the feet, where no way is better than another, the point on the face nearest to the current look; else the
-     * middle of the face.
+     * [clickPoint] of the face, its middle when that point cannot be seen.
      */
     fun planPlacement(pos: BlockPos, slot: Int): Plan? {
         if (!level.getBlockState(pos).canBeReplaced()) {
@@ -130,7 +131,12 @@ internal class BlockTargets(private val context: NavigationContext) {
             if (outward <= 0.0) {
                 continue
             }
-            val point = if (underFeet) nearestOnFace(against, face, eye) else center
+            val click = clickPoint(against, face, player.uuid.mostSignificantBits xor against.asLong() + face.ordinal)
+            val point = when {
+                underFeet -> nearestOnFace(against, face, eye)
+                eye.distanceToSqr(click) <= reach * reach && sees(eye, click, against, face) -> click
+                else -> center
+            }
             if (eye.distanceToSqr(point) > reach * reach || !sees(eye, point, against, face)) {
                 continue
             }

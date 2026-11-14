@@ -20,6 +20,7 @@
 package net.ccbluex.agent.skills.voidrescue
 
 import net.ccbluex.agent.math.ViewRotation
+import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentBody
@@ -73,7 +74,8 @@ internal object Clutch {
 
         val cells = landing + landing.flatMap { cell -> Direction.Plane.HORIZONTAL.map(cell::relative) }.distinct()
         val eyes = player.eyePosition.add(player.deltaMovement)
-        val aim = cells.firstNotNullOfOrNull { supportFace(level, it, eyes) } ?: return false
+        val seed = player.uuid.mostSignificantBits
+        val aim = cells.firstNotNullOfOrNull { supportFace(level, it, eyes, seed) } ?: return false
 
         body.hold(slot)
         aimedFace(body, cells)?.let { hit ->
@@ -113,15 +115,15 @@ internal object Clutch {
     }
 
     /**
-     * The middle of the nearest face within reach of [eyes] that a block for [cell] can be clicked onto.
+     * The [clickPoint] of the nearest face within reach of [eyes] that a block for [cell] can be clicked onto.
      */
-    private fun supportFace(level: Level, cell: BlockPos, eyes: Vec3): Vec3? {
+    private fun supportFace(level: Level, cell: BlockPos, eyes: Vec3, seed: Long): Vec3? {
         if (!level.getBlockState(cell).canBeReplaced()) return null
         var aim: Vec3? = null
         for (face in SUPPORTS) {
             val support = cell.relative(face)
             if (level.getBlockState(support).getCollisionShape(level, support).isEmpty) continue
-            val point = Vec3.atCenterOf(support).add(-face.stepX * HALF, -face.stepY * HALF, -face.stepZ * HALF)
+            val point = clickPoint(support, face.opposite, seed xor support.asLong())
             val distance = eyes.distanceToSqr(point)
             if (distance > PLACE_REACH * PLACE_REACH) continue
             if (aim == null || distance < eyes.distanceToSqr(aim)) aim = point

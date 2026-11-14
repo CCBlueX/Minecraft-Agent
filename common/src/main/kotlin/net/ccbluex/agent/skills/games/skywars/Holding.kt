@@ -20,6 +20,7 @@
 package net.ccbluex.agent.skills.games.skywars
 
 import net.ccbluex.agent.math.ViewRotation
+import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.ItemMatch
@@ -95,7 +96,7 @@ internal suspend fun Round.holdSpot(what: String, counts: Boolean): Any? {
         } else {
             goal = what
             val eye = player.eyePosition
-            agent.body.look(ViewRotation(ViewRotation.fromVector(facing.subtract(eye)).yRot, 0f), LookPurpose.AIM)
+            agent.body.look(ViewRotation(ViewRotation.fromVector(facing.subtract(eye)).yRot, player.xRot), LookPurpose.AIM)
             waitTicks(1)
         }
     }
@@ -137,8 +138,8 @@ private fun Round.canPlaceAt(cell: BlockPos): Boolean {
 }
 
 /**
- * Puts a building block onto the top of [below]: aims at it until the rotation the server has hits that face, at most
- * a second, then clicks.
+ * Puts a building block onto the top of [below]: aims at its [clickPoint] until the rotation the server has hits that
+ * face, at most a second, then clicks.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -147,7 +148,7 @@ internal suspend fun Round.place(below: BlockPos) {
     val slot = player.inventory.slotOf(ItemMatch(::isBuildingBlock))
     if (slot < 0) return
     val body = agent.body
-    val hit = Vec3(below.x + 0.5, below.y + 1.0, below.z + 0.5)
+    val hit = clickPoint(below, Direction.UP, player.uuid.mostSignificantBits xor below.asLong())
     val rotation = ViewRotation.fromVector(hit.subtract(player.eyePosition))
     agent.takeMovement()
     body.hold(slot)

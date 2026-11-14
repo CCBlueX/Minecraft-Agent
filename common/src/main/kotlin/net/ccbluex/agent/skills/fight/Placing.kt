@@ -56,7 +56,7 @@ internal class Pillar : Technique(Skill.PILLAR, 65, 300) {
     override fun tick(fight: BuiltInFight): Boolean {
         fight.moveControlled = true
         fight.attackHeld = true
-        fight.lookXRot(90f, 4.0)
+        fight.lookXRot(fight.down, 4.0)
         if (!fight.hands.hold { it.isBuildingBlock }) return false
         if (fight.player.onGround()) fight.jump = true
         val cell = column.above(placed)
