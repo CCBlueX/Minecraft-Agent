@@ -23,6 +23,7 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/navig
 	public fun setSafeWalk (Z)V
 	public final fun setTurning (Lnet/ccbluex/agent/navigation/Turning;)V
 	public fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	protected final fun stayOnGroundSurface (Lnet/minecraft/world/entity/player/Input;)Lnet/minecraft/world/entity/player/Input;
 	public fun stopDestroy ()V
 	public fun useItem (Lnet/minecraft/world/InteractionHand;)Z
 	public fun useItemOn (Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Z

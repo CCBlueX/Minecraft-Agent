@@ -30,7 +30,6 @@ import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.state.BlockState
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
@@ -190,12 +189,6 @@ internal fun afterMovementSent() {
         navigation.navigator.turnView()
     }
 }
-
-/**
- * @agent claude-opus-5-5
- */
-internal fun holdsAtLedges(player: Player) =
-    player === Minecraft.getInstance().player && currentState()?.walking.orEmpty().any { it.body.safeWalk }
 
 /**
  * Whether `Minecraft.continueAttack` must not stop the dig of a navigation while the attack key is up.

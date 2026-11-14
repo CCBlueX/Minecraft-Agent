@@ -95,7 +95,8 @@ public interface Body {
         get() = 0f
 
     /**
-     * Holds the player at ledges as sneaking does, without its slowdown.
+     * Holds the player at ledges. A server bot backs off as sneaking does, without its slowdown; a client body sneaks
+     * there as a player does ([LedgeSneak]), since anticheats see a back-off at an edge without sneaking.
      */
     public var safeWalk: Boolean
 

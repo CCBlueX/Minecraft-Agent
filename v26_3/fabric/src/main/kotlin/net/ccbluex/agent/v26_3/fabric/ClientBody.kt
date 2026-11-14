@@ -26,6 +26,7 @@ import net.ccbluex.agent.math.turned
 import net.ccbluex.agent.navigation.Body
 import net.ccbluex.agent.navigation.BodyTraits
 import net.ccbluex.agent.navigation.FlightControl
+import net.ccbluex.agent.navigation.LedgeSneak
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.Teleporter
 import net.ccbluex.agent.navigation.Turning
@@ -78,7 +79,12 @@ public open class ClientBody @JvmOverloads constructor(
     override val player: LocalPlayer
         get() = checkNotNull(minecraft.player) { "There is no local player" }
 
+    /**
+     * Held at ledges by a sneak in the keys of [press] ([stayOnGroundSurface]).
+     */
     override var safeWalk: Boolean = false
+
+    private val ledge = LedgeSneak()
 
     /**
      * Simulations of the local player are kept from touching the level by this module's mixins.
@@ -153,9 +159,21 @@ public open class ClientBody @JvmOverloads constructor(
         private set
 
     override fun press(input: Input, exact: Boolean) {
-        pressed = input
+        pressed = stayOnGroundSurface(input)
         pressedExact = exact
         pressedYRot = inputYRot
+    }
+
+    /**
+     * [input] with a sneak at a ledge while [safeWalk] holds the player there; a client with its own [press] puts
+     * its keys through this.
+     */
+    protected fun stayOnGroundSurface(input: Input): Input {
+        if (!safeWalk) {
+            ledge.reset()
+            return input
+        }
+        return ledge.keys(this, input)
     }
 
     override fun look(rotation: ViewRotation, purpose: LookPurpose) {
@@ -367,6 +385,7 @@ public open class ClientBody @JvmOverloads constructor(
             alignCamera(player, last.yRot)
         }
         safeWalk = false
+        ledge.reset()
         if (isDestroying) {
             stopDestroy()
         }

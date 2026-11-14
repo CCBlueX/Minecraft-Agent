@@ -35,7 +35,7 @@ private const val BRIDGE_TOLERANCE = 0.5
 
 /**
  * A survival player sneaks through a low tunnel, and runs along narrow bridges high over the ground with safe walk,
- * which keeps to the edge as sneaking does but at full speed; unhurt and without falling off.
+ * which the client body holds at the edges by sneaking there; unhurt and without falling off.
  *
  * From LiquidBounce: [WalkSneakGameTest.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/gametest/kotlin/net/ccbluex/liquidbounce/gametest/navigation/WalkSneakGameTest.kt#L35-L53)
  *
