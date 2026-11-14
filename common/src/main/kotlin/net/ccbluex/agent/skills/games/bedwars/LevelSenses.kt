@@ -202,7 +202,8 @@ public class LevelSenses internal constructor(
     }
 
     /**
-     * The iron and gold of an island drop by the own spawn, or by the bed where the spawn is not known yet.
+     * The iron and gold of an island drop by the own spawn, or by the bed where the spawn is not known yet, up to 16
+     * blocks away; islands lie farther apart. A generator once seen stays known while its drops are picked up.
      */
     private fun seeGenerators() {
         val bases = ArrayList<AABB>()
@@ -213,7 +214,7 @@ public class LevelSenses internal constructor(
             )
             bases += centers.map { AABB.ofSize(it, 16.0, 12.0, 16.0) }
             centers.firstNotNullOfOrNull { center ->
-                items(AABB.ofSize(center, 16.0, 12.0, 16.0)) { it == Currency.IRON || it == Currency.GOLD }
+                items(AABB.ofSize(center, 32.0, 12.0, 32.0)) { it == Currency.IRON || it == Currency.GOLD }
                     .minByOrNull { it.distanceToSqr(center) }
             }?.let { islandGenerators[team.name] = Generator(Currency.IRON, it.position(), team.name) }
         }

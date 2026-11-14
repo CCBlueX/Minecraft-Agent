@@ -278,6 +278,23 @@ internal class LevelSensesTest {
     }
 
     @Test
+    fun generatorUpToSixteenBlocksFromTheBedIsTheOwnAndStaysKnown() {
+        val round = Round()
+        round.level.add(ItemEntity(round.level, 27.5, 1.0, 0.5, ItemStack(Items.IRON_INGOT)))
+        round.senses.tick()
+        assertTrue(round.senses.generators.isEmpty())
+
+        val gold = ItemEntity(round.level, 25.5, 1.0, 0.5, ItemStack(Items.GOLD_INGOT))
+        round.level.add(gold)
+        round.senses.scanNow()
+        assertEquals(listOf(Generator(Currency.IRON, gold.position(), "Red")), round.senses.generators)
+
+        gold.discard()
+        round.senses.scanNow()
+        assertEquals(listOf(Generator(Currency.IRON, gold.position(), "Red")), round.senses.generators)
+    }
+
+    @Test
     fun shopkeepersStandByTheirOwnIsland() {
         val round = Round()
         val shop = ArmorStand(round.level, 15.5, 1.0, 0.5)
