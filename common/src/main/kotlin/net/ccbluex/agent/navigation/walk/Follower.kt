@@ -345,7 +345,7 @@ internal class Follower(
 
         keys.directionalInput = centerInput(position, aim, frameYRot)
         keys.sneak = step.shift
-        keys.jump = wantsJump(step, player) || hops.starts(position, aim, step.feet)
+        keys.jump = wantsJump(step, player) || aim !== step.feet && hops.starts(position, aim)
         return Movement(aim, sprint = !step.shift, isPlainWalk = step.isLevelWalk, safeWalk = step.edge)
     }
 

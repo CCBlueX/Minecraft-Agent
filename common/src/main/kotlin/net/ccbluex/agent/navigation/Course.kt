@@ -21,6 +21,7 @@ package net.ccbluex.agent.navigation
 
 import net.ccbluex.agent.navigation.walk.BlockActions
 import net.ccbluex.agent.navigation.walk.Follower
+import net.ccbluex.agent.navigation.walk.Hops
 import net.ccbluex.agent.navigation.walk.Planning
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.isStraightWalkable
@@ -50,6 +51,7 @@ internal class Course(
     private val route = context.route
     private val player get() = body.player
     private val travel = Travel(context, ::stopWalking, ::resetWalk)
+    private val hops = Hops(context, follower.stride)
 
     /**
      * Whether the goal is reached by walking straight on, as of the last tick on the ground.
@@ -171,6 +173,9 @@ internal class Course(
         return true
     }
 
+    /**
+     * @agent claude-opus-5-5
+     */
     private fun walkStraight(keys: MovementKeys, goal: Vec3) {
         planning.drop()
         follower.clear()
@@ -178,6 +183,7 @@ internal class Course(
 
         straightGoal = goal
         heading.walkTowards(keys, goal, sprint = true)
+        keys.jump = keys.jump || hops.starts(player.position(), goal)
 
         route.blocks(emptyList(), emptyList())
         route.following(listOf(player.position(), goal), straightProgress)

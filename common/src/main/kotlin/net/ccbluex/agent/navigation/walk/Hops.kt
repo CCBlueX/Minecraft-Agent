@@ -51,8 +51,8 @@ internal class Hops(private val context: NavigationContext, private val stride: 
     /**
      * Whether to jump now towards [aim], which then stays the aim until landing.
      */
-    fun starts(position: Vec3, aim: Vec3, feet: Vec3): Boolean {
-        if (aim === feet || !canHop(position, aim)) {
+    fun starts(position: Vec3, aim: Vec3): Boolean {
+        if (!canHop(position, aim)) {
             return false
         }
         this.aim = aim
