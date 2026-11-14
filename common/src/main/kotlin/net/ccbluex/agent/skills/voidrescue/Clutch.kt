@@ -77,6 +77,8 @@ internal object Clutch {
         val seed = player.uuid.mostSignificantBits
         val aim = cells.firstNotNullOfOrNull { supportFace(level, it, eyes, seed) } ?: return false
 
+        // Nobody places while eating: a use still held goes first
+        if (body.isUsingItem) body.releaseUsingItem()
         body.hold(slot)
         aimedFace(body, cells)?.let { hit ->
             if (agent.navigator.useItemOn(InteractionHand.MAIN_HAND, hit)) {

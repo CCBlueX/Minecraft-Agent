@@ -34,7 +34,8 @@ import java.util.concurrent.ThreadLocalRandom
 /**
  * The built-in [Eat]. Each tick without a meal under way it picks the [Meal] of highest priority that is due, ready
  * and at hand, selects it and uses it: held until eaten, clicked, or thrown at the feet. It leaves the hand to the
- * fight while that heals, and waits while a container is open or a fall is being caught.
+ * fight while that heals, and waits while a container is open. With a target in reach it heals only as
+ * [healsInFight] says.
  *
  * @agent claude-opus-5-5
  */
@@ -65,9 +66,7 @@ internal class Eating : Eat {
         }
         val body = agent.body
         due = false
-        if (agent.skills.fight?.isHealing == true || agent.skills.voidRescue?.isRescuing == true ||
-            body.containerMenu != null || body.isUsingItem
-        ) {
+        if (agent.skills.fight?.isHealing == true || body.containerMenu != null || body.isUsingItem) {
             return
         }
 
@@ -87,6 +86,12 @@ internal class Eating : Eat {
         val player = agent.body.player
         val heal = agent.personality.fighting.heal
         val share = (player.health + player.absorptionAmount) / player.maxHealth
+        val target = agent.skills.fight?.target
+        if (meal != Meal.FOOD && target != null) {
+            val targetShare = (target.health + target.absorptionAmount) / target.maxHealth
+            val distance = target.distanceTo(player).toDouble()
+            if (!healsInFight(share.toDouble(), targetShare.toDouble(), distance)) return false
+        }
         return when (meal) {
             Meal.SPLASH_HEAL -> share < Meal.SPLASH_SHARE * heal
             Meal.SOUP -> player.health <= Meal.SOUP_HP * heal
@@ -95,7 +100,7 @@ internal class Eating : Eat {
             Meal.FOOD -> {
                 val hunger = player.foodData.foodLevel
                 if (hunger >= Meal.FED) feeding = false
-                agent.skills.fight?.target == null && (hunger <= Meal.HUNGRY || feeding && hunger < Meal.FED)
+                target == null && (hunger <= Meal.HUNGRY || feeding && hunger < Meal.FED)
             }
         }
     }
@@ -197,3 +202,19 @@ internal class Eating : Eat {
         const val AIM_TOLERANCE = 5f
     }
 }
+
+/**
+ * A target farther than this cannot hit the agent while it eats a golden apple.
+ */
+private const val SAFE_DISTANCE = 6.0
+
+/**
+ * Whether a heal starts with [health] (with absorption, a share of the maximum) while fighting a target with
+ * [targetHealth] [targetDistance] blocks away: once the target is out of reach, or in a trade the agent loses with
+ * less health than the target. Else it fights on; eating takes the hand off the fight for over 1.5 seconds, and the
+ * fight's own heal skills back off or wall in before they eat.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun healsInFight(health: Double, targetHealth: Double, targetDistance: Double): Boolean =
+    targetDistance > SAFE_DISTANCE || health < targetHealth
