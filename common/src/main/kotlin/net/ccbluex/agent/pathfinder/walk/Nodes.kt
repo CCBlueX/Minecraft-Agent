@@ -23,10 +23,12 @@ import net.ccbluex.agent.math.ifNaN
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.terrain.hasRoom
 import net.ccbluex.agent.pathfinder.terrain.isOpen
+import net.ccbluex.agent.pathfinder.walk.Course.Companion.HALF_BLOCK
 import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_5
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.phys.Vec3
 import kotlin.math.max
 
 /**
@@ -68,6 +70,28 @@ internal class Nodes(private val terrain: Terrain, private val abilities: WalkAb
             swims(x, y, z) || climbs(x, y, z) -> y.toDouble()
             else -> terrain.crouchHeight(x, y, z).ifNaN { floorTop(x, y, z).ifNaN { y.toDouble() } }
         }
+    }
+
+    /**
+     * Where the feet go in [x] [y] [z]: the middle of the block, or of the room a ladder's board leaves in it, so a
+     * player stopping near there drops past the board instead of standing on its top edge.
+     */
+    fun feet(x: Int, y: Int, z: Int): Vec3 {
+        val shape = terrain.shape(x, y, z)
+        if (shape.isEmpty || !climbs(x, y, z)) {
+            return Vec3(x + HALF_BLOCK, height(x, y, z), z + HALF_BLOCK)
+        }
+        val board = shape.bounds()
+        return Vec3(x + roomMiddle(board.minX, board.maxX), height(x, y, z), z + roomMiddle(board.minZ, board.maxZ))
+    }
+
+    /**
+     * The middle of what a board from [min] to [max] against one side of a block leaves of its width.
+     */
+    private fun roomMiddle(min: Double, max: Double) = when {
+        min > 0.0 && max >= 1.0 -> min / 2.0
+        max < 1.0 && min <= 0.0 -> (max + 1.0) / 2.0
+        else -> HALF_BLOCK
     }
 
     /**

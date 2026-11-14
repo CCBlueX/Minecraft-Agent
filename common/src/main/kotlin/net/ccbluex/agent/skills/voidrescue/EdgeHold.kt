@@ -63,21 +63,29 @@ internal enum class EdgeHold {
         /**
          * Whether moving on with [input] drops the player more than [DROP] into the void. The game's own movement on
          * a copy of the player where the body allows it, else the lighter land model, where safe walk is a sneak.
+         * [untilLanding] looks no further than the first ground the player comes down on: what the keys do after
+         * landing is for the hold on the ground to judge.
          */
-        fun fallsIntoVoid(body: AgentBody, input: Input, safeWalk: Boolean = false): Boolean {
+        fun fallsIntoVoid(
+            body: AgentBody,
+            input: Input,
+            safeWalk: Boolean = false,
+            untilLanding: Boolean = false,
+        ): Boolean {
             val player = body.player
-            val drop = player.y - DROP
             // Sprint is decided after the keys; assuming it overestimates the way, which is the safe side
             val sprint = player.isSprinting || !input.shift() && input.forward()
             val keys = Input(input.forward(), input.backward(), input.left(), input.right(), input.jump(), input.shift(), sprint)
-            return if (body.traits.exactSimulation) {
-                simulateExactly(body, keys, safeWalk, drop)
-            } else {
-                simulateOnLand(body, keys, safeWalk, drop)
+            if (body.traits.exactSimulation) {
+                return simulateExactly(body, keys, safeWalk, untilLanding)
             }
+            val motion = PlayerMotion(Terrain.live(body.level), MotionTraits.capture(player))
+            motion.reset(player)
+            return simulateOnLand(motion, body.inputYRot, keys, safeWalk, untilLanding) { isOverVoid(player, it) }
         }
 
-        private fun simulateExactly(body: AgentBody, keys: Input, safeWalk: Boolean, drop: Double): Boolean {
+        private fun simulateExactly(body: AgentBody, keys: Input, safeWalk: Boolean, untilLanding: Boolean): Boolean {
+            val drop = body.player.y - DROP
             val simulated = SimulatedPlayer.fromPlayer(
                 body.player,
                 SimulatedInput(keys, forceStayOnGroundSurface = safeWalk),
@@ -87,6 +95,7 @@ internal enum class EdgeHold {
             simulated.yRot = body.inputYRot
             repeat(SIM_TICKS) {
                 simulated.tick()
+                if (untilLanding && simulated.onGround()) return false
                 if (simulated.y < drop && !simulated.onGround() && isOverVoid(body.player, simulated.position())) {
                     return true
                 }
@@ -94,15 +103,25 @@ internal enum class EdgeHold {
             return false
         }
 
-        private fun simulateOnLand(body: AgentBody, keys: Input, safeWalk: Boolean, drop: Double): Boolean {
-            val player = body.player
-            val motion = PlayerMotion(Terrain.live(body.level), MotionTraits.capture(player))
-            motion.reset(player)
+        /**
+         * [fallsIntoVoid] on the land model, from where [motion] is now; [isOverVoid] tells a feet position over the
+         * void.
+         */
+        fun simulateOnLand(
+            motion: PlayerMotion,
+            yRot: Float,
+            keys: Input,
+            safeWalk: Boolean,
+            untilLanding: Boolean,
+            isOverVoid: (Vec3) -> Boolean,
+        ): Boolean {
+            val drop = motion.y - DROP
             val forward = axis(keys.forward(), keys.backward())
             val strafe = axis(keys.left(), keys.right())
             repeat(SIM_TICKS) {
-                motion.tick(body.inputYRot, forward, strafe, keys.jump(), keys.sprint(), keys.shift() || safeWalk)
-                if (motion.y < drop && !motion.onGround && isOverVoid(player, motion.position)) return true
+                motion.tick(yRot, forward, strafe, keys.jump(), keys.sprint(), keys.shift() || safeWalk)
+                if (untilLanding && motion.onGround) return false
+                if (motion.y < drop && !motion.onGround && isOverVoid(motion.position)) return true
             }
             return false
         }

@@ -26,8 +26,8 @@ import net.minecraft.world.entity.player.Input
 
 /**
  * [Body.safeWalk] as a player holds at a ledge: sneaking, without sprint, from the tick a step without sneaking
- * would leave the ground, and for [HOLD_TICKS] after. For client bodies, since anticheats see a back-off at an edge
- * without sneaking; a server bot backs off as sneaking does without it.
+ * would carry it past a ledge, and for [HOLD_TICKS] after. For client bodies, since anticheats see a back-off at an
+ * edge without sneaking; a server bot backs off as sneaking does without it.
  *
  * @agent claude-opus-5-5
  */
@@ -39,7 +39,7 @@ public class LedgeSneak {
     /**
      * [input] as [body] presses it this tick while it holds at ledges.
      */
-    public fun keys(body: Body, input: Input): Input = keys(input, atLedge = leavesGround(body, input))
+    public fun keys(body: Body, input: Input): Input = keys(input, atLedge = reachesLedge(body, input))
 
     internal fun keys(input: Input, atLedge: Boolean): Input {
         ticks = if (atLedge) HOLD_TICKS else maxOf(0, ticks - 1)
@@ -54,9 +54,11 @@ public class LedgeSneak {
     }
 
     /**
-     * Whether a tick of [input] without sneaking takes the player standing on the ground off it, other than a jump.
+     * Whether a tick of [input] without sneaking takes the player standing on the ground past a ledge, other than a
+     * jump. That tick still ends on the ground, as the box drops before it moves on, so only the sneak's back-off
+     * tells; a tick later the player falls, sneaking or not.
      */
-    private fun leavesGround(body: Body, input: Input): Boolean {
+    private fun reachesLedge(body: Body, input: Input): Boolean {
         val player = body.player
         if (!player.onGround() || input.jump() || input.shift()) {
             return false
@@ -69,7 +71,7 @@ public class LedgeSneak {
         )
         simulated.yRot = body.inputYRot
         simulated.tick()
-        return !simulated.onGround()
+        return simulated.hasBackedOffEdge
     }
 
     private companion object {

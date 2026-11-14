@@ -68,8 +68,9 @@ internal class VoidSafety : VoidRescue {
             endFall(agent)
             return
         }
-        // Caught while still above the edge, even rising from a knockback, so a block below the feet can still go in
-        if (!falling && EdgeHold.fallsIntoVoid(body, agent.navigator.input)) {
+        // Caught while still above the edge, even rising from a knockback, so a block below the feet can still go in.
+        // A drop that lands, such as one onto a ledge the walk planned, stays the walk's: it steers the landing.
+        if (!falling && EdgeHold.fallsIntoVoid(body, agent.navigator.input, untilLanding = true)) {
             falling = true
             agent.logger.debug("Falling into the void at {}", position)
         }

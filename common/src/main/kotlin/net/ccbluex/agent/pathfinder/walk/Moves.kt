@@ -29,7 +29,6 @@ import net.ccbluex.agent.pathfinder.walk.Nodes.Companion.DX
 import net.ccbluex.agent.pathfinder.walk.Nodes.Companion.DZ
 import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
@@ -72,7 +71,7 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
         val sink = MoveSink { target, move, cost, breaks, places, opens, jump ->
             val current = best
             if (target == to && (current == null || cost < current.cost)) {
-                val feet = Vec3(to.x + 0.5, nodes.height(to.x, to.y, to.z), to.z + 0.5)
+                val feet = nodes.feet(to.x, to.y, to.z)
                 best = Step(
                     from, to, move, feet, breaks.toList(), places.toList(), opens.toList(), cost,
                     shift = nodes.crouches(from.x, from.y, from.z) || nodes.crouches(to.x, to.y, to.z),

@@ -32,7 +32,9 @@ private const val CLIMB_TICKS = 400
 private const val GOAL_RADIUS = 0.8
 
 /**
- * A survival player climbs a ladder onto a tower too high to drop from, and back down it unhurt.
+ * A survival player climbs a ladder onto a tower too high to drop from, and back down it unhurt. Then it drops into
+ * a shaft from the side across from its ladder, as a SkyWars island's chest pit, and climbs down to the room at its
+ * foot.
  *
  * From LiquidBounce: [WalkClimbGameTest.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/gametest/kotlin/net/ccbluex/liquidbounce/gametest/navigation/WalkClimbGameTest.kt#L37-L53)
  *
@@ -57,6 +59,12 @@ internal val walkClimb: GameTestScope.() -> Unit = {
         unhurt("Climbing down the ladder") {
             walker.walk(context, ground, CLIMB_TICKS, "Climbing down the ladder", "Did not climb down the ladder")
         }
+
+        moveTo(Vec3(14.5, (y + TOWER_HEIGHT).toDouble(), 0.5), yRot = -90f)
+        unhurt("Climbing down the shaft") {
+            val foot = Vec3(16.5, y.toDouble(), -0.5)
+            walker.walk(context, foot, CLIMB_TICKS, "Climbing down the shaft", "Did not climb down the shaft")
+        }
     } finally {
         walker.stop(context)
     }
@@ -68,7 +76,8 @@ internal val walkClimb: GameTestScope.() -> Unit = {
 public class WalkClimbGameTest : ServerGameTest(walkClimb)
 
 /**
- * A stone tower five blocks high with a ladder up its west side, on a floor in the air.
+ * A stone tower five blocks high with a ladder up its west side, on a floor in the air. Beside it, a stone block as
+ * high with a shaft at x 16 down to a room north of its foot, its ladder on the east wall.
  *
  * From LiquidBounce: [WalkClimbGameTest.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/gametest/kotlin/net/ccbluex/liquidbounce/gametest/navigation/WalkClimbGameTest.kt#L61-L67)
  *
@@ -79,5 +88,9 @@ private fun GameTestScope.buildCourse(y: Int) {
     fill(BlockPos(-3, y, -4), BlockPos(10, y + TOWER_HEIGHT + 3, 4), "minecraft:air")
     fill(BlockPos(4, y, -2), BlockPos(8, y + TOWER_HEIGHT - 1, 2), "minecraft:stone")
     fill(BlockPos(3, y, 0), BlockPos(3, y + TOWER_HEIGHT - 1, 0), "minecraft:ladder[facing=west]")
-    awaitServer("block 3 ${y + TOWER_HEIGHT - 1} 0 minecraft:ladder[facing=west]")
+    fill(BlockPos(12, y - 1, -4), BlockPos(20, y + TOWER_HEIGHT + 3, 4), "minecraft:air")
+    fill(BlockPos(14, y - 1, -2), BlockPos(18, y + TOWER_HEIGHT - 1, 2), "minecraft:stone")
+    fill(BlockPos(16, y, 0), BlockPos(16, y + TOWER_HEIGHT - 1, 0), "minecraft:ladder[facing=west]")
+    fill(BlockPos(16, y, -1), BlockPos(16, y + 1, -1), "minecraft:air")
+    awaitServer("block 16 ${y + 1} -1 minecraft:air")
 }

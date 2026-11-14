@@ -202,6 +202,31 @@ class WalkRoutingTest {
         assertTrue(path.steps.all { it.breaks.isEmpty() && it.places.isEmpty() })
     }
 
+    /**
+     * Aimed at the middle of a ladder shaft, the walk stopped with the box resting on the ladder's top edge and never
+     * dropped in.
+     */
+    @Test
+    fun `a drop into a ladder shaft aims where the player clears the ladder`() {
+        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.WEST)
+        val world = TestWorld.flat()
+            .fill(-3, 1, -3, 3, 5, 3)
+            .fill(0, 1, 0, 0, 5, 0, ladder)
+            .fill(0, 1, -1, 0, 2, -1, AIR)
+        val terrain = world.terrain()
+        val path = completePath(search(world, feet(-2, 6, 0), BlockPos(0, 1, -1)))
+
+        val intoLadder = path.steps.filter { world.getBlockState(it.to).`is`(Blocks.LADDER) }
+        assertTrue(intoLadder.isNotEmpty())
+        // The walk stops pressing keys this close to the feet.
+        val stopsWithin = 0.1
+        for (step in intoLadder) {
+            for (off in listOf(-stopsWithin, stopsWithin)) {
+                assertTrue(terrain.isClear(terrain.box(step.feet.add(off, 0.0, 0.0))), "${step.move} to ${step.to}")
+            }
+        }
+    }
+
     @Test
     fun `a vine with nothing beside it is only climbed where jumping climbs`() {
         val world = TestWorld.flat()
