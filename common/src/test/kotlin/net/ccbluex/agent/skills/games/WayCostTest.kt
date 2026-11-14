@@ -21,6 +21,7 @@ package net.ccbluex.agent.skills.games
 
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld
+import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -76,5 +77,18 @@ class WayCostTest {
         val world = TestWorld { x, _ -> x < 5 }.fill(-2, 0, -2, 2, 0, 2)
         val way = WayCost.of(world.terrain(), TestWorld.feet(0, 1, 0), TestWorld.feet(15, 1, 0))
         assertTrue(way.voidColumns <= 3, "void columns ${way.voidColumns}")
+    }
+
+    @Test
+    fun stepDownIsNoBridge() {
+        val world = TestWorld().fill(-2, 1, -2, 2, 1, 2).fill(3, 0, -2, 8, 0, 2)
+        val way = WayCost.of(world.terrain(), TestWorld.feet(0, 2, 0), TestWorld.feet(6, 1, 0))
+        assertEquals(0, way.bridgeBlocks)
+    }
+
+    @Test
+    fun knockedUpAboveGroundIsNoBridge() {
+        val way = WayCost.of(TestWorld.flat().terrain(), Vec3(0.5, 2.2, 0.5), TestWorld.feet(4, 1, 0))
+        assertEquals(0, way.bridgeBlocks)
     }
 }

@@ -50,7 +50,7 @@ internal class WayCost(
      */
     val longestVoid: Double,
     /**
-     * Floor cells at the starting height without a block, which a level bridge has to place.
+     * Floor cells at the starting height with no block within [STEP_DOWN] below, which a level bridge has to place.
      */
     val bridgeBlocks: Int,
 ) {
@@ -70,6 +70,11 @@ internal class WayCost(
         private const val MAX_SAMPLES = 160
         private const val VOID_SPACING = 0.5
         private const val HALF_WIDTH = 0.3
+
+        /**
+         * How far below the starting floor the way may step down without a bridge, also from a knocked up start.
+         */
+        private const val STEP_DOWN = 3
 
         fun of(terrain: Terrain, from: Vec3, to: Vec3): WayCost {
             val distance = from.horizontalDistanceTo(to)
@@ -132,11 +137,18 @@ internal class WayCost(
                 }
                 lastX = x
                 lastZ = z
-                if (terrain.isPassable(x, floorY, z)) {
+                if (isGap(terrain, x, floorY, z)) {
                     count++
                 }
             }
             return count
+        }
+
+        private fun isGap(terrain: Terrain, x: Int, floorY: Int, z: Int): Boolean {
+            for (y in floorY - STEP_DOWN..floorY) {
+                if (!terrain.isPassable(x, y, z)) return false
+            }
+            return true
         }
 
         private fun lerp(from: Double, to: Double, t: Double) = from + (to - from) * t
