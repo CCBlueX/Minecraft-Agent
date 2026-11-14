@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): flights land over ground",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 524, "cachedInput": 76092140, "cacheWrite": 478296, "output": 153650 },
+      "usd": 11.06
+    }
+  ]
+}

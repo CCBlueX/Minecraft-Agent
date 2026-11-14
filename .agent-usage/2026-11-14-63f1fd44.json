@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(skills): flights land over ground",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 6772, "cachedInput": 1217149923, "cacheWrite": 8890345, "output": 2256953 },
+      "usd": 359.72
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 6, "cachedInput": 592880, "cacheWrite": 35151, "output": 30053 },
+      "usd": 0.50
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 153714, "cachedInput": 2247298, "cacheWrite": 518854, "output": 185174 },
+      "usd": 0.23
+    }
+  ]
+}

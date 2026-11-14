@@ -24,6 +24,7 @@ import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.games.FlightSwitch
 import net.ccbluex.agent.skills.games.WayCost
+import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
@@ -33,8 +34,8 @@ import kotlin.math.min
 /**
  * Flies over long void stretches and up to players standing higher with the host's [FlightSwitch], where walking
  * would need a long bridge. Flight stays off while health is low for what flying costs, right after a flight, for
- * goals too far away and where the straight flight would hit something. A flight ends on the first ground past the
- * void or at the goal, and heads back to where it started once it takes too long.
+ * goals too far away and where the straight flight would hit something. It flies to the ground nearest the goal
+ * ([landingSpot]), ends on the first ground past the void, and heads back to where it started once it takes too long.
  *
  * From LiquidBounce: [GameBotSkyWars.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/games/GameBotSkyWars.kt#L756-L795)
  *
@@ -63,9 +64,10 @@ internal class Crossing(private val switch: FlightSwitch, private val options: O
         if (!wants(agent, terrain, goal, toOpponent, now)) return false
 
         val player = agent.body.player
-        flight = Flight(player.position(), goal, now, player.y)
+        val landing = landingSpot(terrain, goal) ?: goal
+        flight = Flight(player.position(), landing, now, player.y)
         switch.fly(true)
-        agent.walkTo(goal, LANDING_RADIUS)
+        agent.walkTo(landing, ARRIVAL_RADIUS)
         return true
     }
 
@@ -159,7 +161,7 @@ internal class Crossing(private val switch: FlightSwitch, private val options: O
             flight.goal = flight.origin
             agent.logger.debug("Flight takes too long, back to {}", flight.origin)
         }
-        agent.walkTo(flight.goal, LANDING_RADIUS)
+        agent.walkTo(flight.goal, ARRIVAL_RADIUS)
         return true
     }
 
@@ -188,7 +190,39 @@ internal class Crossing(private val switch: FlightSwitch, private val options: O
         const val LANDING_LIFT = 0.5
         const val LANDING_DEPTH = 4.0
         const val LANDING_RADIUS = 2.0
+
+        /**
+         * Close enough over the landing spot that the player's box is over its ground.
+         */
+        const val ARRIVAL_RADIUS = 0.4
         const val LIFT_TICKS = 60
         const val MAX_FALL = 4.0
     }
 }
+
+/**
+ * Where a flight to [goal] sets down: the standable spot nearest [goal] within a few blocks, as a goal such as a
+ * player at an island's edge may be over the void a step further on. Null without ground near it.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun landingSpot(terrain: Terrain, goal: Vec3): Vec3? {
+    val center = BlockPos.containing(goal)
+    var best: BlockPos? = null
+    var bestDistance = Double.MAX_VALUE
+    for (pos in BlockPos.betweenClosed(
+        center.offset(-LANDING_SEARCH, -LANDING_BELOW, -LANDING_SEARCH),
+        center.offset(LANDING_SEARCH, LANDING_ABOVE, LANDING_SEARCH),
+    )) {
+        val distance = Vec3.atBottomCenterOf(pos).distanceToSqr(goal)
+        if (distance < bestDistance && terrain.isStandable(pos)) {
+            best = pos.immutable()
+            bestDistance = distance
+        }
+    }
+    return best?.let(Vec3::atBottomCenterOf)
+}
+
+private const val LANDING_SEARCH = 4
+private const val LANDING_BELOW = 4
+private const val LANDING_ABOVE = 2

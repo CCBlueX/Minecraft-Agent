@@ -1625,6 +1625,7 @@ public final class net/ccbluex/agent/skills/fight/Targets$Companion {
 
 public abstract interface class net/ccbluex/agent/skills/games/FlightSwitch : net/ccbluex/agent/navigation/FlightControl {
 	public abstract fun fly (Z)V
+	public abstract fun isFlying ()Z
 }
 
 public abstract interface class net/ccbluex/agent/skills/games/GameMode {

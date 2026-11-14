@@ -48,6 +48,7 @@ internal class VoidSafety : VoidRescue {
     private var safeGround: Vec3? = null
     private var falling = false
     private var pearlAt = 0L
+    private val freeFall = FreeFall()
 
     override val isRescuing: Boolean
         get() = falling
@@ -55,7 +56,8 @@ internal class VoidSafety : VoidRescue {
     override fun tick(agent: Agent) {
         val body = agent.body
         val player = body.player
-        if (agent.isFlying()) {
+        freeFall.tick(player.y)
+        if (isFlying(agent)) {
             endFall(agent)
             return
         }
@@ -82,7 +84,7 @@ internal class VoidSafety : VoidRescue {
     override fun guard(agent: Agent, input: Input): Input {
         val body = agent.body
         val player = body.player
-        if (falling || agent.isFlying() || !player.onGround() || agent.navigator.isBuilding) return input
+        if (falling || isFlying(agent) || !player.onGround() || agent.navigator.isBuilding) return input
         val hold = EdgeHold.of(body, input)
         if (hold == EdgeHold.NONE) return input
         body.safeWalk = true
@@ -150,13 +152,14 @@ internal class VoidSafety : VoidRescue {
          */
         fun steering(here: Vec3, ground: Vec3, yRot: Float): Input = getDirectionalInputTowards(ground.subtract(here), yRot)
     }
-}
 
-/**
- * Creative flight, or the host's flight such as a fly module, which keeps the player up without
- * `abilities.flying`.
- *
- * @agent claude-opus-5-5
- */
-private fun Agent.isFlying(): Boolean =
-    body.player.abilities.flying || (body.flight as? FlightSwitch)?.isFlying == true
+    /**
+     * Creative flight, or the host's flight such as a fly module while it holds the player up: one that is on while
+     * the player falls freely does not count, so the fall is caught as any other.
+     */
+    private fun isFlying(agent: Agent): Boolean {
+        val player = agent.body.player
+        val hostFlies = (agent.body.flight as? FlightSwitch)?.isFlying == true && !freeFall.isFalling
+        return player.abilities.flying || hostFlies
+    }
+}
