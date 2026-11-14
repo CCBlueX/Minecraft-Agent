@@ -85,7 +85,7 @@ internal object Clutch {
 
         val eyes = player.eyePosition.add(player.deltaMovement)
         val placement = nextPlacement(
-            landing, eyes, player.uuid.mostSignificantBits,
+            landing, eyes, body.sentRotation.viewVector, player.uuid.mostSignificantBits,
             isOpen = { level.getBlockState(it).canBeReplaced() },
             isSolid = { pos -> level.getBlockState(pos).let { !it.getCollisionShape(level, pos).isEmpty } },
         ) ?: return false
@@ -139,6 +139,7 @@ internal object Clutch {
     fun nextPlacement(
         landing: List<BlockPos>,
         eyes: Vec3,
+        looking: Vec3,
         seed: Long,
         isOpen: (BlockPos) -> Boolean,
         isSolid: (BlockPos) -> Boolean,
@@ -147,7 +148,7 @@ internal object Clutch {
         var ring = landing.filter(isOpen)
         seen += ring
         repeat(CHAIN + 1) {
-            val aim = ring.firstNotNullOfOrNull { supportFace(it, eyes, seed, isSolid) }
+            val aim = ring.mapNotNull { supportFace(it, eyes, looking, seed, isSolid) }.maxByOrNull { it.second }?.first
             if (aim != null) return Placement(seen.toList(), aim)
             ring = ring.flatMap { cell -> Direction.Plane.HORIZONTAL.map(cell::relative) }
                 .filter { it !in seen && isOpen(it) }.distinct()
@@ -162,19 +163,28 @@ internal object Clutch {
     class Placement(val cells: List<BlockPos>, val aim: Vec3)
 
     /**
-     * The [clickPoint] of the nearest face within reach of [eyes] that a block for [cell] can be clicked onto.
+     * The [clickPoint] of the face within reach of [eyes] that a block for [cell] can be clicked onto, the one the
+     * body already [looking] towards, with how well it lines up: two faces equally near, such as a corner's two walls,
+     * are told apart by where the look goes, not by the level the body falls past, which would turn it back and forth.
      */
-    private fun supportFace(cell: BlockPos, eyes: Vec3, seed: Long, isSolid: (BlockPos) -> Boolean): Vec3? {
-        var aim: Vec3? = null
+    private fun supportFace(
+        cell: BlockPos,
+        eyes: Vec3,
+        looking: Vec3,
+        seed: Long,
+        isSolid: (BlockPos) -> Boolean,
+    ): Pair<Vec3, Double>? {
+        var best: Pair<Vec3, Double>? = null
         for (face in SUPPORTS) {
             val support = cell.relative(face)
             if (!isSolid(support)) continue
             val point = clickPoint(support, face.opposite, seed xor support.asLong())
-            val distance = eyes.distanceToSqr(point)
-            if (distance > PLACE_REACH * PLACE_REACH) continue
-            if (aim == null || distance < eyes.distanceToSqr(aim)) aim = point
+            val way = point.subtract(eyes)
+            if (way.lengthSqr() > PLACE_REACH * PLACE_REACH) continue
+            val alignment = way.normalize().dot(looking)
+            if (best == null || alignment > best.second) best = point to alignment
         }
-        return aim
+        return best
     }
 
     /**

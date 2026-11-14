@@ -70,8 +70,12 @@ class ClutchTest {
     private val landing = listOf(BlockPos(-14, 70, 17))
     private val eyes = Vec3(-14.3, 73.4, 17.2)
 
-    private fun next(solid: Set<BlockPos>, from: List<BlockPos> = landing) =
-        Clutch.nextPlacement(from, eyes, 1L, isOpen = { it !in solid }, isSolid = { it in solid })
+    private val down = Vec3(0.0, -1.0, 0.0)
+
+    private fun next(
+        solid: Set<BlockPos>, from: List<BlockPos> = landing, eyes: Vec3 = this.eyes, looking: Vec3 = down,
+        seed: Long = 1L,
+    ) = Clutch.nextPlacement(from, eyes, looking, seed, isOpen = { it !in solid }, isSolid = { it in solid })
 
     @Test
     fun aKnockThreeCellsPastTheLastBlockStillStartsAChain() {
@@ -92,5 +96,27 @@ class ClutchTest {
     @Test
     fun nothingWithinTheChainReachGivesNoPlacement() {
         assertNull(next(setOf(BlockPos(-30, 70, 40))))
+    }
+
+    /**
+     * A bot fell along the corner of an island: walls to the east and to the south of its cell, equally near. The look
+     * swung between them every tick as the level changed.
+     */
+    private fun corner(level: Int): Set<BlockPos> =
+        setOf(BlockPos(20, level, -26), BlockPos(19, level, -25))
+
+    @Test
+    fun twoEquallyNearWallsAreToldApartByTheLook() {
+        val eyes = Vec3(19.7, 71.0, -25.3)
+        val east = Vec3(1.0, -0.8, 0.0).normalize()
+        val south = Vec3(0.0, -0.8, 1.0).normalize()
+        for (level in 66..69) {
+            val seed = 31L * level
+            val cell = listOf(BlockPos(19, level, -26))
+            val east1 = assertNotNull(next(corner(level), cell, eyes, east, seed)).aim
+            val south1 = assertNotNull(next(corner(level), cell, eyes, south, seed)).aim
+            assertTrue(east1.x > 19.9, "clicked onto the east wall at level $level: $east1")
+            assertTrue(south1.z > -25.1, "clicked onto the south wall at level $level: $south1")
+        }
     }
 }
