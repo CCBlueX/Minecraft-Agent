@@ -28,5 +28,10 @@ import net.ccbluex.agent.navigation.FlightControl
  */
 public interface FlightSwitch : FlightControl {
 
+    /**
+     * Whether the flight runs right now; void rescue leaves a flying player alone.
+     */
+    public val isFlying: Boolean
+
     public fun fly(on: Boolean)
 }

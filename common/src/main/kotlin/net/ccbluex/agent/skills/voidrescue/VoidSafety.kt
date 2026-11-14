@@ -24,6 +24,7 @@ import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.Throws
+import net.ccbluex.agent.skills.games.FlightSwitch
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.slotOf
 import net.minecraft.core.BlockPos
@@ -54,7 +55,7 @@ internal class VoidSafety : VoidRescue {
     override fun tick(agent: Agent) {
         val body = agent.body
         val player = body.player
-        if (player.abilities.flying) {
+        if (agent.isFlying()) {
             endFall(agent)
             return
         }
@@ -81,7 +82,7 @@ internal class VoidSafety : VoidRescue {
     override fun guard(agent: Agent, input: Input): Input {
         val body = agent.body
         val player = body.player
-        if (falling || player.abilities.flying || !player.onGround() || agent.navigator.isBuilding) return input
+        if (falling || agent.isFlying() || !player.onGround() || agent.navigator.isBuilding) return input
         val hold = EdgeHold.of(body, input)
         if (hold == EdgeHold.NONE) return input
         body.safeWalk = true
@@ -150,3 +151,12 @@ internal class VoidSafety : VoidRescue {
         fun steering(here: Vec3, ground: Vec3, yRot: Float): Input = getDirectionalInputTowards(ground.subtract(here), yRot)
     }
 }
+
+/**
+ * Creative flight, or the host's flight such as a fly module, which keeps the player up without
+ * `abilities.flying`.
+ *
+ * @agent claude-opus-5-5
+ */
+private fun Agent.isFlying(): Boolean =
+    body.player.abilities.flying || (body.flight as? FlightSwitch)?.isFlying == true
