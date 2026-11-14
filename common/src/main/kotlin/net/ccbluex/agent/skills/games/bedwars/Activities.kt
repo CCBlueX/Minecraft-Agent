@@ -132,6 +132,7 @@ internal class Activities(
     var wishes: Wishes? = null
     var wishesFor: Catalogue? = null
     var purchasing: String? = null
+    val shopVisits = ShopVisits()
     var chestAgainAt = 0L
 
     // Team chat

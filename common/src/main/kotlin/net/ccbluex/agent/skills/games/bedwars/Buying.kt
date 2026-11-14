@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.games.WayCost
 import net.ccbluex.agent.skills.shop.Currency
@@ -31,8 +32,10 @@ import net.ccbluex.agent.skills.shop.money
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.tick.waitTicks
 import net.minecraft.tags.ItemTags
+import net.minecraft.util.Mth
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
+import kotlin.math.abs
 
 private const val SHOP_REACH = 3.0
 private const val WOOL_STACK = 16
@@ -202,14 +205,18 @@ internal suspend fun Activities.upgrade() {
 }
 
 /**
- * Walks to the shopkeeper or the upgrades keeper, looks at them and starts the purchase; gathers for a tick instead
- * while the shop waits out a failed purchase.
+ * Walks to the shopkeeper or the upgrades keeper, turns to them and starts the purchase. After a failed purchase it
+ * keeps to its generator for [ShopVisits.AWAY_TICKS] rather than going back to the shop every tick.
  *
  * @agent claude-opus-5-5
  */
 internal suspend fun Activities.shop(wish: Wish, offer: Offer) {
     val shop = agent.skills.shop ?: return
     val at = (if (offer.upgrade != null) team.upgrader else team.shopkeeper) ?: return
+    if (!shopVisits.mayVisit(tick)) {
+        gather(offer.currency)
+        return
+    }
     goal = "Buying ${wish.name}"
     plan.bridge(game, null)
     while (!Travel.isWithin(self.position(), at, SHOP_REACH)) {
@@ -221,11 +228,52 @@ internal suspend fun Activities.shop(wish: Wish, offer: Offer) {
         if (status == Travel.Status.BLOCKED) return
         waitTicks(1)
     }
-    look(at.add(0.0, 1.5, 0.0))
+    // A paced turn takes a few ticks; the click goes out once the server sees the agent face the keeper
+    val face = at.add(0.0, 1.5, 0.0)
+    var turned = 0
+    while (!faces(face) && turned++ < FACE_TICKS) {
+        look(face)
+        waitTicks(1)
+    }
+    look(face)
     if (shop.buy(wish)) {
         purchasing = offer.upgrade ?: ""
     } else {
+        shopVisits.failed(tick)
         gather(offer.currency)
+    }
+}
+
+/**
+ * @agent claude-opus-5-5
+ */
+private fun Activities.faces(point: Vec3): Boolean {
+    val want = ViewRotation.fromVector(point.subtract(eyes()))
+    val sent = agent.body.sentRotation
+    return abs(Mth.wrapDegrees(want.yRot - sent.yRot)) <= FACE_TOLERANCE && abs(want.xRot - sent.xRot) <= FACE_TOLERANCE
+}
+
+private const val FACE_TICKS = 20
+private const val FACE_TOLERANCE = 12f
+
+/**
+ * When the agent goes to the shop: not again for [AWAY_TICKS] after a purchase failed, which the shop refuses to
+ * retry that long anyway. Going back each tick turned the look between keeper and generator every few ticks.
+ *
+ * @agent claude-opus-5-5
+ */
+internal class ShopVisits {
+
+    private var againAt = Long.MIN_VALUE
+
+    fun mayVisit(tick: Long): Boolean = tick >= againAt
+
+    fun failed(tick: Long) {
+        againAt = tick + AWAY_TICKS
+    }
+
+    companion object {
+        const val AWAY_TICKS = 100L
     }
 }
 
