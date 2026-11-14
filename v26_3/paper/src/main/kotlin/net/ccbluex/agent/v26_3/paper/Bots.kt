@@ -163,7 +163,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
 
     internal fun bodyDied(bot: Bot) {
         notify(bot, "died") { it.died(bot) }
-        if (!bot.settings.respawns) bot.isDead = true
+        if (bodyStaysDead(bot.settings.respawns, bot.player?.health)) bot.isDead = true
     }
 
     /**
@@ -175,6 +175,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
     internal fun eliminated(bot: Bot, killer: net.minecraft.world.entity.Entity?) {
         bot.agent?.listener?.died(killer)
         notify(bot, "died") { it.died(bot) }
+        bot.isDead = true
     }
 
     /**
@@ -274,3 +275,11 @@ public class Bots internal constructor(private val plugin: Plugin) {
             location.isWorldLoaded && location.world.isChunkLoaded(location.blockX shr CHUNK_SHIFT, location.blockZ shr CHUNK_SHIFT)
     }
 }
+
+/**
+ * Whether a body that died stays dead for good: only without a respawn, and not when a minigame plugin faked the
+ * death and keeps the body, as minigame plugins do for a respawn: its health is still above zero then.
+ *
+ * @agent claude-sonnet-5-5
+ */
+internal fun bodyStaysDead(respawns: Boolean, health: Double?): Boolean = !respawns && (health == null || health <= 0.0)

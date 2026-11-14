@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "fix(paper): respawn keeps bot alive",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 2, "cachedInput": 262160, "cacheWrite": 2395, "output": 1008 },
+      "usd": 0.05
+    }
+  ]
+}
