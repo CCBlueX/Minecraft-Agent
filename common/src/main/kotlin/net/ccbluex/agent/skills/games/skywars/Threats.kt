@@ -32,7 +32,7 @@ import kotlin.math.abs
  * Whom a [Round] fights at once, whatever it was doing: whoever hit it lately or comes close, as long as it can walk
  * there; whoever is on a teammate; someone out on a bridge within a shot, or across a gap for an agent that likes
  * shooting. A shootout across the void nobody wins is paused, and a fight in which neither side takes damage is
- * left for a while.
+ * left for a while. While it backs off to heal, only an enemy that caught up with it counts.
  *
  * @agent claude-opus-5-5
  */
@@ -48,7 +48,7 @@ internal class Threats(private val round: Round) {
 
     fun pick(): Player? {
         val now = round.ticks
-        var enemy = select(now)
+        var enemy = if (round.plan?.activity == Activity.RETREAT) cornering() else select(now)
         val fight = round.agent.skills.fight
         if (enemy == null && fight?.isBusy == true) enemy = fight.target as? Player
 
@@ -69,6 +69,16 @@ internal class Threats(private val round: Round) {
         }
         if (enemy == null) fightTarget = null
         return enemy
+    }
+
+    private fun cornering(): Player? {
+        val player = round.player
+        return round.enemies()
+            .filter { abs(it.y - player.y) < CLOSE_HEIGHT }
+            .map { it to it.position().horizontalDistanceTo(player.position()) }
+            .filter { (enemy, distance) -> corners(distance, fighting = enemy === fightTarget) }
+            .minByOrNull { it.second }
+            ?.first
     }
 
     fun forgetStalled() {
@@ -124,8 +134,13 @@ internal class Threats(private val round: Round) {
         return now - fightSince > STALE_TICKS
     }
 
-    private companion object {
+    companion object {
         const val MELEE = 5.0
+
+        /**
+         * Vanilla attack reach: an enemy this close hits it whether it runs or not.
+         */
+        const val REACH = 3.0
         const val CLOSE_HEIGHT = 3.0
         const val RANGED = 28.0
         const val RANGED_ISLAND = 18.0
@@ -137,6 +152,11 @@ internal class Threats(private val round: Round) {
         const val SHOOTING_TICKS = 200
         const val STALE_TICKS = 200
         const val HEALTH_CHANGE = 0.1f
+
+        /**
+         * Whether an enemy [distance] away corners it while it backs off; one it is [fighting] holds it in melee.
+         */
+        fun corners(distance: Double, fighting: Boolean): Boolean = distance <= if (fighting) MELEE else REACH
 
         fun canShoot(player: Player): Boolean {
             val inventory = player.inventory
