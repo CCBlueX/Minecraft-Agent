@@ -14,6 +14,11 @@ dependencies {
     api(project(":common"))
 }
 
+// The library artifact is bundled into other plugins, whose own plugin.yml this would clash with
+tasks.jar {
+    exclude("plugin.yml")
+}
+
 // The plugin jar goes out too (classifier `plugin`), so dev servers elsewhere can run MinecraftAgent
 publishing.publications.named<MavenPublication>("maven") {
     artifact(tasks.named("pluginJar"))

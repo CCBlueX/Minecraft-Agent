@@ -30,10 +30,8 @@ import org.bukkit.plugin.java.JavaPlugin
 internal class AgentPlugin : JavaPlugin() {
 
     override fun onEnable() {
-        val bots = Bots(this)
-        bots.start()
-        MinecraftAgent.bots = bots
-        val command = AgentCommand(bots, Skins(this))
+        MinecraftAgent.start(this)
+        val command = AgentCommand(MinecraftAgent.bots(), Skins(this))
         getCommand("agent")?.let {
             it.setExecutor(command)
             it.tabCompleter = command
@@ -41,7 +39,6 @@ internal class AgentPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
-        MinecraftAgent.bots?.stop()
-        MinecraftAgent.bots = null
+        MinecraftAgent.stop()
     }
 }

@@ -72,6 +72,10 @@ bot.play(gameMode)               // a skills.games mode, see below
 bot.remove()
 ```
 
+A plugin can bundle the library instead of depending on the plugin: shade `minecraft-agent-paper` (its jar has
+no plugin.yml), call `MinecraftAgent.start(this)` in `onEnable` and `MinecraftAgent.stop()` in `onDisable`, and list
+the Kotlin libraries of the plugin jar's plugin.yml in its own. `start(this)` runs the bots, and `bots()` gives them.
+
 ## Bots on your own host
 
 Implement `Body` (navigation) or `AgentBody` (skills) for whatever moves: keys, turning, digging, item use, inventory.

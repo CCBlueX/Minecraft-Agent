@@ -114,6 +114,8 @@ public final class net/ccbluex/agent/v26_3/paper/Bots {
 public final class net/ccbluex/agent/v26_3/paper/MinecraftAgent {
 	public static final field INSTANCE Lnet/ccbluex/agent/v26_3/paper/MinecraftAgent;
 	public static final fun bots ()Lnet/ccbluex/agent/v26_3/paper/Bots;
+	public static final fun start (Lorg/bukkit/plugin/Plugin;)V
+	public static final fun stop ()V
 }
 
 public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/skills/AgentBody {
