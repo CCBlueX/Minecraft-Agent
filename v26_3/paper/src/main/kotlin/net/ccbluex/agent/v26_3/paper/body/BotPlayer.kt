@@ -46,6 +46,7 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftPlayer
+import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.metadata.MetadataStoreBase
 
 /**
@@ -79,6 +80,7 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
     private var deadTicks = 0
     private var wasJumping = false
     private var attackLanded = false
+    private var fullyBlocked = false
 
     init {
         connection = BotConnection.connect(level.server, this)
@@ -335,13 +337,35 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
     }
 
     override fun hurtServer(level: ServerLevel, source: DamageSource, amount: Float): Boolean {
-        val hurt = super.hurtServer(level, source, amount)
+        val outer = fullyBlocked
+        fullyBlocked = false
+        val hurt = try {
+            super.hurtServer(level, source, amount)
+        } finally {
+            fullyBlocked = outer
+        }
         if (hurt && syncVelocity) {
             syncVelocity = false
             resyncVelocity = true
         }
         if (immortal) health = maxHealth
         return hurt
+    }
+
+    @Suppress("DEPRECATION")
+    override fun actuallyHurt(level: ServerLevel, source: DamageSource, dmg: Float, event: EntityDamageEvent): Boolean {
+        val hurt = super.actuallyHurt(level, source, dmg, event)
+        fullyBlocked = hurt && isFullyBlocked(dmg, event.getDamage(EntityDamageEvent.DamageModifier.BLOCKING))
+        return hurt
+    }
+
+    // LivingEntity.hurtServer plays the hurt sounds of a hit the shield took whole too
+    override fun playHurtSound(source: DamageSource) {
+        if (!fullyBlocked) super.playHurtSound(source)
+    }
+
+    override fun playSecondaryHurtSound(source: DamageSource) {
+        if (!fullyBlocked) super.playSecondaryHurtSound(source)
     }
 
     override fun die(source: DamageSource) {
@@ -412,3 +436,11 @@ internal inline fun <T> withoutViewDistance(level: ServerLevel, add: () -> T): T
         chunkMap.serverViewDistance = viewDistance
     }
 }
+
+/**
+ * Whether a shield took the whole hit: some damage went to [blocking] (negative, as the damage modifier counts it)
+ * and none of [damage] is left. Such a hit makes no hurt sound.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun isFullyBlocked(damage: Float, blocking: Double): Boolean = damage <= 0f && blocking < 0.0
