@@ -93,7 +93,7 @@ private fun writeSkill(main: Path, out: Path) {
 
 /** @agent claude-opus-5-5 */
 private fun writeAiUsage(main: Path, out: Path) {
-    val usages = readUsages(main / "ai-usage")
+    val usages = readUsages(main / "agent-usage")
     write(out / "ai-usage-dark.svg", card(usages, Theme.DARK))
     write(out / "ai-usage-light.svg", card(usages, Theme.LIGHT))
     write(out / "ai-usage.json", summary(usages))
