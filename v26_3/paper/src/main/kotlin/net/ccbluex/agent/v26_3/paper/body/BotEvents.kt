@@ -102,18 +102,18 @@ internal class BotEvents(private val bots: Bots) : Listener {
         bot.damaged(attacker?.let { (it as CraftEntity).handle })
     }
 
-    // Outside a minigame gear comes from whoever set the bot up and nothing repairs it
+    // Unless it plays by the server's rules, gear comes from whoever set the bot up and nothing repairs it
     @EventHandler(ignoreCancelled = true)
     fun onItemDamage(event: PlayerItemDamageEvent) {
         val bot = bots.get(event.player) ?: return
-        if (!bot.settings.minigame) event.isCancelled = true
+        if (!bot.settings.isPlayerLike) event.isCancelled = true
     }
 
-    // Outside a minigame a body is no player that loses anything: no drops, no death message
+    // Unless it plays by the server's rules, a body is no player that loses anything: no drops, no death message
     @EventHandler
     fun onDeath(event: EntityDeathEvent) {
         val bot = bots.get(event.entity) ?: return
-        if (!bot.settings.minigame) {
+        if (!bot.settings.isPlayerLike) {
             event.drops.clear()
             event.droppedExp = 0
             if (event is PlayerDeathEvent) {
@@ -136,14 +136,14 @@ internal class BotEvents(private val bots: Bots) : Listener {
     @EventHandler(ignoreCancelled = true)
     fun onPickup(event: EntityPickupItemEvent) {
         val bot = bots.get(event.entity) ?: return
-        if (!bot.settings.minigame) event.isCancelled = true
+        if (!bot.settings.isPlayerLike) event.isCancelled = true
     }
 
-    // Outside a minigame a body stays fed, so it can sprint and never starves
+    // Unless it plays by the server's rules, a body stays fed, so it can sprint and never starves
     @EventHandler(ignoreCancelled = true)
     fun onHunger(event: FoodLevelChangeEvent) {
         val bot = bots.get(event.entity) ?: return
-        if (!bot.settings.minigame && event.foodLevel < event.entity.foodLevel) event.isCancelled = true
+        if (!bot.settings.isPlayerLike && event.foodLevel < event.entity.foodLevel) event.isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

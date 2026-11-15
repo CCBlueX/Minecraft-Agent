@@ -54,16 +54,18 @@ public final class net/ccbluex/agent/v26_3/paper/BotSettings {
 	public fun <init> (DZZZZZZFZ)V
 	public fun <init> (DZZZZZZFZI)V
 	public fun <init> (DZZZZZZFZIZ)V
-	public fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;)V
-	public fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;)V
-	public fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)V
-	public synthetic fun <init> (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (DZZZZZZFZIZZ)V
+	public fun <init> (DZZZZZZFZIZZLnet/ccbluex/agent/navigation/Options;)V
+	public fun <init> (DZZZZZZFZIZZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;)V
+	public fun <init> (DZZZZZZFZIZZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)V
+	public synthetic fun <init> (DZZZZZZFZIZZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()D
 	public final fun component10 ()I
 	public final fun component11 ()Z
-	public final fun component12 ()Lnet/ccbluex/agent/navigation/Options;
-	public final fun component13 ()Lnet/ccbluex/agent/skills/SkillLevel;
-	public final fun component14 ()Lnet/ccbluex/agent/skills/Personality;
+	public final fun component12 ()Z
+	public final fun component13 ()Lnet/ccbluex/agent/navigation/Options;
+	public final fun component14 ()Lnet/ccbluex/agent/skills/SkillLevel;
+	public final fun component15 ()Lnet/ccbluex/agent/skills/Personality;
 	public final fun component2 ()Z
 	public final fun component3 ()Z
 	public final fun component4 ()Z
@@ -72,12 +74,13 @@ public final class net/ccbluex/agent/v26_3/paper/BotSettings {
 	public final fun component7 ()Z
 	public final fun component8 ()F
 	public final fun component9 ()Z
-	public final fun copy (DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)Lnet/ccbluex/agent/v26_3/paper/BotSettings;
-	public static synthetic fun copy$default (Lnet/ccbluex/agent/v26_3/paper/BotSettings;DZZZZZZFZIZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;ILjava/lang/Object;)Lnet/ccbluex/agent/v26_3/paper/BotSettings;
+	public final fun copy (DZZZZZZFZIZZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;)Lnet/ccbluex/agent/v26_3/paper/BotSettings;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/v26_3/paper/BotSettings;DZZZZZZFZIZZLnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;ILjava/lang/Object;)Lnet/ccbluex/agent/v26_3/paper/BotSettings;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAnchored ()Z
 	public final fun getDamageable ()Z
 	public final fun getHealth ()D
+	public final fun getHostOwned ()Z
 	public final fun getImmortal ()Z
 	public final fun getKnockback ()Z
 	public final fun getMinigame ()Z

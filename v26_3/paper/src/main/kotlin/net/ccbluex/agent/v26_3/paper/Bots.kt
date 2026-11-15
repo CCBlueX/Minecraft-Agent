@@ -179,10 +179,12 @@ public class Bots internal constructor(private val plugin: Plugin) {
     }
 
     /**
-     * Bodies standing in an unloading chunk go; they come back at home once the home chunk is loaded.
+     * Bodies standing in an unloading chunk go; they come back at home once the home chunk is loaded. A host-owned
+     * bot's body is left to its host.
      */
     internal fun chunkUnloading(chunk: Chunk) {
         for (bot in all) {
+            if (bot.settings.hostOwned) continue
             val at = bot.player?.location ?: continue
             if (at.world == chunk.world && at.blockX shr CHUNK_SHIFT == chunk.x && at.blockZ shr CHUNK_SHIFT == chunk.z) {
                 despawn(bot)
@@ -236,7 +238,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
                 despawn(bot)
                 respawnAt[bot] = since + bot.settings.respawnDelay
             }
-            if (bot.isDead || bot.settings.minigame || bots[key(bot.name)] !== bot) continue
+            if (bot.isDead || bot.settings.isPlayerLike || bots[key(bot.name)] !== bot) continue
             val at = respawnAt[bot]
             if (at != null && at > tick) continue
             if (!isLoaded(bot.home)) continue

@@ -72,6 +72,12 @@ public data class BotSettings @JvmOverloads constructor(
      * would be a stranger to the minigame.
      */
     public val minigame: Boolean = false,
+    /**
+     * Whether the plugin that spawned the bot owns its life and the rules it plays by, as for any player: the library
+     * leaves its drops, pickups, hunger and gear wear alone, never brings it back after a death or an unloaded chunk,
+     * and loads no chunks for it.
+     */
+    public val hostOwned: Boolean = false,
     public val navigation: Options = Options(),
     /**
      * How well the bot fights: aim, reactions, clicks, how often it reaches for a skill.
@@ -82,6 +88,12 @@ public data class BotSettings @JvmOverloads constructor(
      */
     public val personality: Personality? = null,
 ) {
+
+    /**
+     * Whether the server's player rules apply to the body as they are, the library's own kept off.
+     */
+    internal val isPlayerLike: Boolean
+        get() = minigame || hostOwned
 
     public companion object {
         /**
