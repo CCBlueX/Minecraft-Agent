@@ -22,6 +22,7 @@ package net.ccbluex.agent.navigation
 import net.ccbluex.agent.navigation.walk.PlacedBlock
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.world.phys.Vec3
 
 /**
@@ -102,6 +103,11 @@ public interface Listener {
      * The navigation stopped; nothing of the route is shown anymore.
      */
     public fun routeCleared() {}
+
+    /**
+     * The fall-flying body touched the block at [pos], which lies the [direction] of it; a touch-down included.
+     */
+    public fun touched(pos: BlockPos, direction: Direction) {}
 
     public companion object {
         @JvmField

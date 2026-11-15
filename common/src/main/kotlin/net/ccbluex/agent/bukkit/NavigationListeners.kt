@@ -24,6 +24,7 @@ import net.ccbluex.agent.navigation.Progress
 import net.ccbluex.agent.navigation.walk.PlacedBlock
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -74,4 +75,6 @@ internal class NavigationListeners : Listener {
     override fun routeInvalid() = listeners.forEach { it.routeInvalid() }
 
     override fun routeCleared() = listeners.forEach { it.routeCleared() }
+
+    override fun touched(pos: BlockPos, direction: Direction) = listeners.forEach { it.touched(pos, direction) }
 }

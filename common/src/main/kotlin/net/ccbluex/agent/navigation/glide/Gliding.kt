@@ -26,16 +26,19 @@ import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.TargetProgress
+import net.ccbluex.agent.navigation.safeFall
 import net.ccbluex.agent.pathfinder.glide.GlideAbilities
 import net.ccbluex.agent.pathfinder.glide.ColumnHeights
 import net.ccbluex.agent.pathfinder.glide.Cruise
 import net.ccbluex.agent.pathfinder.glide.Landing
+import net.ccbluex.agent.pathfinder.glide.Passage
 import net.ccbluex.agent.pathfinder.glide.Route
 import net.ccbluex.agent.pathfinder.glide.RouteSearch
 import net.ccbluex.agent.pathfinder.glide.Rockets
 import net.ccbluex.agent.pathfinder.glide.Steering
 import net.ccbluex.agent.pathfinder.route.BackgroundSearch
 import net.ccbluex.agent.pathfinder.route.Outcome
+import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
@@ -46,7 +49,8 @@ import net.minecraft.world.phys.Vec3
 
 /**
  * Glides to goals for a walking navigator while an elytra is worn: plans a glide to goals far enough away and below,
- * or within reach of rockets, and flies it from take-off to touch-down. Farther goals are cruised to with rockets.
+ * or within reach of rockets, and flies it from take-off to touch-down. Farther goals are cruised to with rockets. In
+ * the air, falls and glides are taken over and steered through open space, see [Passage].
  *
  * From LiquidBounce: [Gliding.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/glide/Gliding.kt#L57-L293)
  *
@@ -55,6 +59,8 @@ import net.minecraft.world.phys.Vec3
 internal class Gliding(private val context: NavigationContext) {
 
     private val search = BackgroundSearch<Route>({ context.body.level })
+    private val airways = Airways(context)
+    private val contacts = Contacts(context)
     private var glide: Glide? = null
     private var ticks = 0
     private var retryAt = 0
@@ -74,14 +80,20 @@ internal class Gliding(private val context: NavigationContext) {
         get() = context.body.level
 
     /**
-     * Glides one tick towards [goal]; false to walk instead. Glides are planned on the ground unless [direct].
+     * Glides one tick towards [goal]; false to walk instead. Glides from the ground are planned there unless
+     * [direct]; in the air, a fall or a glide is taken over and follows the goal wherever it moves.
      */
     fun navigate(goal: Vec3, radius: Double, abilities: GlideAbilities?, direct: Boolean, frameYRot: Float): Boolean {
         ticks++
         releaseRocketSlot()
-        val glide = glide ?: start(goal, radius, abilities, direct) ?: return false
+        contacts.tick()
+        val glide = retarget(goal, abilities) ?: start(goal, radius, abilities, direct) ?: return false
         if (!fly(glide, frameYRot)) {
             return false
+        }
+        (glide.steering as? Passage)?.let { passage ->
+            passage.landsAtTarget = hasGround(goal)
+            airways.tick(passage, goal, radius)
         }
         steer(glide)
         useRocket()
@@ -93,6 +105,7 @@ internal class Gliding(private val context: NavigationContext) {
      */
     fun halt() {
         search.cancel()
+        airways.reset()
         glide = null
         shouldFireRocket = false
         sprint = false
@@ -101,16 +114,32 @@ internal class Gliding(private val context: NavigationContext) {
 
     fun blockChanged(pos: BlockPos) {
         search.blockChanged(pos)
+        airways.blockChanged(pos)
     }
 
     fun levelChanged() {
         search.levelChanged()
+        airways.levelChanged()
+    }
+
+    /**
+     * The glide flown, turned towards [goal] once that moved while in the air.
+     */
+    private fun retarget(goal: Vec3, abilities: GlideAbilities?): Glide? {
+        val glide = glide ?: return null
+        if (abilities == null || player.onGround() || glide.goal.distanceToSqr(goal) <= GOAL_MOVED * GOAL_MOVED) {
+            return glide
+        }
+        return passage(goal, abilities, glide.hasOpened)
     }
 
     private fun start(goal: Vec3, radius: Double, abilities: GlideAbilities?, direct: Boolean): Glide? {
         if (abilities == null) {
             search.cancel()
             return null
+        }
+        if (!player.onGround() && ticks >= retryAt && (player.isFallFlying || isFallingFar())) {
+            return passage(goal, abilities, player.isFallFlying)
         }
         // Landed, but the server has not closed the elytra yet
         if (player.isFallFlying) {
@@ -303,6 +332,41 @@ internal class Gliding(private val context: NavigationContext) {
         return best
     }
 
+    /**
+     * A glide in the air along routes through open space to [goal], once the elytra is open.
+     */
+    private fun passage(goal: Vec3, abilities: GlideAbilities, hasOpened: Boolean): Glide {
+        search.cancel()
+        airways.reset()
+        val rockets = Rockets(abilities.rockets, abilities.rocketTicks)
+        val clearance = context.options().glideClearance
+        val steering = Passage(goal, rockets, clearance, hasGround(goal)) { Terrain.live(level) }
+        return Glide(goal, steering).also {
+            it.hasOpened = hasOpened
+            glide = it
+        }
+    }
+
+    /**
+     * Whether the player falls with nothing to land on safely within the highest drop the walk takes.
+     */
+    private fun isFallingFar(): Boolean {
+        if (player.deltaMovement.y >= 0.0) {
+            return false
+        }
+        val feet = player.blockPosition()
+        for (depth in 0..context.safeFall() + 1) {
+            val pos = feet.below(depth)
+            val state = level.getBlockState(pos)
+            if (!state.getCollisionShape(level, pos).isEmpty || !state.fluidState.isEmpty) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun hasGround(goal: Vec3) = Terrain.live(level).isStandable(BlockPos.containing(goal))
+
     private val progress = TargetProgress(context.body.player, { isActive }) { glide?.landing }
 
     /**
@@ -318,7 +382,8 @@ internal class Gliding(private val context: NavigationContext) {
          */
         var jumped = false
 
-        fun points(position: Vec3): List<Vec3> = path?.points ?: listOf(position, steering.target)
+        fun points(position: Vec3): List<Vec3> =
+            path?.points ?: (steering as? Passage)?.route?.takeIf { it.size > 1 } ?: listOf(position, steering.target)
 
         val landing: Vec3
             get() = path?.landing ?: steering.target
@@ -334,6 +399,7 @@ internal class Gliding(private val context: NavigationContext) {
         const val GROUND_STEP = 8
         const val TAKE_OFF_TICKS = 24
         const val REOPEN_TICKS = 10
+        const val GOAL_MOVED = 1.5
         const val HOTBAR_SIZE = 9
     }
 

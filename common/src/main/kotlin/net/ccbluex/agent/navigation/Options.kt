@@ -84,6 +84,11 @@ public data class Options(
      * through one, hit an entity behind a wall. Off, such a click is refused and not sent.
      */
     public val canClickThroughBlocks: Boolean = false,
+
+    /**
+     * Blocks a glide in the air keeps between the body and every block wherever there is room; 0 for none.
+     */
+    public val glideClearance: Double = 0.0,
 ) {
 
     /**

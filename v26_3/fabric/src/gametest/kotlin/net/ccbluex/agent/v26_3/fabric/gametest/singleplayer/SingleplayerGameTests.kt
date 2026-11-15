@@ -29,6 +29,7 @@ import net.ccbluex.agent.v26_3.fabric.gametest.parkourEdge
 import net.ccbluex.agent.v26_3.fabric.gametest.playerMotion
 import net.ccbluex.agent.v26_3.fabric.gametest.playerSimulation
 import net.ccbluex.agent.v26_3.fabric.gametest.rideNavigation
+import net.ccbluex.agent.v26_3.fabric.gametest.tunnelGlide
 import net.ccbluex.agent.v26_3.fabric.gametest.walkBlocked
 import net.ccbluex.agent.v26_3.fabric.gametest.walkClimb
 import net.ccbluex.agent.v26_3.fabric.gametest.walkNavigation
@@ -37,6 +38,7 @@ import net.ccbluex.agent.v26_3.fabric.gametest.walkParkourSpeed
 import net.ccbluex.agent.v26_3.fabric.gametest.walkSneak
 import net.ccbluex.agent.v26_3.fabric.gametest.walkSwim
 import net.ccbluex.gametest.harness.SingleplayerGameTest
+import net.ccbluex.gametest.harness.TestWorld
 
 // The scenarios of the parent package's server game tests, played in a singleplayer world where no anticheat
 // watches. They run when GAMETEST_SERVER_ANTICHEAT is unset.
@@ -105,6 +107,11 @@ public class FlightNavigationGameTest : SingleplayerGameTest(flightNavigation)
  * @agent claude-opus-5-5
  */
 public class ElytraTravelGameTest : SingleplayerGameTest(elytraTravel)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class TunnelGlideGameTest : SingleplayerGameTest(TestWorld.VOID, tunnelGlide)
 
 /**
  * @agent claude-opus-5-5
