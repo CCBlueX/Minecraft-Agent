@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "change": "chore(paper): publish plugin jar",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 48, "cachedInput": 16508809, "cacheWrite": 24089, "output": 11932 },
+      "usd": 3.73
+    }
+  ]
+}
