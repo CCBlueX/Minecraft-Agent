@@ -78,6 +78,7 @@ fun totals(usages: List<Usage>): List<ModelUsage> =
         .map { (key, models) ->
             ModelUsage(key.first, key.second, models.map { it.tokens }.reduce(Tokens::plus), cents(models.sumOf { it.usd }))
         }
+        .filter { it.usd > 0 }
         .sortedByDescending { it.usd }
 
 /** @agent claude-opus-5-5 */
