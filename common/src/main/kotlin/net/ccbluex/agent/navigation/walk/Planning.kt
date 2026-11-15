@@ -56,6 +56,11 @@ internal class Planning(private val context: NavigationContext, private val foll
      */
     private var failures = 0
     private var stuck = false
+
+    /**
+     * Whether a stuck spot not avoided yet came up, which restarts a running search.
+     */
+    private var newStuckSpot = false
     private var wasOffPath = false
 
     /**
@@ -84,10 +89,11 @@ internal class Planning(private val context: NavigationContext, private val foll
     }
 
     /**
-     * Searches avoid [pos] for a while, and the next one is due at once.
+     * Searches avoid [pos] for a while. A new spot makes the next search due at once; the same spot again waits for
+     * the running one, which a restart every few ticks would never let finish.
      */
     fun stuckAt(pos: BlockPos) {
-        stuckSpots.add(pos)
+        newStuckSpot = stuckSpots.add(pos) || newStuckSpot
         stuck = true
     }
 
@@ -97,12 +103,14 @@ internal class Planning(private val context: NavigationContext, private val foll
     fun drop() {
         routes.reset()
         stuck = false
+        newStuckSpot = false
     }
 
     fun reset() {
         routes.reset()
         failures = 0
         stuck = false
+        newStuckSpot = false
         wasOffPath = false
         settledAt = null
     }
@@ -188,9 +196,10 @@ internal class Planning(private val context: NavigationContext, private val foll
 
         val needed = (path == null && !settled) || routes.hasGoalMoved(goal) || offPath || finishedShort || stuck ||
             nearStage
-        if (needed && routes.isDue(urgent = stuck || leftPath)) {
+        if (needed && routes.isDue(urgent = newStuckSpot || leftPath)) {
             request(goal, radius, position)
             stuck = false
+            newStuckSpot = false
         }
     }
 
@@ -235,7 +244,7 @@ internal class Planning(private val context: NavigationContext, private val foll
  *
  * @agent claude-fable-5-2
  */
-private class StuckSpots {
+internal class StuckSpots {
 
     val blocks = LongOpenHashSet()
 
@@ -248,9 +257,15 @@ private class StuckSpots {
     private var goal: Vec3? = null
     private var age = 0
 
-    fun add(pos: BlockPos) {
-        blocks.add(pos.asLong())
+    /**
+     * Whether [pos] was not avoided yet.
+     *
+     * @agent claude-opus-5-5
+     */
+    fun add(pos: BlockPos): Boolean {
+        if (!blocks.add(pos.asLong())) return false
         version++
+        return true
     }
 
     fun clear() = blocks.clear()

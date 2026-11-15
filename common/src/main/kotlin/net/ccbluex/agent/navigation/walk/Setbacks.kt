@@ -36,9 +36,10 @@ internal class Setbacks {
 
     /**
      * Notes a setback of the player from [at] on [tick]; the feet blocks of the refused spot once it is set back
-     * there more than once, else none.
+     * there on more than one tick, else none. A server can send hundreds of position packets in one tick.
      */
     fun refused(at: Vec3, tick: Long): Set<BlockPos> {
+        if (tick == lastTick && spot.isNotEmpty()) return emptySet()
         val joins = tick - lastTick <= WINDOW_TICKS && spot.any { it.closerThan(at, RADIUS) }
         if (!joins) spot.clear()
         spot += at

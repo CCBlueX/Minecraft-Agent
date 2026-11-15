@@ -72,6 +72,15 @@ internal class SetbacksTest {
         assertTrue(setbacks.refused(Vec3(42.6, 67.4, -28.5), 1401).isEmpty())
     }
 
+    /**
+     * A server sent 302 position packets in one tick, all to one spot.
+     */
+    @Test
+    fun `position packets of one tick are one setback`() {
+        repeat(302) { assertTrue(setbacks.refused(Vec3(-4.53, 96.0, -58.36), 5133).isEmpty()) }
+        assertEquals(setOf(BlockPos(-5, 96, -59)), setbacks.refused(Vec3(-4.6, 96.0, -58.3), 5140))
+    }
+
     @Test
     fun `stairs the right way up are walked up, upside down ones jumped`() {
         val stairs = Blocks.RED_SANDSTONE_STAIRS.defaultBlockState()
