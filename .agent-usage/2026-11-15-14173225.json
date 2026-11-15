@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "change": "feat(paper): bots without tab entry",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 26, "cachedInput": 2323932, "cacheWrite": 12880, "output": 5836 },
+      "usd": 0.68
+    }
+  ]
+}

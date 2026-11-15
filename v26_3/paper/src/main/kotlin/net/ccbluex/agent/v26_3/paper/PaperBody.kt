@@ -235,6 +235,16 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
             handle.immortal = value
         }
 
+    /**
+     * Whether players keep the body's tab list entry, unlisted, as they keep a real player's. Without, it goes two
+     * seconds after a player starts seeing the body, once the skin loaded: clients before 1.19.3 list every entry.
+     */
+    public var tabEntry: Boolean
+        get() = handle.tabEntry
+        set(value) {
+            handle.tabEntry = value
+        }
+
     public var isShiftKeyDown: Boolean
         get() = handle.isShiftKeyDown
         set(value) {

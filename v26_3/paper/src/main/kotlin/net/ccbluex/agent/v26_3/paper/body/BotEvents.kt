@@ -53,11 +53,11 @@ internal class BotEvents(private val bots: Bots) : Listener {
     private var blockedModifiers: Map<DamageModifier, Double> = emptyMap()
 
     // Fires before the spawn packet; a client spawns a player only with an info entry for it. The entry stays,
-    // unlisted, as a real player's does: clients take players without one for server NPCs
+    // unlisted, as a real player's does, unless the body has none: clients take players without one for server NPCs
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onTrack(event: PlayerTrackEntityEvent) {
         val bot = (event.entity as CraftEntity).handle as? BotPlayer ?: return
-        (event.player as CraftPlayer).handle.connection.send(bot.infoPacket())
+        bot.trackedBy((event.player as CraftPlayer).handle)
     }
 
     // After the anticheats, which still see the hit; the bot still hears of it

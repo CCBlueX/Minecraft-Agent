@@ -143,6 +143,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun getSafeWalk ()Z
 	public fun getSentRotation ()Lnet/ccbluex/agent/math/ViewRotation;
 	public final fun getShieldCooldown ()I
+	public final fun getTabEntry ()Z
 	public fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
 	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
 	public final fun getTurning ()Lnet/ccbluex/agent/navigation/Turning;
@@ -170,6 +171,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun setSafeWalk (Z)V
 	public final fun setShiftKeyDown (Z)V
 	public final fun setSprinting (Z)V
+	public final fun setTabEntry (Z)V
 	public final fun setTurning (Lnet/ccbluex/agent/navigation/Turning;)V
 	public fun stab ()V
 	public fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z

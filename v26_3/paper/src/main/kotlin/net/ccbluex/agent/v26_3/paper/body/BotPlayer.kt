@@ -81,6 +81,19 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
     private var wasJumping = false
     private var attackLanded = false
     private var fullyBlocked = false
+    private val tabRemovals = HashMap<ServerPlayer, Int>()
+
+    // Unlisted, current clients show no tab entry either way; clients before 1.19.3 list every entry. A body spawns
+    // seen by the players around already, whose entries go as well
+    var tabEntry: Boolean = true
+        set(value) {
+            field = value
+            if (value) {
+                tabRemovals.clear()
+            } else {
+                for (viewer in level().server.playerList.players) tabRemovals[viewer] = tickCount + TAB_ENTRY_TICKS
+            }
+        }
 
     init {
         connection = BotConnection.connect(level.server, this)
@@ -95,7 +108,16 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
         Reflect.invoke(UPDATE_PLAYER_STATUS, level.chunkSource.chunkMap, this, false)
     }
 
-    fun infoPacket(): ClientboundPlayerInfoUpdatePacket {
+    /**
+     * Sends [viewer] the info entry its client needs to spawn the body, and takes it away again once the skin loaded
+     * when the body has no [tabEntry].
+     */
+    fun trackedBy(viewer: ServerPlayer) {
+        viewer.connection.send(infoPacket())
+        if (!tabEntry) tabRemovals[viewer] = tickCount + TAB_ENTRY_TICKS
+    }
+
+    private fun infoPacket(): ClientboundPlayerInfoUpdatePacket {
         val profile = gameProfile
         val entry = ClientboundPlayerInfoUpdatePacket.Entry(
             profile.id(), profile, false, 0, GameType.SURVIVAL, null, true, 0, null,
@@ -117,6 +139,7 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
         }
         super.tick()
         if (isRemoved) return
+        if (tabRemovals.isNotEmpty()) removeTabEntries()
         // A client's teleport confirmation ends the change of dimension, until which the player takes no damage
         if (isChangingDimension) hasChangedDimension()
         doTick()
@@ -137,6 +160,17 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
         }
     }
 
+    private fun removeTabEntries() {
+        val packet = ClientboundPlayerInfoRemovePacket(listOf(getUUID()))
+        val due = tabRemovals.entries.iterator()
+        while (due.hasNext()) {
+            val (viewer, at) = due.next()
+            if (at > tickCount) continue
+            if (!viewer.hasDisconnected()) viewer.connection.send(packet)
+            due.remove()
+        }
+    }
+
     /**
      * Plugins drop what they keep of a player when it quits, which a body never does, and the metadata and maps they
      * hold it in would keep its world, every chunk of it, once the world unloads. A move to another world keeps the
@@ -150,6 +184,7 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
         super.onRemoval(reason)
         if (reason == RemovalReason.CHANGED_DIMENSION) return
         spawned -= this
+        tabRemovals.clear()
         val id = getUUID()
         val server = level().server
         val packet = ClientboundPlayerInfoRemovePacket(listOf(id))
@@ -411,6 +446,8 @@ internal class BotPlayer(level: ServerLevel, profile: GameProfile) :
         @Suppress("DEPRECATION")
         private val METADATA = Reflect.field(MetadataStoreBase::class.java, "metadataMap")
         private val HIDDEN = Reflect.field(CraftPlayer::class.java, "invertedVisibilityEntities")
+        // A client needs the entry until the skin loaded
+        private const val TAB_ENTRY_TICKS = 40
         private const val ALL_SKIN_PARTS: Byte = 0x7F
         // A dead player stays until its client respawns; a body without a client goes after the death animation
         private const val CORPSE_TICKS = 20
