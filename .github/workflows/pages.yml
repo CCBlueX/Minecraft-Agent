@@ -38,7 +38,11 @@ jobs:
         run: |
           ./gradlew -Dorg.gradle.jvmargs=-Xmx2g dokkaGeneratePublicationHtml
           mkdir -p "$RUNNER_TEMP/api"
-          for html in */build/dokka/html; do cp -r "$html" "$RUNNER_TEMP/api/${html%%/*}"; done
+          for html in */build/dokka/html */*/build/dokka/html; do
+            [ -d "$html" ] || continue
+            module=${html%/build/dokka/html}
+            cp -r "$html" "$RUNNER_TEMP/api/${module//\//-}"
+          done
       - name: Generate the site
         # static/ on the pages branch holds the README clips, served as they are
         working-directory: site-generator
