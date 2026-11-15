@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     # Loom and paperweight set up Minecraft on a cold cache, which takes a few minutes
     timeout-minutes: 30
-    env:
-      HAS_MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN_NAME != '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -39,23 +37,49 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             VERSION="-Pversion=${GITHUB_REF_NAME#v}"
-            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           fi
           ./gradlew build ${VERSION:-}
-      - name: Publish
-        # Snapshots from main, releases from tags; skipped until the repository has the maven.ccbluex.net token
-        if: github.event_name == 'push' && env.HAS_MAVEN_TOKEN == 'true'
-        env:
-          ORG_GRADLE_PROJECT_mavenUrl: https://maven.ccbluex.net/${{ startsWith(github.ref, 'refs/tags/v') && 'releases' || 'snapshots' }}
-          ORG_GRADLE_PROJECT_mavenUsername: ${{ secrets.MAVEN_TOKEN_NAME }}
-          ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_TOKEN_SECRET }}
-        run: ./gradlew publish ${VERSION:-}
       - name: Upload the plugin
         uses: actions/upload-artifact@v7
         with:
           name: minecraft-agent-plugin
           path: v26_3/paper/build/libs/minecraft-agent-paper-*-plugin.jar
           if-no-files-found: error
+
+  publish:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+      - name: Publish to maven.ccbluex.net
+        # -SNAPSHOT versions go to snapshots, the rest to releases; a tag v1.2.3 publishes 1.2.3
+        env:
+          ORG_GRADLE_PROJECT_mavenUsername: ${{ secrets.MAVEN_TOKEN_NAME }}
+          ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_TOKEN_SECRET }}
+        run: |
+          if [[ -z "$ORG_GRADLE_PROJECT_mavenUsername" || -z "$ORG_GRADLE_PROJECT_mavenPassword" ]]; then
+            echo "::error::MAVEN_TOKEN_NAME and MAVEN_TOKEN_SECRET are not shared with this repository"
+            exit 1
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION=$(sed -n 's/^version=//p' gradle.properties)
+          fi
+          [[ "$VERSION" == *-SNAPSHOT ]] && CHANNEL=snapshots || CHANNEL=releases
+          ./gradlew publish -Pversion="$VERSION" -PmavenUrl="https://maven.ccbluex.net/$CHANNEL"
 
   gametest:
     name: gametest (${{ matrix.run }})

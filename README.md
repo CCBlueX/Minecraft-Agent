@@ -7,7 +7,8 @@ Java.
 
 ## Libraries
 
-`net.ccbluex:minecraft-agent-<library>`. Each library brings the ones it builds on.
+`net.ccbluex:minecraft-agent-<library>` from `https://maven.ccbluex.net/snapshots`. Each library brings the ones it
+builds on.
 
 - `common`: everything that runs on every game version
   - `simulation`: player movement, tick by tick

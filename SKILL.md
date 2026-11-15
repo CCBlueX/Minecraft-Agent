@@ -5,7 +5,8 @@ description: Add Minecraft Agent (pathfinding, navigation, bot skills and game m
 
 # Minecraft Agent
 
-Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`.
+Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`, repository
+`https://maven.ccbluex.net/releases` (snapshots: `/snapshots`).
 
 | Artifact | Use it for |
 |---|---|
@@ -20,6 +21,7 @@ Everything public is callable from Java.
 ## Fabric mod
 
 ```kotlin
+repositories { maven("https://maven.ccbluex.net/releases") }
 dependencies {
     implementation("net.ccbluex:minecraft-agent-fabric:1.0.0")
     include("net.ccbluex:minecraft-agent-fabric:1.0.0")
