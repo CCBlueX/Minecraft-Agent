@@ -136,4 +136,14 @@ public enum class Skill {
      * Lava poured at the target's feet and taken back at once.
      */
     LAVA_TAP,
+
+    /**
+     * An elytra flight on fireworks: a mace dive from above the target, or spear passes at its height.
+     */
+    ROCKET,
+
+    /**
+     * A rail beside the target, a TNT minecart on it, and a Flame arrow into the cart from a safe distance.
+     */
+    CART_BOMB,
 }

@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(skills): rocket dives, cart bombs",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 80, "cachedInput": 3939986, "cacheWrite": 108464, "output": 35282 },
+      "usd": 2.36
+    }
+  ]
+}

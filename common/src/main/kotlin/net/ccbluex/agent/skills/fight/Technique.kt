@@ -173,8 +173,8 @@ internal fun skillsFor(rules: Rules): List<Technique> {
     val blasts = listOfNotNull(Crystal().takeIf { crystal != null }, Anchor(ANCHOR_COOLDOWN).takeIf { anchor != null })
     val all = listOfNotNull(
         Totem(), WaterClutch(), WebEscape(), ShieldBreak(), Gapple(), Pillar(), Drain(), BlockPearl(), LavaTap(),
-        anchor, crystal, Unless(MaceSmash(MACE_MIN, MACE_MAX), blasts), Guard(rules.alwaysGuard), Cobweb(), PotHeal(),
-        PotBuff(), Soup(), SpearCharge(), Rod(), Throw(), Bow(), Pearl(),
+        anchor, crystal, CartBomb(), Unless(MaceSmash(MACE_MIN, MACE_MAX), blasts), Rocket(), Guard(rules.alwaysGuard),
+        Cobweb(), PotHeal(), PotBuff(), Soup(), SpearCharge(), Rod(), Throw(), Bow(), Pearl(),
     )
     return all.filter { it.kind in allowed }
 }
