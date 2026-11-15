@@ -1159,8 +1159,8 @@ public final class net/ccbluex/agent/pathfinder/walk/StraightWalkKt {
 }
 
 public final class net/ccbluex/agent/pathfinder/walk/WalkAbilities {
-	public fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZD)V
-	public synthetic fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDLit/unimi/dsi/fastutil/longs/LongSet;)V
+	public synthetic fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDLit/unimi/dsi/fastutil/longs/LongSet;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAir ()I
 	public final fun getAvoid ()Lit/unimi/dsi/fastutil/longs/LongSet;
 	public final fun getBreakTicks ()Ljava/util/function/ToDoubleFunction;
@@ -1174,6 +1174,7 @@ public final class net/ccbluex/agent/pathfinder/walk/WalkAbilities {
 	public final fun getPlaceableBlocks ()I
 	public final fun getRiskyJumps ()Z
 	public final fun getSafeFall ()I
+	public final fun getUnbreakable ()Lit/unimi/dsi/fastutil/longs/LongSet;
 	public final fun getWaterFall ()I
 	public final fun withMotion (Lnet/ccbluex/agent/simulation/MotionTraits;)Lnet/ccbluex/agent/pathfinder/walk/WalkAbilities;
 }

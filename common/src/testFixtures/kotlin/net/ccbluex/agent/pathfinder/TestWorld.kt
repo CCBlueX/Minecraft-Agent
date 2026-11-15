@@ -137,6 +137,7 @@ public fun walkAbilities(
     breakTicks: Double = Double.POSITIVE_INFINITY,
     avoid: LongSet = LongOpenHashSet(),
     jumpClimbs: Boolean = true,
+    unbreakable: LongSet = LongOpenHashSet(),
 ): WalkAbilities = WalkAbilities(
     canBreak = canBreak,
     canPlace = canPlace,
@@ -149,4 +150,5 @@ public fun walkAbilities(
     breakTicks = { breakTicks },
     avoid = avoid,
     jumpClimbs = jumpClimbs,
+    unbreakable = unbreakable,
 )

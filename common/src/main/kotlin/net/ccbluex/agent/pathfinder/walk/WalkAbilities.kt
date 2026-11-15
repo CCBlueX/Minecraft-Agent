@@ -20,6 +20,7 @@
 package net.ccbluex.agent.pathfinder.walk
 
 import it.unimi.dsi.fastutil.longs.LongSet
+import it.unimi.dsi.fastutil.longs.LongSets
 import net.ccbluex.agent.simulation.MotionTraits
 import net.minecraft.world.level.block.state.BlockState
 import java.util.function.ToDoubleFunction
@@ -62,6 +63,11 @@ public class WalkAbilities(
      * Extra ticks per floor block a level walk places; few where another feature runs bridges across.
      */
     public val bridgeTicks: Double = Costs.PLACE,
+
+    /**
+     * Blocks the server put back after the walker broke them, which are never planned to break again.
+     */
+    public val unbreakable: LongSet = LongSets.EMPTY_SET,
 ) {
 
     /**
@@ -69,6 +75,6 @@ public class WalkAbilities(
      */
     public fun withMotion(motion: MotionTraits): WalkAbilities = WalkAbilities(
         canBreak, canPlace, placeableBlocks, canParkour, riskyJumps, canSprint, safeFall, waterFall, breakTicks, avoid,
-        air, motion, jumpClimbs, bridgeTicks,
+        air, motion, jumpClimbs, bridgeTicks, unbreakable,
     )
 }

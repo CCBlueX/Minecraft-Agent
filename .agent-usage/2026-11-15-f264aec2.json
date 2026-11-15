@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "change": "fix(navigation): skip blocks server restores",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 134, "cachedInput": 10497424, "cacheWrite": 70767, "output": 25478 },
+      "usd": 3.18
+    }
+  ]
+}

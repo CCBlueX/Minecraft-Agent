@@ -20,6 +20,7 @@
 package net.ccbluex.agent.navigation.walk
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
+import it.unimi.dsi.fastutil.longs.LongSet
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.captureWalk
@@ -46,7 +47,11 @@ import kotlin.math.min
  * @agent claude-fable-5-2
  * @agent claude-opus-5-5
  */
-internal class Planning(private val context: NavigationContext, private val follower: Follower) {
+internal class Planning(
+    private val context: NavigationContext,
+    private val follower: Follower,
+    private val unbreakable: LongSet,
+) {
 
     private val routes = Replanner<Route>({ context.body.level }, VERTICAL_MARGIN, { Terrain(it, canOpenDoors = true) })
     private val stuckSpots = StuckSpots()
@@ -209,7 +214,7 @@ internal class Planning(private val context: NavigationContext, private val foll
         }
         // After searches that found nothing, the next ones look further around for a detour.
         val maxLength = context.options().maxLength * (1 shl min(failures, MAX_WIDENING))
-        val abilities = context.captureWalk(stuckSpots.blocks)
+        val abilities = context.captureWalk(stuckSpots.blocks, unbreakable)
         // Every jump considered is simulated, which makes routes with them slower to work out.
         val limits = if (abilities.canParkour) {
             Limits(maxLength, maxVisitedNodes = PARKOUR_EXPANSIONS, maxComputeNanos = PARKOUR_COMPUTE_NANOS)

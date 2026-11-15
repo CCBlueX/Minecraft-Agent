@@ -84,7 +84,7 @@ public class Navigator @JvmOverloads constructor(
     private val actions = BlockActions(context)
     private val follower = Follower(context, actions)
     private val heading = Heading(context, follower, actions, lookAhead)
-    private val planning = Planning(context, follower)
+    private val planning = Planning(context, follower, actions.unbreakable)
     private val course = Course(context, lookAhead, actions, follower, heading, planning)
 
     private var lastInput: Input = Input.EMPTY
@@ -367,10 +367,13 @@ public class Navigator @JvmOverloads constructor(
     }
 
     /**
-     * The server sent the block at [pos], which judges a block placed there.
+     * The server sent the block at [pos], which judges a block placed there. A block it put back after a break is
+     * never broken again, and the walk is searched again at once.
      */
     public fun blockConfirmed(pos: BlockPos, state: BlockState) {
-        actions.answer(pos, state)
+        if (actions.answer(pos, state)) {
+            planning.stuckAt(pos)
+        }
     }
 
     /**

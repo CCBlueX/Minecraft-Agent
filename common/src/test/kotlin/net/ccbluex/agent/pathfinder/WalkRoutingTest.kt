@@ -70,7 +70,8 @@ class WalkRoutingTest {
         canPlace: Boolean = false,
         canParkour: Boolean = false,
         avoid: LongSet = LongOpenHashSet(),
-    ) = walkAbilities(canBreak, canPlace, canParkour, breakTicks = 20.0, avoid = avoid)
+        unbreakable: LongSet = LongOpenHashSet(),
+    ) = walkAbilities(canBreak, canPlace, canParkour, breakTicks = 20.0, avoid = avoid, unbreakable = unbreakable)
 
     private fun search(
         world: TestWorld,
@@ -156,6 +157,38 @@ class WalkRoutingTest {
         assertTrue(breaks.all { it.x == 5 })
 
         assertFalse(isComplete(search(world, feet(0, 1, 0), BlockPos(10, 1, 0))))
+    }
+
+    @Test
+    fun `a wall block the server put back is tunnelled around`() {
+        val world = TestWorld.flat().fill(5, 1, -40, 5, 10, 40)
+        val first = completePath(search(world, feet(0, 1, 0), BlockPos(10, 1, 0), abilities(canBreak = true)))
+        val refused = LongOpenHashSet(first.steps.flatMap { it.breaks }.map { it.asLong() })
+
+        val second = completePath(
+            search(world, feet(0, 1, 0), BlockPos(10, 1, 0), abilities(canBreak = true, unbreakable = refused))
+        )
+        val breaks = second.steps.flatMap { it.breaks }
+        assertTrue(breaks.isNotEmpty())
+        assertTrue(breaks.none { refused.contains(it.asLong()) })
+    }
+
+    /**
+     * A bot dug at one map block below it for 75 s, the server putting it back.
+     */
+    @Test
+    fun `a block below the server put back is not dug again`() {
+        val world = TestWorld.flat().fill(-3, 1, -3, 3, 5, 3)
+        val goal = BlockPos(0, 2, 0)
+        val refused = BlockPos(0, 5, 0)
+        val first = completePath(search(world, feet(0, 6, 0), goal, abilities(canBreak = true)))
+        assertTrue(refused in first.steps.flatMap { it.breaks })
+
+        val unbreakable = LongOpenHashSet(longArrayOf(refused.asLong()))
+        val result = search(world, feet(0, 6, 0), goal, abilities(canBreak = true, unbreakable = unbreakable))
+        if (result is Outcome.Found) {
+            assertTrue(result.value.steps.none { refused in it.breaks })
+        }
     }
 
     @Test

@@ -37,14 +37,15 @@ private const val WATER_FALL = 23
 private const val MIN_SPRINT_FOOD = 6
 
 /**
- * The walking abilities for one search, safe to read from any thread; [avoid] are feet blocks to keep away from.
+ * The walking abilities for one search, safe to read from any thread; [avoid] are feet blocks to keep away from,
+ * [unbreakable] blocks never to break.
  *
  * From LiquidBounce: [Settings.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/Settings.kt#L76-L94), [ModuleParkour.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/movement/ModuleParkour.kt#L172-L184)
  *
  * @agent claude-fable-5-2
  * @agent claude-opus-5-5
  */
-internal fun NavigationContext.captureWalk(avoid: LongSet): WalkAbilities {
+internal fun NavigationContext.captureWalk(avoid: LongSet, unbreakable: LongSet): WalkAbilities {
     val options = options()
     val player = body.player
     val placeableBlocks = if (options.canPlace) countPlaceableBlocks() else 0
@@ -67,6 +68,7 @@ internal fun NavigationContext.captureWalk(avoid: LongSet): WalkAbilities {
         motion = MotionTraits.capture(player),
         jumpClimbs = body.traits.jumpClimbsLadders,
         bridgeTicks = if (options.fastBridges) Costs.RUN_BRIDGE else Costs.PLACE,
+        unbreakable = LongOpenHashSet(unbreakable),
     )
 }
 

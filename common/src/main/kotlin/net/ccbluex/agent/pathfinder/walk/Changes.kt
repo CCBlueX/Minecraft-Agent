@@ -69,7 +69,9 @@ internal class Changes(private val terrain: Terrain, private val nodes: Nodes, p
      */
     fun breakTicks(x: Int, y: Int, z: Int, floor: Boolean = false): Double {
         val stoodOn = x == from.x && z == from.z && y == from.y - 1
-        if (!abilities.canBreak || !nodes.isHarmless(x, y, z) || stoodOn && !floor || !nodes.isDry(x, y, z)) {
+        if (!abilities.canBreak || !nodes.isHarmless(x, y, z) || stoodOn && !floor || !nodes.isDry(x, y, z) ||
+            BlockPos.asLong(x, y, z) in abilities.unbreakable
+        ) {
             return Double.NaN
         }
 

@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.NavigationContext
@@ -58,6 +59,16 @@ internal class BlockActions(private val context: NavigationContext) {
      * The block being dug, so the dig goes on rather than starting again.
      */
     private var digging: BlockPos? = null
+
+    /**
+     * Blocks the client broke, by the tick, until the server keeps them broken or puts them back.
+     */
+    private val dug = HashMap<BlockPos, Int>()
+
+    /**
+     * Blocks the server put back after they were broken, such as a map a game protects; routes never break them.
+     */
+    val unbreakable = LongOpenHashSet()
 
     private val unconfirmed = HashMap<BlockPos, PlacedBlock>()
 
@@ -177,6 +188,7 @@ internal class BlockActions(private val context: NavigationContext) {
     private fun breakTick(pos: BlockPos) {
         val state = level.getBlockState(pos)
         if (state.getCollisionShape(level, pos).isEmpty) {
+            if (digging == pos) dug.putIfAbsent(pos, ticks)
             return
         }
 
@@ -230,13 +242,19 @@ internal class BlockActions(private val context: NavigationContext) {
     }
 
     /**
-     * The server's word on the block at [pos].
+     * The server's word on the block at [pos]; whether it put back a block broken there.
      *
      * @agent claude-opus-5-5
      */
-    fun answer(pos: BlockPos, state: BlockState) {
+    fun answer(pos: BlockPos, state: BlockState): Boolean {
         unconfirmed.remove(pos)?.let { judge(it, kept = !state.canBeReplaced()) }
         unconfirmedOpens.remove(pos)
+        if (dug.remove(pos) == null || state.canBeReplaced()) {
+            return false
+        }
+        unbreakable.add(pos.asLong())
+        context.logger.warn("The server put back the block broken at {}", pos)
+        return true
     }
 
     /**
@@ -245,12 +263,13 @@ internal class BlockActions(private val context: NavigationContext) {
      * @agent claude-opus-5-5
      */
     private fun expireVerdicts() {
-        if (unconfirmed.isEmpty() && unconfirmedOpens.isEmpty()) {
+        if (unconfirmed.isEmpty() && unconfirmedOpens.isEmpty() && dug.isEmpty()) {
             return
         }
 
         val timeout = verdictTicks()
         unconfirmedOpens.values.removeIf { ticks - it > timeout }
+        dug.values.removeIf { ticks - it > timeout }
         val iterator = unconfirmed.values.iterator()
         while (iterator.hasNext()) {
             val placed = iterator.next()
@@ -283,6 +302,8 @@ internal class BlockActions(private val context: NavigationContext) {
         digging = null
         unconfirmed.clear()
         unconfirmedOpens.clear()
+        dug.clear()
+        unbreakable.clear()
         placement = null
         rejectedInRow = 0
     }
