@@ -46,8 +46,14 @@ import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
 import org.bukkit.Location
+import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
+import org.bukkit.craftbukkit.block.CraftBlock
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Projectile
@@ -449,6 +455,74 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         handle.launch(CraftItemStack.asNMSCopy(item))?.bukkitEntity as? Projectile
 
     /**
+     * Places [item]'s block against [face] of [against] as a player would, the item put in the main hand first:
+     * BlockPlaceEvent fires with the body, so protection plugins see it. False when nothing was placed.
+     */
+    public fun placeBlock(against: Block, face: BlockFace, item: org.bukkit.inventory.ItemStack): Boolean {
+        if (item.type.isAir) return false
+        val hit = hitOn(against, face)
+        val result = holdInMainHand(item).useOn(UseOnContext(handle, InteractionHand.MAIN_HAND, hit))
+        touched += hit.blockPos
+        touched += hit.blockPos.relative(hit.direction)
+        if (!result.consumesAction()) return false
+        swing(InteractionHand.MAIN_HAND)
+        return true
+    }
+
+    /**
+     * How much of [block] one tick of digging with the main hand item takes off, as the client counts it; 1 breaks it.
+     */
+    public fun destroyProgress(block: Block): Float {
+        val pos = posOf(block)
+        return handle.level().getBlockState(pos).getDestroyProgress(handle, handle.level(), pos)
+    }
+
+    /**
+     * Shows players the cracks of [block] dug [progress] far, in [0, 1); a negative progress takes them away.
+     */
+    public fun showDestroyProgress(block: Block, progress: Float) {
+        val stage = if (progress < 0f) -1 else minOf(9, (progress * 10).toInt())
+        handle.level().destroyBlockProgress(handle.id, posOf(block), stage)
+    }
+
+    /**
+     * Breaks [block] as a player who dug it out: BlockBreakEvent with the body, the held tool's drops. False when it
+     * stays.
+     */
+    public fun destroyBlock(block: Block): Boolean {
+        if (!handle.gameMode.destroyBlock(posOf(block))) return false
+        swing(InteractionHand.MAIN_HAND)
+        return true
+    }
+
+    /**
+     * Right-clicks [face] of [block] with [item] as a player, the item put in the main hand first: the block's own use,
+     * then the item's, such as charging a respawn anchor or putting an end crystal on obsidian. False when nothing
+     * happened.
+     */
+    public fun useItemOn(block: Block, face: BlockFace, item: org.bukkit.inventory.ItemStack): Boolean {
+        if (item.type.isAir) return false
+        holdInMainHand(item)
+        return useItemOn(InteractionHand.MAIN_HAND, hitOn(block, face))
+    }
+
+    /**
+     * Right-clicks with [item] where the body looks, the item put in the main hand first: a bucket pours, a rod casts,
+     * a splash potion is thrown. The item stays in the main hand as the use left it. False when nothing happened.
+     */
+    public fun useItem(item: org.bukkit.inventory.ItemStack): Boolean {
+        if (item.type.isAir) return false
+        holdInMainHand(item)
+        return useItem(InteractionHand.MAIN_HAND)
+    }
+
+    private fun holdInMainHand(item: org.bukkit.inventory.ItemStack): ItemStack {
+        val stack = CraftItemStack.asNMSCopy(item)
+        handle.setItemInHand(InteractionHand.MAIN_HAND, stack)
+        return stack
+    }
+
+    /**
      * Turns towards the rotation looked for last tick, as a client's rotation reaches the server a tick later.
      */
     internal fun turn() {
@@ -499,6 +573,16 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
 
         fun spawn(plugin: Plugin, location: Location, name: String, skin: BotSkin?): PaperBody =
             PaperBody(spawnBotPlayer(plugin, location, name, skin))
+
+        private fun posOf(block: Block): BlockPos = BlockPos(block.x, block.y, block.z)
+
+        // A click on the middle of the face, as a client sends one
+        private fun hitOn(block: Block, face: BlockFace): BlockHitResult {
+            val direction = requireNotNull(CraftBlock.blockFaceToNotch(face)) { "Not a block face: $face" }
+            val pos = posOf(block)
+            val point = Vec3.atCenterOf(pos).add(direction.stepX * 0.5, direction.stepY * 0.5, direction.stepZ * 0.5)
+            return BlockHitResult(point, direction, pos, false)
+        }
 
         private fun axis(positive: Boolean, negative: Boolean): Float = when {
             positive == negative -> 0f

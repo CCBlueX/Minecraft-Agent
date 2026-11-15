@@ -127,6 +127,8 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun clickContainer (IILnet/minecraft/world/inventory/ContainerInput;)V
 	public fun closeContainer ()V
 	public fun continueDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public final fun destroyBlock (Lorg/bukkit/block/Block;)Z
+	public final fun destroyProgress (Lorg/bukkit/block/Block;)F
 	public fun drop (IZ)V
 	public final fun getAnchored ()Z
 	public fun getAttackStrength ()F
@@ -158,6 +160,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
 	public final fun move (FFZ)V
 	public final fun moveTo (DDDFF)V
+	public final fun placeBlock (Lorg/bukkit/block/Block;Lorg/bukkit/block/BlockFace;Lorg/bukkit/inventory/ItemStack;)Z
 	public fun players ()Ljava/util/List;
 	public fun press (Lnet/minecraft/world/entity/player/Input;Z)V
 	public final fun push (DDD)V
@@ -173,6 +176,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public final fun setSprinting (Z)V
 	public final fun setTabEntry (Z)V
 	public final fun setTurning (Lnet/ccbluex/agent/navigation/Turning;)V
+	public final fun showDestroyProgress (Lorg/bukkit/block/Block;F)V
 	public fun stab ()V
 	public fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
 	public fun startUsingItem (Lnet/minecraft/world/InteractionHand;)Z
@@ -183,6 +187,8 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun swing (Lnet/minecraft/world/InteractionHand;)V
 	public fun takeFromContainer (I)V
 	public fun useItem (Lnet/minecraft/world/InteractionHand;)Z
+	public final fun useItem (Lorg/bukkit/inventory/ItemStack;)Z
 	public fun useItemOn (Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Z
+	public final fun useItemOn (Lorg/bukkit/block/Block;Lorg/bukkit/block/BlockFace;Lorg/bukkit/inventory/ItemStack;)Z
 }
 
