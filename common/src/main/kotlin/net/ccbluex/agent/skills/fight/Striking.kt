@@ -80,7 +80,9 @@ internal class Striking(private val fight: BuiltInFight) {
             swingOrMiss(target)
             return
         }
-        if (fight.rules.crits && !critJump && player.onGround() && !fight.sneak && distance < fight.maxReach() + 1.5) {
+        if (fight.rules.crits && !critJump && player.onGround() && !fight.sneak && !fight.footwork.isCornered &&
+            distance < fight.maxReach() + 1.5
+        ) {
             if (!cpsMode && wantCrit && strength >= threshold - CRIT_EARLY) {
                 startCritJump(tick)
                 return

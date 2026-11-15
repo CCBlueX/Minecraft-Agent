@@ -32,8 +32,9 @@ import kotlin.math.sin
 
 /**
  * How the fighter moves around its target: the forward ladder (w-tap, minimum reach, feint, kept distance, approach),
- * strafing, jumps, the hit reactions, sword block-hits, and the checks that keep it from stepping off edges or into
- * lava. Far away or across a gap it leaves the walk to the navigator ([chasing]).
+ * strafing, jumps, the hit reactions, sword block-hits, the way inland when a hit would knock it into the void, and the
+ * checks that keep it from stepping off edges or into lava. Far away or across a gap it leaves the walk to the
+ * navigator ([chasing]).
  *
  * From LiquidBounce: [Outnumbered.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/Outnumbered.kt#L60-L60)
  *
@@ -57,12 +58,20 @@ internal class Footwork(private val fight: BuiltInFight) {
     var chasing = false
         private set
 
+    /**
+     * Whether a sprint hit from the target would knock the fighter into the void this tick: it heads inland and skips
+     * crit jumps.
+     */
+    var isCornered = false
+        private set
+
     private val player get() = fight.player
     private val level get() = fight.body.level
 
     fun startTick() {
         resetJump = false
         chasing = false
+        isCornered = false
     }
 
     fun stop() {
@@ -104,6 +113,7 @@ internal class Footwork(private val fight: BuiltInFight) {
         }
         val reachDistance = fight.reachDistance(target)
         val tick = fight.tick
+        isCornered = fight.rules.guardsEdges && canKnockOff(target.position(), here, ::groundBelow)
         if (fight.style == FightingStyle.TRICKSTER) feint(reachDistance)
         fight.forward = when {
             wtapTicks > 0 -> {
@@ -123,6 +133,8 @@ internal class Footwork(private val fight: BuiltInFight) {
             else -> 0f
         }
         if (distance < STRAFE_RANGE) strafe(here)
+        // Past the target if need be: the next hit it takes must land it on ground
+        if (isCornered) groundCentre(here, ::groundBelow)?.let { stepTowards(here, it) }
         if (player.onGround() && fight.forward > 0 &&
             (blockedAhead(here) || distance > 7 && fight.random.nextDouble() < FAR_JUMP_CHANCE)
         ) {
@@ -190,6 +202,25 @@ internal class Footwork(private val fight: BuiltInFight) {
         val dot = (centre.x - here.x) * cos(radians) + (centre.z - here.z) * sin(radians)
         return if (dot >= 0) 1 else -1
     }
+
+    /**
+     * Keys that lead towards [point] while the look stays on the target; within a block of it they stay as they are.
+     */
+    private fun stepTowards(here: Vec3, point: Vec3) {
+        val radians = Math.toRadians(fight.yRot.toDouble())
+        val x = point.x - here.x
+        val z = point.z - here.z
+        val ahead = z * cos(radians) - x * sin(radians)
+        val left = x * cos(radians) + z * sin(radians)
+        val length = hypot(ahead, left)
+        if (length < 1) return
+        fight.forward = key(ahead / length)
+        fight.strafe = key(left / length)
+        fight.sprint = fight.forward > 0
+    }
+
+    // sin 22.5 degrees: the nearest of the eight directions the keys move in
+    private fun key(share: Double): Float = if (share > 0.38) 1f else if (share < -0.38) -1f else 0f
 
     /**
      * A short sword block right after a hit under 1.8 rules takes the edge off the return hit.
@@ -332,6 +363,44 @@ internal class Footwork(private val fight: BuiltInFight) {
         private const val GAP_CHECK_RANGE = 2.5
         private const val GROUND_DEPTH = 4
         private val EDGE_DISTANCES = doubleArrayOf(1.5, 2.5, 3.5)
+
+        /**
+         * How far a sprint hit carries a player standing on flat ground.
+         */
+        private const val KNOCKBACK_CARRY = 5.0
+
+        /**
+         * Whether a sprint hit from [attacker] can carry a player at [here] off the ground; [hasGround] tells a point
+         * with ground below it.
+         */
+        fun canKnockOff(attacker: Vec3, here: Vec3, hasGround: (Vec3) -> Boolean): Boolean {
+            val away = Vec3(here.x - attacker.x, 0.0, here.z - attacker.z)
+            if (away.lengthSqr() < 1e-4) return false
+            val unit = away.normalize()
+            var step = 0.5
+            while (step <= KNOCKBACK_CARRY) {
+                if (!hasGround(here.add(unit.scale(step)))) return true
+                step += 0.5
+            }
+            return false
+        }
+
+        /**
+         * The middle of the ground within 6 blocks of [here], furthest from its edges; null without ground.
+         */
+        fun groundCentre(here: Vec3, hasGround: (Vec3) -> Boolean): Vec3? {
+            var x = 0.0
+            var z = 0.0
+            var count = 0
+            for (dx in -6..6) for (dz in -6..6) {
+                val point = here.add(dx.toDouble(), 0.0, dz.toDouble())
+                if (!hasGround(point)) continue
+                x += point.x
+                z += point.z
+                count++
+            }
+            return if (count == 0) null else Vec3(x / count, here.y, z / count)
+        }
 
         fun heading(yRot: Double): Vec3 {
             val radians = Math.toRadians(yRot)
