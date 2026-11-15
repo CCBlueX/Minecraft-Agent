@@ -150,6 +150,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public final fun jab ()Z
 	public final fun launch (Lorg/bukkit/inventory/ItemStack;)Lorg/bukkit/entity/Projectile;
 	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
+	public final fun move (FFZ)V
 	public final fun moveTo (DDDFF)V
 	public fun players ()Ljava/util/List;
 	public fun press (Lnet/minecraft/world/entity/player/Input;Z)V

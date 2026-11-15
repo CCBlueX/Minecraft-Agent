@@ -30,21 +30,27 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.event.entity.EntityDamageEvent.DamageModifier
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.player.PlayerItemDamageEvent
 import org.bukkit.event.player.PlayerTeleportEvent
 import org.bukkit.event.world.ChunkUnloadEvent
 import org.bukkit.event.world.WorldUnloadEvent
 
 /**
- * The server's events as they concern bot bodies: who sees them, what hurts them, their deaths, and the chunks and
- * worlds they leave with.
+ * The server's events as they concern bot bodies: who sees them, what hurts them, their deaths, their gear, and the
+ * chunks and worlds they leave with.
  *
  * @agent claude-opus-5-5
  */
 internal class BotEvents(private val bots: Bots) : Listener {
+
+    private var unharmed: EntityDamageEvent? = null
+    private var blocked: EntityDamageByEntityEvent? = null
+    private var blockedModifiers: Map<DamageModifier, Double> = emptyMap()
 
     // Fires before the spawn packet; a client spawns a player only with an info entry for it. The entry stays,
     // unlisted, as a real player's does: clients take players without one for server NPCs
@@ -54,20 +60,53 @@ internal class BotEvents(private val bots: Bots) : Listener {
         (event.player as CraftPlayer).handle.connection.send(bot.infoPacket())
     }
 
-    // After the anticheats, which still see the hit
+    // After the anticheats, which still see the hit; the bot still hears of it
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onDamage(event: EntityDamageEvent) {
         val bot = bots.get(event.entity) ?: return
-        if (!bot.settings.damageable) event.isCancelled = true
+        if (bot.settings.damageable) return
+        event.isCancelled = true
+        unharmed = event
     }
 
-    // A hit that went through, with its shooter for a projectile
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    // Intave drops a shield block unless the blocker's client reported raising it, which a bot has no client for
+    @Suppress("DEPRECATION")
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun onBlockedHit(event: EntityDamageByEntityEvent) {
+        if (!event.isApplicable(DamageModifier.BLOCKING) || event.getDamage(DamageModifier.BLOCKING) >= 0) return
+        if (!bots.isBot(event.entity)) return
+        blocked = event
+        blockedModifiers = DamageModifier.entries.filter { event.isApplicable(it) }.associateWith { event.getDamage(it) }
+    }
+
+    @Suppress("DEPRECATION")
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onBlockedHitStripped(event: EntityDamageByEntityEvent) {
+        if (event !== blocked) return
+        val modifiers = blockedModifiers
+        blocked = null
+        blockedModifiers = emptyMap()
+        if (event.getDamage(DamageModifier.BLOCKING) < 0) return
+        for ((modifier, damage) in modifiers) event.setDamage(modifier, damage)
+    }
+
+    // A hit that went through, or one an undamageable body ignored, with its shooter for a projectile
+    @EventHandler(priority = EventPriority.MONITOR)
     fun onHurt(event: EntityDamageEvent) {
+        val ignored = event === unharmed
+        unharmed = null
+        if (event.isCancelled && !ignored) return
         val bot = bots.get(event.entity) ?: return
         val damager = (event as? EntityDamageByEntityEvent)?.damager
         val attacker = (damager as? Projectile)?.shooter as? Entity ?: damager
         bot.damaged(attacker?.let { (it as CraftEntity).handle })
+    }
+
+    // Outside a minigame gear comes from whoever set the bot up and nothing repairs it
+    @EventHandler(ignoreCancelled = true)
+    fun onItemDamage(event: PlayerItemDamageEvent) {
+        val bot = bots.get(event.player) ?: return
+        if (!bot.settings.minigame) event.isCancelled = true
     }
 
     // Outside a minigame a body is no player that loses anything: no drops, no death message

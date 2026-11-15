@@ -283,6 +283,18 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         handle.addDeltaMovement(x, y, z)
     }
 
+    /**
+     * Holds analog movement keys until the next [move] or [press]: [forward] and [strafe] in -1 to 1, [strafe]
+     * positive to the left, as a controller would give them; a walking speed below a player's is a [forward] under 1.
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun move(forward: Float, strafe: Float, jump: Boolean) {
+        handle.forward = forward.coerceIn(-1f, 1f)
+        handle.strafe = strafe.coerceIn(-1f, 1f)
+        handle.jump = jump
+    }
+
     override fun swing(hand: InteractionHand) {
         handle.swingHand(hand)
     }

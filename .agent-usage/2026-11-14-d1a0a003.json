@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(paper): bot gear, shield blocks",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 46, "cachedInput": 1028007, "cacheWrite": 274161, "output": 137097 },
+      "usd": 0.13
+    }
+  ]
+}
