@@ -32,6 +32,7 @@ import net.minecraft.world.inventory.ContainerInput
  * hotbar, 9 to 35 the rest, 36 to 39 armor feet to head, 40 offhand.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 public interface AgentBody : Body {
 
@@ -41,6 +42,18 @@ public interface AgentBody : Body {
     public fun attack(target: Entity)
 
     public fun swing(hand: InteractionHand)
+
+    /**
+     * Interacts with [target] as the use key does with an entity in reach: a villager opens its trades, an
+     * interaction hitbox or an armor stand answers. False for a body that cannot.
+     */
+    public fun interact(target: Entity, hand: InteractionHand): Boolean = false
+
+    /**
+     * Asks to come back from the death screen, as its button does. False for a body that cannot, as a server bot,
+     * which comes back by its own settings.
+     */
+    public fun respawn(): Boolean = false
 
     /**
      * Stabs with the spear in the main hand at nothing in particular, as the attack key does with nothing in reach.
