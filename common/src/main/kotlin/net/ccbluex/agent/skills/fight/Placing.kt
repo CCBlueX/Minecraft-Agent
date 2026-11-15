@@ -43,7 +43,8 @@ internal class Pillar : Technique(Skill.PILLAR, 65, 300) {
             return false
         }
         val feet = fight.player.blockPosition()
-        return (2..4).none { Building.solid(fight, feet.above(it)) }
+        return (2..4).none { Building.solid(fight, feet.above(it)) } &&
+            (0 until HEIGHT).all { fight.mayPlace(feet.above(it)) }
     }
 
     override fun begin(fight: BuiltInFight) {
@@ -142,7 +143,7 @@ internal class Cobweb : Technique(Skill.COBWEB, 35, 80) {
         val target = fight.target ?: return false
         if (!fight.hands.has { it.isOf(Items.COBWEB) } || fight.distance() > RANGE || !target.onGround()) return false
         val feet = target.blockPosition()
-        return Building.air(fight, feet) && Building.solid(fight, feet.below())
+        return fight.mayPlace(feet) && Building.air(fight, feet) && Building.solid(fight, feet.below())
     }
 
     override fun begin(fight: BuiltInFight) {
@@ -196,7 +197,9 @@ internal class WaterClutch : Technique(Skill.WATER_CLUTCH, 90, 40) {
         for (dy in 1..GROUND_DEPTH) {
             val below = feet.below(dy)
             if (!fight.body.level.getFluidState(below).isEmpty) return null
-            if (Building.solid(fight, below)) return below.takeIf { Building.air(fight, it.above()) }
+            if (Building.solid(fight, below)) {
+                return below.takeIf { Building.air(fight, it.above()) && fight.mayPlace(it.above()) }
+            }
         }
         return null
     }

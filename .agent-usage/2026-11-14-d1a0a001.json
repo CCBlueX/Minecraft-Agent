@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-14",
+  "change": "feat(skills): fights limited to an area",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 110, "cachedInput": 4730569, "cacheWrite": 119749, "output": 28336 },
+      "usd": 2.47
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 479, "cachedInput": 1281075, "cacheWrite": 430424, "output": 79961 },
+      "usd": 0.14
+    }
+  ]
+}

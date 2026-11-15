@@ -88,6 +88,7 @@ internal class Crystal : Technique(Skill.CRYSTAL, 45, 10) {
             val usable = crystalBase(fight, block) || dy == 0 && obsidian && Building.air(fight, block) &&
                 Building.solid(fight, block.below()) && !Building.occupied(fight, block, 1)
             if (!usable || !Building.air(fight, block.above()) || !Building.air(fight, block.above(2))) continue
+            if (!fight.mayPlace(block.above()) || !crystalBase(fight, block) && !fight.mayPlace(block)) continue
             // A crystal needs the two cells above free of entities
             if (Building.occupied(fight, block.above(), 2)) continue
             val top = Building.top(block)
@@ -239,7 +240,7 @@ internal class Anchor(cooldown: Int) : Technique(Skill.ANCHOR, 46, cooldown) {
             val usable = isAnchor(fight, cell) ||
                 anchors && Building.air(fight, cell) && Building.solid(fight, cell.below()) &&
                 !Building.occupied(fight, cell, 1)
-            if (!usable) continue
+            if (!usable || !fight.mayPlace(cell)) continue
             val centre = Vec3.atCenterOf(cell)
             if (centre.distanceTo(eye) > PLACE_REACH) continue
             val score = centre.distanceTo(target.position()) - 0.3 * centre.distanceTo(fight.player.position()) +
@@ -324,7 +325,7 @@ internal class Anchor(cooldown: Int) : Technique(Skill.ANCHOR, 46, cooldown) {
     private fun coverSide(fight: BuiltInFight): Direction? {
         val face = Building.towards(Vec3.atBottomCenterOf(anchor), fight.player.position())
         val cell = anchor.relative(face)
-        return face.takeIf { Building.air(fight, cell) && !Building.occupied(fight, cell, 1) }
+        return face.takeIf { fight.mayPlace(cell) && Building.air(fight, cell) && !Building.occupied(fight, cell, 1) }
     }
 
     /**

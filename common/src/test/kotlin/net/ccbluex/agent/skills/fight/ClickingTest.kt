@@ -34,11 +34,11 @@ class ClickingTest {
 
     @Test
     fun `click interval follows the skillLevel's clicks per second`() {
-        val normal = BuiltInFight.CPS * SkillLevel.NORMAL.cps
-        val hard = BuiltInFight.CPS * SkillLevel.HARD.cps
+        val normal = Rules.DEFAULT.cps * SkillLevel.NORMAL.cps
+        val hard = Rules.DEFAULT.cps * SkillLevel.HARD.cps
         assertEquals(3L, Striking.interval(normal, 0.0))
         assertEquals(2L, Striking.interval(hard, 0.0))
-        assertEquals(6L, Striking.interval(BuiltInFight.CPS * SkillLevel.BEGINNER.cps, 0.0))
+        assertEquals(6L, Striking.interval(Rules.DEFAULT.cps * SkillLevel.BEGINNER.cps, 0.0))
     }
 
     @Test

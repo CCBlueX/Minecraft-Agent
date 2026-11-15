@@ -49,7 +49,7 @@ internal class LavaTap : Technique(Skill.LAVA_TAP, 42, 40) {
     }
 
     private fun usable(fight: BuiltInFight, cell: BlockPos): Boolean {
-        if (!Building.air(fight, cell) || !Building.solid(fight, cell.below())) return false
+        if (!fight.mayPlace(cell) || !Building.air(fight, cell) || !Building.solid(fight, cell.below())) return false
         val point = Building.centre(cell, 0.2)
         val eye = fight.player.eyePosition
         // The ray has to come down onto the floor of the cell, and the fighter must stay out of the lava
@@ -105,7 +105,8 @@ internal class WebEscape : Technique(Skill.WEB_ESCAPE, 85, 40) {
     private var since = 0L
     private var pouredAt = 0L
 
-    override fun can(fight: BuiltInFight): Boolean = fight.hands.has { it.isOf(Items.WATER_BUCKET) } && webbed(fight)
+    override fun can(fight: BuiltInFight): Boolean = fight.hands.has { it.isOf(Items.WATER_BUCKET) } &&
+        fight.mayPlace(fight.player.blockPosition()) && webbed(fight)
 
     private fun webbed(fight: BuiltInFight): Boolean {
         val feet = fight.player.blockPosition()

@@ -27,6 +27,7 @@ import net.ccbluex.agent.skills.AgentBody
 import net.ccbluex.agent.skills.SkillLevel
 import net.ccbluex.agent.skills.FightingStyle
 import net.ccbluex.agent.skills.Personality
+import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
@@ -79,10 +80,10 @@ internal class BuiltInFight(
     lateinit var navigator: Navigator
 
     val cpsMode: Boolean get() = body.isCombat1_8 || rules.oldCombat
-    val cps: Double = CPS * skillLevel.cps
-    val critChance: Double = if (rules.crits) min(1.0, CRIT_CHANCE * skillLevel.technique) else 0.0
-    val wtapChance: Double get() = min(1.0, WTAP_CHANCE * skillLevel.technique * style.wtap)
-    val reaction: Int = max(0, (REACTION * skillLevel.reaction).roundToInt())
+    val cps: Double = rules.cps * skillLevel.cps
+    val critChance: Double = if (rules.crits) min(1.0, rules.critChance * skillLevel.technique) else 0.0
+    val wtapChance: Double get() = min(1.0, rules.wtapChance * skillLevel.technique * style.wtap)
+    val reaction: Int = max(0, (rules.reaction * skillLevel.reaction).roundToInt())
 
     private var engaged: LivingEntity? = null
     override var target: LivingEntity? = null
@@ -234,34 +235,24 @@ internal class BuiltInFight(
      * The engaged target; else whoever hit the fighter lately, or the nearest opponent in sight when hunting.
      */
     private fun findTarget(agent: Agent): LivingEntity? {
-        engaged?.let { return it.takeIf(::valid) }
-        val attacker = attacker?.takeIf {
-            rules.retaliates && tick < attackerUntil && valid(it) &&
-                it.distanceToSqr(player) <= ATTACKER_RANGE * rules.range * rules.range
+        val engaged = engaged
+        if (engaged != null && !valid(engaged)) return null
+        val fought = rules.range * rules.range * ATTACKER_RANGE
+        val attacker = attacker?.takeIf { rules.retaliates && tick < attackerUntil }
+            ?.takeIf { valid(it) && it.distanceToSqr(player) <= fought }
+        val current = target?.takeIf { valid(it) && it.distanceToSqr(player) <= fought }
+        val nearest = if (rules.hunts && engaged == null) nearestOpponent(agent) else null
+        return chooseTarget(engaged, attacker, tick - attackedAt, current, nearest, rules.hunts, { inArea(it) }) {
+            it.distanceTo(player).toDouble()
         }
-        if (attacker != null && tick - attackedAt <= TURN_TICKS) return attacker
-        if (!rules.hunts) return attacker
-        val nearest = nearestOpponent(agent)
-        val current = target
-        if (current != null && valid(current) &&
-            current.distanceToSqr(player) <= ATTACKER_RANGE * rules.range * rules.range &&
-            (nearest == null || current.distanceTo(player) <= nearest.distanceTo(player) + CLOSER)
-        ) {
-            return current
-        }
-        return nearest ?: attacker
     }
 
-    private fun nearestOpponent(agent: Agent): LivingEntity? {
-        val senses = agent.senses
-        return body.players()
-            .filter { it !== player && it.distanceToSqr(player) <= rules.range * rules.range && valid(it) }
-            .filter { senses?.isOpponent(it) ?: !it.isInvisible }
-            .filter { player.hasLineOfSight(it) }
-            .minByOrNull { it.distanceToSqr(player) }
-    }
+    /**
+     * Whether a block, crystal, anchor or bucket may go at [pos]: inside the rules' area, or anywhere while engaged.
+     */
+    fun mayPlace(pos: BlockPos): Boolean = engaged != null || rules.area?.contains(Vec3.atCenterOf(pos)) != false
 
-    private fun valid(entity: LivingEntity): Boolean {
+    fun valid(entity: LivingEntity): Boolean {
         if (entity === player || entity.isRemoved || !entity.isAlive || entity.level() !== body.level) return false
         if (entity is Player) return !entity.isSpectator && !entity.isCreative
         return true
@@ -350,9 +341,9 @@ internal class BuiltInFight(
      */
     fun targetMotion(): Vec3 = if (trail.size < 3) Vec3.ZERO else trail[0].subtract(trail[2]).scale(0.5)
 
-    fun maxReach(): Double = body.maxAttackReach
+    fun maxReach(): Double = if (rules.reach > 0) rules.reach else body.maxAttackReach
 
-    fun minReach(): Double = body.minAttackReach
+    fun minReach(): Double = if (rules.reach > 0) 0.0 else body.minAttackReach
 
     /**
      * How far the next swing reaches: the difficulty's share of the weapon's reach, less this swing's slack.
@@ -453,25 +444,12 @@ internal class BuiltInFight(
 
     companion object {
         /**
-         * Base rates the difficulty multiplies.
-         */
-        const val CPS = 8.0
-        const val REACTION = 4.0
-        const val CRIT_CHANCE = 0.5
-        const val WTAP_CHANCE = 0.5
-
-        /**
          * A look this many times as fast as aiming is a flick.
          */
         const val FLICK = 3.0
 
         private const val TRAIL = 20
 
-        /**
-         * A hit this recent turns the fighter to the attacker; another player this much closer takes over.
-         */
-        private const val TURN_TICKS = 40
-        private const val CLOSER = 2.0
         private const val ATTACKER_TICKS = 200
 
         /**

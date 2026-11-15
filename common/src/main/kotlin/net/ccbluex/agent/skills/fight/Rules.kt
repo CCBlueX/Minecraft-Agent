@@ -41,6 +41,15 @@ import java.util.EnumSet
  * @property retaliates fights back against whoever hit it while no target is given
  * @property hunts goes for the nearest opponent in sight while no target is given
  * @property range how far a retaliation or hunt reaches, in blocks
+ * @property area fights only opponents inside and places blocks, crystals, anchors and buckets only inside; a target
+ *   given by [Fight.engage] is fought wherever it is. Null: no limit.
+ * @property reach attack reach in blocks; 0 keeps the held item's reach, more replaces its maximum and drops its
+ *   minimum to 0
+ * @property strafe which way the fighter strafes when close
+ * @property cps clicks per second under 1.8 combat, before the difficulty multiplies it
+ * @property reaction ticks before the fighter reacts to a new target, before the difficulty multiplies it
+ * @property critChance 0 to 1: how often a hit is a jumping crit, before the difficulty multiplies it
+ * @property wtapChance 0 to 1: how often a hit resets sprint, before the difficulty and style multiply it
  * @agent claude-opus-5-5
  */
 public data class Rules @JvmOverloads constructor(
@@ -57,6 +66,13 @@ public data class Rules @JvmOverloads constructor(
     val retaliates: Boolean = true,
     val hunts: Boolean = false,
     val range: Double = 16.0,
+    val area: Area? = null,
+    val reach: Double = 0.0,
+    val strafe: Strafe = Strafe.FREE,
+    val cps: Double = 8.0,
+    val reaction: Double = 4.0,
+    val critChance: Double = 0.5,
+    val wtapChance: Double = 0.5,
 ) {
 
     public companion object {
@@ -67,4 +83,11 @@ public data class Rules @JvmOverloads constructor(
         @JvmField
         public val DEFAULT: Rules = Rules()
     }
+
+    /**
+     * Which way a close fighter strafes: [FREE] picks and switches sides itself, [LEFT] and [RIGHT] always go there.
+     *
+     * @agent claude-opus-5-5
+     */
+    public enum class Strafe { FREE, LEFT, RIGHT }
 }

@@ -181,7 +181,16 @@ internal class Footwork(private val fight: BuiltInFight) {
         if (fight.random.nextDouble() < FEINT_CHANCE) feintUntil = fight.tick + fight.random.nextInt(5, 11)
     }
 
+    /**
+     * @agent claude-opus-5-5
+     */
     private fun strafe(here: Vec3) {
+        fight.strafe = when (fight.rules.strafe) {
+            Rules.Strafe.LEFT -> 1f
+            Rules.Strafe.RIGHT -> -1f
+            Rules.Strafe.FREE -> 0f
+        }
+        if (fight.strafe != 0f) return
         val chance = fight.skillLevel.strafe * fight.style.strafe
         if (fight.tick >= strafeSwitchAt) {
             if (fight.random.nextBoolean()) strafeDir = -strafeDir

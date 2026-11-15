@@ -103,6 +103,7 @@ internal object Building {
         val here = fight.player.blockPosition()
         val cell = here.relative(towards(fight.player.position(), point)).above(level)
         if (solid(fight, cell)) return true
+        if (!fight.mayPlace(cell)) return false
         val below = cell.below()
         if (!solid(fight, below) || !fight.hands.hold { it.isBuildingBlock }) return false
         fight.lookAt(top(below), 3.0)
