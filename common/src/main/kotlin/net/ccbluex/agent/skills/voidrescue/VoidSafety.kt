@@ -163,12 +163,12 @@ internal class VoidSafety : VoidRescue {
     }
 
     /**
-     * Creative flight, or the host's flight such as a fly module while it holds the player up: one that is on while
-     * the player falls freely does not count, so the fall is caught as any other.
+     * Creative flight, an elytra glide, or the host's flight such as a fly module while it holds the player up: one
+     * that is on while the player falls freely does not count, so the fall is caught as any other.
      */
     private fun isFlying(agent: Agent): Boolean {
         val player = agent.body.player
         val hostFlies = (agent.body.flight as? FlightSwitch)?.isFlying == true && !freeFall.isFalling
-        return player.abilities.flying || hostFlies
+        return player.abilities.flying || player.isFallFlying || hostFlies
     }
 }

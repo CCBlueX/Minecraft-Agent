@@ -24,7 +24,10 @@ import net.ccbluex.agent.skills.gear.GearScore
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
 /**
@@ -53,7 +56,7 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
     override fun can(fight: BuiltInFight): Boolean {
         if (!fight.player.onGround() || fight.horizontalDistance() !in MIN_RANGE..MAX_RANGE) return false
         return fight.player.getItemBySlot(EquipmentSlot.CHEST).isOf(Items.ELYTRA) && hasFirework(fight) &&
-            (fight.hands.has { it.isOf(Items.MACE) } || fight.hands.has { it.isSpear })
+            (canDive(fight) || fight.hands.has { it.isSpear })
     }
 
     private fun hasFirework(fight: BuiltInFight): Boolean =
@@ -74,14 +77,8 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
 
     private fun boosting(fight: BuiltInFight): Boolean = fight.tick < boostUntil
 
-    /**
-     * An empty hotbar slot for the elytra, never the one the hands swap items through.
-     */
-    private fun freeSlot(fight: BuiltInFight): Int? =
-        (0 until Hands.SCRATCH_SLOT).firstOrNull { fight.hands.stack(it).isEmpty }
-
     private fun canDive(fight: BuiltInFight): Boolean =
-        fight.hands.has { it.isOf(Items.MACE) } && freeSlot(fight) != null
+        fight.hands.has { it.isOf(Items.MACE) } && diveSlot(fight.hands::stack) != null
 
     private fun phase(fight: BuiltInFight, phase: Phase) {
         this.phase = phase
@@ -147,7 +144,7 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
                         phase(fight, Phase.PASS)
                         return true
                     }
-                    if (mace && height > DIVE_HEIGHT && distance < height * 0.8 + 2) {
+                    if (mace && divesOnto(player.position(), player.deltaMovement, target.position())) {
                         dive(fight)
                         return true
                     }
@@ -186,6 +183,10 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
             Phase.DIVE -> {
                 if (!fight.hands.hold { it.isOf(Items.MACE) } || player.onGround()) return false
                 fight.forward = 1f
+                // At two blocks a tick the target is in reach for a tick or two, and a look lands a tick after it is
+                // asked for: aimed from where the eyes will be then
+                val next = eye.add(player.deltaMovement)
+                fight.lookAt(Aiming.rotation(next, Aiming.nearestPoint(target, next)), 4.0)
                 if (player.fallDistance > SMASH_FALL && fight.inReach(target) && fight.aimedAt(target)) {
                     fight.strike(target)
                     return false
@@ -197,7 +198,8 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
 
     // A mace only smashes out of a glide: the elytra comes off into the hotbar, as a player swaps it in the inventory
     private fun dive(fight: BuiltInFight) {
-        val slot = freeSlot(fight) ?: return
+        val (slot, spare) = diveSlot(fight.hands::stack) ?: return
+        spare?.let { fight.body.swapWithHotbar(it, slot) }
         fight.body.swapWithHotbar(CHEST_INDEX, slot)
         stowed = slot
         fight.hands.hold { it.isOf(Items.MACE) }
@@ -232,7 +234,6 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
         const val PASS_X_ROT = 25f
         const val CLIMB_HEIGHT = 12.0
         const val REFUEL_HEIGHT = 8.0
-        const val DIVE_HEIGHT = 6.0
         const val PASS_HEIGHT = 4.0
         const val PASS_MIN = 12.0
         const val PASS_MAX = 24.0
@@ -241,3 +242,41 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
         const val SMASH_FALL = 1.5
     }
 }
+
+/**
+ * The hotbar slot the elytra goes to for a dive, never the one the hands swap items through nor the mace's, and the
+ * empty slot in the rest of the inventory its stack moves to first when the hotbar is full (null when the hotbar slot
+ * is empty already). Null when the whole inventory is full.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun diveSlot(stack: (Int) -> ItemStack): Pair<Int, Int?>? {
+    val hotbar = 0 until Hands.SCRATCH_SLOT
+    hotbar.firstOrNull { stack(it).isEmpty }?.let { return it to null }
+    val spare = (Inventory.SELECTION_SIZE until Inventory.INVENTORY_SIZE).firstOrNull { stack(it).isEmpty } ?: return null
+    val slot = hotbar.firstOrNull { !stack(it).isOf(Items.MACE) } ?: return null
+    return slot to spare
+}
+
+/**
+ * Whether a glider at [position] moving at [velocity] that takes its elytra off now comes down on [target]: high
+ * enough above it, and carried by its speed to within a hit of it while air drag takes 9% of that speed a tick.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun divesOnto(position: Vec3, velocity: Vec3, target: Vec3): Boolean {
+    if (position.y - target.y <= DIVE_HEIGHT) return false
+    val landingX = position.x + velocity.x * DRIFT_TICKS
+    val landingZ = position.z + velocity.z * DRIFT_TICKS
+    val dx = landingX - target.x
+    val dz = landingZ - target.z
+    return dx * dx + dz * dz < DIVE_AIM * DIVE_AIM
+}
+
+private const val DIVE_HEIGHT = 6.0
+private const val DIVE_AIM = 3.0
+
+/**
+ * How many ticks of its speed a body in the air still covers: 0.91 + 0.91² + …
+ */
+private const val DRIFT_TICKS = 0.91 / 0.09

@@ -240,7 +240,8 @@ internal class BuiltInFight(
         val fought = rules.range * rules.range * ATTACKER_RANGE
         val attacker = attacker?.takeIf { rules.retaliates && tick < attackerUntil }
             ?.takeIf { valid(it) && it.distanceToSqr(player) <= fought }
-        val current = target?.takeIf { valid(it) && it.distanceToSqr(player) <= fought }
+        // A running skill keeps its target: a rocket climbs out of the range over the target it dives on
+        val current = target?.takeIf { valid(it) && (runner.active != null || it.distanceToSqr(player) <= fought) }
         val nearest = if (rules.hunts && engaged == null) nearestOpponent(agent) else null
         return chooseTarget(engaged, attacker, tick - attackedAt, current, nearest, rules.hunts, { inArea(it) }) {
             it.distanceTo(player).toDouble()

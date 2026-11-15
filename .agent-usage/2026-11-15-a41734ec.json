@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "change": "fix(skills): rocket dives keep target",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 388, "cachedInput": 35422074, "cacheWrite": 248863, "output": 61975 },
+      "usd": 10.32
+    }
+  ]
+}
