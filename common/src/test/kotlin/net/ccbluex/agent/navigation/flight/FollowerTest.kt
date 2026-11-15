@@ -27,18 +27,22 @@ import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.pathfinder.flight.Acceleration
 import net.ccbluex.agent.pathfinder.flight.Route
+import net.ccbluex.agent.simulation.PlayerMotion
 import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import kotlin.math.sqrt
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 /**
  * A fly mode flies a route with a sharp corner at half and at twice the speed a host used to report, stopping at once
- * or coasting on: the player gets to the end and comes to rest there, without flying past it or back and forth.
+ * or coasting on: the player gets to the end and comes to rest there, without flying past it or back and forth. One
+ * that hops by itself sinks onto the end below.
  *
  * @agent claude-opus-5-5
  */
@@ -55,6 +59,11 @@ internal class FollowerTest {
         private const val MAX_OVERSHOOT = 1.5
         private const val MAX_REVERSALS = 3
         private const val NEAR_END = 8.0
+
+        /**
+         * How close a walk to a goal on the ground stops, as LiquidBounce's `.goto` does.
+         */
+        private const val GOAL_RADIUS = 1.0
 
         private val START = Vec3(0.5, 10.0, 0.5)
 
@@ -135,5 +144,78 @@ internal class FollowerTest {
         assertTrue(overshoot <= MAX_OVERSHOOT, "Flew $overshoot past the end")
         assertTrue(reversals <= MAX_REVERSALS, "Turned back $reversals times")
         assertEquals(speed, handling.speed, speed * 0.1, "Measured the speed")
+    }
+
+    /**
+     * A fly mode that hops up every [HOP_TICKS] ticks and falls in between, unless sneak is held in the air, as
+     * LiquidBounce's CubeCraft-2024-03-10 mode of Fly does; a hop also sets the level motion the way the keys pointed.
+     *
+     * @agent claude-opus-5-5
+     */
+    private class HopMode(world: TestWorld, start: Vec3) : FlightControl {
+        private val motion = PlayerMotion(world.terrain()).also { it.reset(start, Vec3.ZERO, onGround = true) }
+        private var wait = 0
+        private var last = Input.EMPTY
+
+        fun move(player: Player, input: Input, sprint: Boolean) {
+            // The mode reads the keys of the tick before
+            if (wait > 0) {
+                wait--
+            } else if (!last.shift() || motion.onGround) {
+                val (forward, strafe) = axes(last)
+                val length = sqrt((forward * forward + strafe * strafe).toDouble()).coerceAtLeast(1.0)
+                val hop = Vec3(strafe / length * HOP_STRAFE, HOP_SPEED, forward / length * HOP_STRAFE)
+                motion.reset(motion.position, hop, onGround = false, motion.isSprinting)
+                wait = HOP_TICKS
+            }
+            last = input
+
+            val (forward, strafe) = axes(input)
+            motion.tick(player.yRot, forward, strafe, jump = false, sprint, sneak = input.shift())
+            player.setPos(motion.position)
+            player.deltaMovement = motion.deltaMovement
+            player.setOnGround(motion.onGround)
+            player.horizontalCollision = motion.horizontalCollision
+            player.isSprinting = motion.isSprinting
+            player.tickCount++
+        }
+
+        private fun axes(input: Input) = Pair(
+            (if (input.forward()) 1 else 0) - (if (input.backward()) 1 else 0),
+            (if (input.left()) 1 else 0) - (if (input.right()) 1 else 0),
+        )
+
+        private companion object {
+            const val HOP_TICKS = 11
+            const val HOP_SPEED = 0.42
+            const val HOP_STRAFE = 0.35
+        }
+    }
+
+    @Test
+    fun `a fly mode that hops lands on the end below`() {
+        // Platforms over the void, the far one three blocks lower
+        val world = TestWorld().fill(-1, 9, -1, 1, 9, 1).fill(-1, 6, 19, 1, 6, 21)
+        val start = TestWorld.feet(0, 10, 0)
+        val end = TestWorld.feet(0, 7, 20)
+        val player = TestLevel(world).player(start)
+        val mode = HopMode(world, start)
+        val body = TestBody(player, mode)
+        val context = body.context()
+        val handling = Handling()
+        val follower = Follower(context, handling)
+        follower.follow(Route(start, listOf(start, Vec3(end.x, start.y, end.z), end), canReach = true))
+
+        repeat(MAX_TICKS) {
+            val abilities = checkNotNull(context.captureFlight(handling))
+            if (follower.tick(0f, abilities) == FollowState.FINISHED) {
+                val at = player.position()
+                assertTrue(at.distanceTo(end) <= GOAL_RADIUS, "Finished at $at, ${at.distanceTo(end)} from $end")
+                return
+            }
+            mode.move(player, body.pressed, follower.sprint)
+            assertTrue(player.y > 0.0, "Fell at ${player.position()}")
+        }
+        fail("Did not land on $end in $MAX_TICKS ticks, at ${player.position()}")
     }
 }

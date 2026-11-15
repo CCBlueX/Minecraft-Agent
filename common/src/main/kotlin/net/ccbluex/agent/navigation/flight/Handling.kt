@@ -175,7 +175,11 @@ internal class Handling {
         if (pressed.jump() != pressed.shift()) {
             measuredVerticalThrust = blend(measuredVerticalThrust, abs(move - before * verticalDrag))
         } else if (abs(before) > MIN_MOVE) {
-            measuredVerticalDrag = blend(measuredVerticalDrag, (move / before).coerceIn(0.0, MAX_DRAG))
+            // Falling faster or turning around without keys is gravity or the fly mode's own push, not drag
+            val kept = move / before
+            if (kept in 0.0..1.0) {
+                measuredVerticalDrag = blend(measuredVerticalDrag, kept.coerceAtMost(MAX_DRAG))
+            }
         }
     }
 
