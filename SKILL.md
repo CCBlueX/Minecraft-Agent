@@ -1,6 +1,6 @@
 ---
 name: minecraft-agent
-description: Add Minecraft Agent (pathfinding, navigation, bot skills and game modes for Minecraft 26.3) to a Fabric mod or a Paper plugin, and drive bots with it.
+description: Add Minecraft Agent (pathfinding, navigation, bot skills and game modes for Minecraft 26.3, server bots also on Spigot 1.8.8) to a Fabric mod or a Bukkit plugin, and drive bots with it.
 ---
 
 # Minecraft Agent
@@ -10,14 +10,15 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`, 
 
 | Artifact | Use it for |
 |---|---|
-| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes; server bots as Bukkit sees them: `MinecraftAgent`, `Bots`, `Bot`, `BotBody` |
+| `minecraft-agent-common` | The game's blocks, entities and items as the libraries see them, on every game version; predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes; server bots as Bukkit sees them: `MinecraftAgent`, `Bots`, `Bot`, `BotBody` |
+| `minecraft-agent-adapter` | The libraries on Minecraft 26.3: `toAgent()`/`toMinecraft()`, `defineGameTypes()` |
 | `minecraft-agent-fabric` | The local player as a body (Fabric mod) |
-| `minecraft-agent-paper` | Server bots on Paper 26.3 (plugin `MinecraftAgent`), with minigames |
+| `minecraft-agent-paper` | Server bots on Paper 26.3 (plugin `MinecraftAgent`) |
 | `minecraft-agent-spigot` | Server bots on Spigot 1.8.8 (plugin `MinecraftAgent`) |
 
-Each one brings what it builds on: `navigation` brings `pathfinder` and `simulation`, `skills` brings `navigation`,
-`fabric` brings `common`, `server/paper` and `v1_8_8/spigot` bring `server/common` and
-`skills`.
+Each one brings what it builds on: in `common`, `simulation` brings `world`, `navigation` brings `pathfinder` and
+`simulation`, `skills` brings `navigation`; `adapter` brings `common`; `fabric` and `paper` bring `common` and
+`adapter`; `spigot` brings `common`.
 Everything public is callable from Java.
 
 ## Fabric mod
@@ -26,9 +27,16 @@ Everything public is callable from Java.
 repositories { maven("https://maven.ccbluex.net/releases") }
 dependencies {
     implementation("net.ccbluex:minecraft-agent-fabric:1.0.0")
-    include("net.ccbluex:minecraft-agent-fabric:1.0.0")
+    // Jar-in-jar is not transitive: every module goes into the mod jar
+    for (module in listOf("common", "adapter", "fabric")) {
+        include("net.ccbluex:minecraft-agent-$module:1.0.0")
+    }
 }
 ```
+
+Call `defineGameTypes()` (`net.ccbluex.agent.v26_3`) once the game's registries are loaded (on client start), before
+any other library call. Library calls take the library's types; `toAgent()` and `toMinecraft()` convert, and
+`Terrain.live(level)` also takes the game's level.
 
 The mod needs Fabric API and Fabric Language Kotlin. Walk the local player somewhere:
 
@@ -52,9 +60,10 @@ movement and aim rotations are turned to (`Turning.linear(degrees)`, `skillLevel
 The navigator presses the keys once per tick (`Body.press(input, exact)`); exact keys (jumps, climbs, block
 actions, flight) must reach the player unchanged, plain walks may be changed by host features.
 
-## Paper plugin
+## Server plugin
 
-Install the `MinecraftAgent` plugin jar (`minecraft-agent-paper-<version>-plugin.jar`) on the server, then:
+Install the `MinecraftAgent` plugin jar on the server (`minecraft-agent-paper-<version>-plugin.jar` on Paper
+26.3, `minecraft-agent-spigot-<version>-plugin.jar` on Spigot 1.8.8), then:
 
 ```kotlin
 dependencies { compileOnly("net.ccbluex:minecraft-agent-paper:1.0.0") }
@@ -74,9 +83,10 @@ bot.play(gameMode)               // a skills.games mode, see below
 bot.remove()
 ```
 
-A plugin can bundle the library instead of depending on the plugin: shade `minecraft-agent-paper` (its jar has
-no plugin.yml), call `MinecraftAgent.start(this)` in `onEnable` and `MinecraftAgent.stop()` in `onDisable`, and list
-the Kotlin libraries of the plugin jar's plugin.yml in its own. `start(this)` runs the bots, and `bots()` gives them.
+A plugin can bundle the library instead of depending on the plugin: shade `minecraft-agent-paper` or
+`minecraft-agent-spigot` (their jars have no plugin.yml), call `MinecraftAgent.start(this)` in `onEnable` and
+`MinecraftAgent.stop()` in `onDisable`, and list the Kotlin libraries of the Paper plugin jar's plugin.yml in its own
+(1.8.8 has no `libraries`: shade Kotlin and coroutines too). `start(this)` runs the bots, and `bots()` gives them.
 `MinecraftAgent`, `Bots`, `Bot`, `BotSettings` and `BotBody` are in `net.ccbluex.agent.bukkit` (`common`), the same on
 every server platform.
 
@@ -117,7 +127,8 @@ built in; bots use what they hold.
 A client host does not implement them: `bedwars.LevelSenses(level, facts)`, `skywars.LevelSenses(level, facts, chests)`
 and `blitz.LevelSenses(level, facts, chests)` read beds, generators, chests, players and the border from the level; the
 host supplies only what the server says in text (`RoundFacts`) and calls `tick()` every client tick. The Bed Wars
-one also takes every packet the server sends through `received(packet)`: block updates tell which blocks players placed.
+one also takes the blocks the server sets, `blockUpdated(pos, state)`: they tell which blocks players placed. On 26.3 the
+adapter's `senses.received(packet)` (`net.ccbluex.agent.v26_3`) feeds it the block and section update packets.
 
 Maps: `skills.maps.MapPlay` plays a world's map alone: it works out the steps from people, buttons, openings, hatches and
 pressure plates, keeps those that led on in a `KnownMaps` folder, and glides caves. A client host calls `agent(body)`,

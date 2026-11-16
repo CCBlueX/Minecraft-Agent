@@ -16,7 +16,7 @@ builds on.
   - `pathfinder`: route searches
   - `navigation`: follows routes
   - `skills`: fighting, looting, game modes
-- `vanilla`: the libraries on Minecraft 26.3
+- `adapter`: the libraries on Minecraft 26.3
 
 ## Platforms
 
@@ -27,19 +27,25 @@ The local player as a body, for Fabric mods.
 ```kotlin
 dependencies {
     implementation("net.ccbluex:minecraft-agent-fabric:1.0.0-SNAPSHOT")
+    // Jar-in-jar is not transitive: every module goes into the mod jar
+    for (module in listOf("common", "adapter", "fabric")) {
+        include("net.ccbluex:minecraft-agent-$module:1.0.0-SNAPSHOT")
+    }
 }
 ```
 
 ```kotlin
+defineGameTypes()   // once the game's registries are loaded, before any other library call
 val navigation = ClientNavigation()
 navigation.navigator.moveTo(Vec3(100.5, 64.0, -20.5)) { ending -> println(ending) }
 ```
 
 ### Server
 
-Bots as players on the server, the same on every server platform: `v26_3/paper` as a Paper plugin, `v1_8_8/spigot` as
-a [Spigot 1.8.8 plugin](v1_8_8/spigot/README.md). Install the `MinecraftAgent` plugin jar on the server, or shade
-`minecraft-agent-paper` into a plugin with bots of its own and call `MinecraftAgent.start(this)` in its `onEnable`.
+Bots as players on the server, the same on every server platform: Paper 26.3 as a plugin, and a
+[Spigot 1.8.8 plugin](v1_8_8/spigot/README.md). Install the `MinecraftAgent` plugin jar on the server, or shade
+`minecraft-agent-paper` or `minecraft-agent-spigot` into a plugin with bots of its own and call
+`MinecraftAgent.start(this)` in its `onEnable`.
 
 ```kotlin
 dependencies {

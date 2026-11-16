@@ -24,6 +24,9 @@ bot.fight(enemy)
 
 ## In a host plugin
 
+A plugin with its own bots shades `minecraft-agent-spigot` with Kotlin and coroutines (1.8 has no `libraries`)
+and calls `MinecraftAgent.start(this)` in `onEnable` and `MinecraftAgent.stop()` in `onDisable`.
+
 `bot.getBody()` is a `SpigotBody`. It differs from Paper's body where 1.8 does:
 
 1. Sword blocking: `startUsingItem` with a sword raises it and `isBlocking` halves hits; no off hand or shield.
