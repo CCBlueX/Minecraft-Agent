@@ -60,16 +60,18 @@ internal class TickBody(val host: Body, private val options: () -> Options) : Bo
         return host.useItemOn(hand, pick(hit.blockPos, hit.direction) ?: return false)
     }
 
-    override fun startDestroy(pos: BlockPos, face: Direction): Boolean = sees(pos, face) && host.startDestroy(pos, face)
+    override fun startDestroy(pos: BlockPos, face: Direction): Boolean =
+        canClick(pos, face) && host.startDestroy(pos, face)
 
     override fun continueDestroy(pos: BlockPos, face: Direction): Boolean {
-        if (sees(pos, face)) return host.continueDestroy(pos, face)
+        if (canClick(pos, face)) return host.continueDestroy(pos, face)
         // The game's own dig ends too once the crosshair leaves the block
         host.stopDestroy()
         return false
     }
 
-    private fun sees(pos: BlockPos, face: Direction) = options().canClickThroughBlocks || pick(pos, face) != null
+    fun canClick(pos: BlockPos, face: Direction): Boolean =
+        options().canClickThroughBlocks || pick(pos, face) != null
 
     fun takePressed(): Input? = pressed.also { pressed = null }
 }

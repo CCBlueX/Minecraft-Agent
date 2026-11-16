@@ -143,6 +143,7 @@ public final class net/ccbluex/agent/navigation/Navigator {
 	public synthetic fun <init> (Lnet/ccbluex/agent/navigation/Body;Lnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/navigation/Listener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun blockChanged (Lnet/minecraft/core/BlockPos;)V
 	public final fun blockConfirmed (Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V
+	public final fun canClick (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
 	public final fun canHit (Lnet/minecraft/world/entity/Entity;)Z
 	public final fun continueDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
 	public final fun getBridgeAhead ()I

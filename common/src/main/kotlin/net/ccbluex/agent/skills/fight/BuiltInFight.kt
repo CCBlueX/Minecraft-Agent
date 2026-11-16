@@ -21,6 +21,7 @@ package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
+import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentBody
 import net.ccbluex.agent.skills.SkillLevel
@@ -71,6 +72,11 @@ internal class BuiltInFight(
      */
     var tick = 0L
         private set
+
+    /**
+     * The agent's navigator, the way every click of the fight goes out; set every tick.
+     */
+    lateinit var navigator: Navigator
 
     val cpsMode: Boolean get() = body.isCombat1_8 || rules.oldCombat
     val cps: Double = CPS * skillLevel.cps
@@ -158,6 +164,7 @@ internal class BuiltInFight(
 
     override fun tick(agent: Agent) {
         tick++
+        navigator = agent.navigator
         eatWanted = agent.skills.eat?.wantsToEat == true
         eyes.record(clock(), player.eyePosition)
         val hit = hurt

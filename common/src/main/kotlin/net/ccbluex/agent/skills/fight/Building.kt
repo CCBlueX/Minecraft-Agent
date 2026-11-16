@@ -87,24 +87,26 @@ internal object Building {
     }
 
     /**
-     * Right-clicks [face] of [against] with the main hand, as placing a block or using an item on a block does.
+     * Right-clicks [face] of [against] with the main hand, as placing a block or using an item on a block does; false
+     * when the rotation the server has does not hit that face first.
      */
     fun placeOn(fight: BuiltInFight, against: BlockPos, face: Direction): Boolean {
         val point = Vec3.atCenterOf(against).add(face.stepX * 0.5, face.stepY * 0.5, face.stepZ * 0.5)
-        return fight.body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(point, face, against, false))
+        return fight.navigator.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(point, face, against, false))
     }
 
     /**
-     * Builds the cell beside the fighter towards [point], at its feet ([level] 0) or eyes (1); true once the cell is
-     * filled.
+     * Builds the cell beside the fighter towards [point], at its feet ([level] 0) or eyes (1): true once the cell is
+     * filled, false when it cannot be, null while the rotation the server has does not hit the face it goes against.
      */
-    fun wall(fight: BuiltInFight, point: Vec3, level: Int): Boolean {
+    fun wall(fight: BuiltInFight, point: Vec3, level: Int): Boolean? {
         val here = fight.player.blockPosition()
         val cell = here.relative(towards(fight.player.position(), point)).above(level)
         if (solid(fight, cell)) return true
         val below = cell.below()
         if (!solid(fight, below) || !fight.hands.hold { it.isBuildingBlock }) return false
         fight.lookAt(top(below), 3.0)
+        if (!fight.navigator.canClick(below, Direction.UP)) return null
         return placeOn(fight, below, Direction.UP)
     }
 

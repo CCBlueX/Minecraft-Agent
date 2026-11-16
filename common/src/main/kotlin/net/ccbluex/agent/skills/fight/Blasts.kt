@@ -125,13 +125,14 @@ internal class Crystal : Technique(Skill.CRYSTAL, 45, 10) {
         when (phase) {
             Phase.OBSIDIAN -> {
                 if (!fight.hands.hold { it.isOf(Items.OBSIDIAN) }) return false
-                if (!place(fight, base.below())) return fight.tick - phaseAt <= 4
+                // Still turning or a missed click: the skill's own time limit ends the wait
+                if (!place(fight, base.below())) return true
                 next(fight, Phase.PLACE)
             }
             Phase.PLACE -> {
                 // A crystal is no block: it goes on by a right click on the obsidian
                 if (!fight.hands.hold { it.isOf(Items.END_CRYSTAL) }) return false
-                if (!place(fight, base)) return fight.tick - phaseAt <= 4
+                if (!place(fight, base)) return true
                 next(fight, Phase.HIT)
             }
             Phase.HIT -> {
@@ -180,9 +181,8 @@ internal class Crystal : Technique(Skill.CRYSTAL, 45, 10) {
      * Clicks the top of [against] with what is held once looking at it; false while it still turns or misses.
      */
     private fun place(fight: BuiltInFight, against: BlockPos): Boolean {
-        val rotation = Aiming.rotation(fight.player.eyePosition, Building.top(against))
-        fight.lookAt(rotation, 4.0)
-        if (!fight.aimed(rotation, 10.0) && fight.tick - phaseAt < 3) return false
+        fight.lookAt(Building.top(against), 4.0)
+        if (!fight.navigator.canClick(against, Direction.UP)) return false
         return fight.clickLands() && Building.placeOn(fight, against, Direction.UP)
     }
 
@@ -212,6 +212,8 @@ internal class Anchor(cooldown: Int) : Technique(Skill.ANCHOR, 46, cooldown) {
     private var tries = 0
     private var charged = false
     private var covered = false
+    private var coverFace: Direction? = null
+    private var coverAt = 0L
 
     override fun can(fight: BuiltInFight): Boolean {
         if (fight.distance() > RANGE || fight.body.level.dimension() == Level.NETHER) return false
@@ -258,6 +260,7 @@ internal class Anchor(cooldown: Int) : Technique(Skill.ANCHOR, 46, cooldown) {
         tries = 0
         charged = false
         covered = false
+        coverFace = null
         placing = !isAnchor(fight, anchor)
         fight.attackHeld = true
     }
@@ -268,6 +271,7 @@ internal class Anchor(cooldown: Int) : Technique(Skill.ANCHOR, 46, cooldown) {
         if (placing) return place(fight)
         // Gone: it blew up
         if (!isAnchor(fight, anchor)) return false
+        coverFace?.let { return cover(fight, it) }
         // One charge is enough: a charged anchor goes off when used with anything but glowstone
         val item: (ItemStack) -> Boolean =
             if (charged) { it -> !it.isOf(Items.GLOWSTONE) } else { it -> it.isOf(Items.GLOWSTONE) }
@@ -277,11 +281,14 @@ internal class Anchor(cooldown: Int) : Technique(Skill.ANCHOR, 46, cooldown) {
         // A block on the anchor's face towards the fighter takes most of the blast off it
         if (charged && !covered) {
             covered = true
-            if (fight.random.nextDouble() < minOf(1.0, fight.skillLevel.technique) && cover(fight)) {
-                useAt = fight.tick + 1
-                return true
+            if (fight.random.nextDouble() < minOf(1.0, fight.skillLevel.technique)) {
+                coverFace = coverSide(fight)
+                coverAt = fight.tick
+                if (coverFace != null) return true
             }
         }
+        // The click waits for the rotation the server has to hit the top; MAX_TICKS bounds the wait
+        if (!fight.navigator.canClick(anchor, Direction.UP)) return true
         if (tries++ >= TRIES) return false
         if (!fight.clickLands()) {
             useAt = fight.tick + 1
@@ -300,25 +307,40 @@ internal class Anchor(cooldown: Int) : Technique(Skill.ANCHOR, 46, cooldown) {
     private fun place(fight: BuiltInFight): Boolean {
         if (!fight.hands.hold { it.isOf(Items.RESPAWN_ANCHOR) }) return false
         val below = anchor.below()
-        val rotation = Aiming.rotation(fight.player.eyePosition, Building.top(below))
-        fight.lookAt(rotation, 4.0)
-        if (!fight.aimed(rotation, 10.0) && fight.tick - phaseAt < 3) return true
-        if (!fight.clickLands() || !Building.air(fight, anchor) || !Building.placeOn(fight, below, Direction.UP)) {
-            return fight.tick - phaseAt <= 4
-        }
+        fight.lookAt(Building.top(below), 4.0)
+        if (!Building.air(fight, anchor)) return false
+        // The click waits for the rotation the server has to hit the top; MAX_TICKS bounds the wait
+        if (!fight.navigator.canClick(below, Direction.UP)) return true
+        if (!fight.clickLands() || !Building.placeOn(fight, below, Direction.UP)) return true
         placing = false
         phaseAt = fight.tick
         useAt = fight.tick + 1
         return true
     }
 
-    private fun cover(fight: BuiltInFight): Boolean {
+    /**
+     * The anchor's side towards the fighter when a block fits there, else null.
+     */
+    private fun coverSide(fight: BuiltInFight): Direction? {
         val face = Building.towards(Vec3.atBottomCenterOf(anchor), fight.player.position())
         val cell = anchor.relative(face)
-        if (!Building.air(fight, cell) || Building.occupied(fight, cell, 1)) return false
+        return face.takeIf { Building.air(fight, cell) && !Building.occupied(fight, cell, 1) }
+    }
+
+    /**
+     * Puts a block on [face] of the anchor once the rotation the server has hits that face, for half a second at
+     * most; then the anchor is set off.
+     */
+    private fun cover(fight: BuiltInFight, face: Direction): Boolean {
         val held = fight.hands.hold { it.isOf(Items.OBSIDIAN) } || fight.hands.hold { it.isBuildingBlock } ||
             fight.hands.hold { it.isOf(Items.GLOWSTONE) }
-        return held && Building.placeOn(fight, anchor, face)
+        fight.lookAt(Vec3.atCenterOf(anchor).add(face.unitVec3.scale(0.5)), 4.0)
+        val turning = !fight.navigator.canClick(anchor, face)
+        if (held && Building.air(fight, anchor.relative(face)) && turning && fight.tick - coverAt < 10) return true
+        if (held && !turning) Building.placeOn(fight, anchor, face)
+        coverFace = null
+        useAt = fight.tick + 1
+        return true
     }
 
     override fun end(fight: BuiltInFight) = fight.hands.holdPrimary()

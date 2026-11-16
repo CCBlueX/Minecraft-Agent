@@ -77,7 +77,7 @@ internal object Clutch {
 
         body.hold(slot)
         aimedFace(body, cells)?.let { hit ->
-            if (body.useItemOn(InteractionHand.MAIN_HAND, hit)) {
+            if (agent.navigator.useItemOn(InteractionHand.MAIN_HAND, hit)) {
                 agent.decide("Clutch block", 1.0, "falling at ${hit.blockPos.relative(hit.direction).y}")
             }
         }

@@ -171,10 +171,8 @@ class TickBodyTest {
         player.yRot = -225f
         player.xRot = 79.950005f
         val body = TickBody(Host(TestBody(player))) { Options() }
-        fun clicks(face: Direction) =
-            body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(Vec3.atCenterOf(block), face, block, false))
-        assertFalse(clicks(Direction.SOUTH))
-        assertTrue(clicks(Direction.UP))
+        assertFalse(body.canClick(block, Direction.SOUTH))
+        assertTrue(body.canClick(block, Direction.UP))
     }
 
     @Test

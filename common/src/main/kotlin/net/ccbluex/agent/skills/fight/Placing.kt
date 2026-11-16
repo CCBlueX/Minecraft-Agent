@@ -87,6 +87,8 @@ internal class Pillar : Technique(Skill.PILLAR, 65, 300) {
 internal class BlockPearl : Technique(Skill.BLOCK_PEARL, 60, 40) {
 
     private var pearl: ThrownEnderpearl? = null
+    private var level = 0
+    private var since = 0L
 
     override fun can(fight: BuiltInFight): Boolean = fight.hands.has { it.isBuildingBlock } && incoming(fight) != null
 
@@ -104,14 +106,16 @@ internal class BlockPearl : Technique(Skill.BLOCK_PEARL, 60, 40) {
     }
 
     override fun begin(fight: BuiltInFight) {
-        val thrown = incoming(fight) ?: return
-        pearl = thrown
-        Building.wall(fight, thrown.position(), 0)
+        pearl = incoming(fight)
+        level = 0
+        since = fight.tick
     }
 
     override fun tick(fight: BuiltInFight): Boolean {
-        pearl?.takeIf { it.isAlive }?.let { Building.wall(fight, it.position(), 1) }
-        return false
+        val thrown = pearl?.takeIf { it.isAlive } ?: return false
+        // Null while it still turns to the face, for a second at most
+        val built = Building.wall(fight, thrown.position(), level) ?: return fight.tick - since < 20
+        return built && ++level <= 1
     }
 
     override fun end(fight: BuiltInFight) {
@@ -151,7 +155,7 @@ internal class Cobweb : Technique(Skill.COBWEB, 35, 80) {
         fight.attackHeld = true
         val rotation = Aiming.rotation(fight.player.eyePosition, Building.top(against))
         fight.lookAt(rotation, 3.0)
-        if (!fight.aimed(rotation, AIM_TOLERANCE) && fight.tick - since <= AIM_TICKS) return true
+        if (!fight.navigator.canClick(against, Direction.UP)) return fight.tick - since <= AIM_TICKS
         if (fight.hands.mainHand.isOf(Items.COBWEB) && fight.clickLands())
             Building.placeOn(fight, against, Direction.UP)
         return false
@@ -161,8 +165,7 @@ internal class Cobweb : Technique(Skill.COBWEB, 35, 80) {
 
     private companion object {
         const val RANGE = 3.5
-        const val AIM_TOLERANCE = 6.0
-        const val AIM_TICKS = 5
+        const val AIM_TICKS = 10
     }
 }
 

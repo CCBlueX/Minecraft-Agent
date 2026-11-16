@@ -133,9 +133,11 @@ internal class Striking(private val fight: BuiltInFight) {
     }
 
     /**
-     * Hits [entity] with what the main hand holds, as a click does.
+     * Hits [entity] with what the main hand holds, as a click does; nothing when a block stands in between
+     * ([net.ccbluex.agent.navigation.Navigator.canHit]).
      */
     fun strike(entity: Entity) {
+        if (!fight.navigator.canHit(entity)) return
         val tick = fight.tick
         val living = entity as? LivingEntity
         if (living != null && living === fight.target) pending = Pending(living, tick, life(living), living.hurtTime)

@@ -22,7 +22,6 @@ package net.ccbluex.agent.v26_3.fabric.gametest
 import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.Options
-import net.ccbluex.agent.navigation.pick
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -33,7 +32,6 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.inventory.ChestMenu
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 
 /**
@@ -45,7 +43,7 @@ private const val ANSWER_TICKS = 10
  * Clicks on blocks behind a wall: placing against a face the wall hides and opening a chest behind it are refused and
  * never sent, unless the options allow clicking through blocks (only without an anticheat, which would flag them).
  * With the wall gone the same clicks go through, so the wall is what refused them. Past stairs, a dig through the
- * step is refused and one over their low half breaks the block. A look grazing the top edge of a south face picks
+ * step is refused and one over their low half breaks the block. A look grazing the top edge of a south face clicks
  * the top face.
  *
  * @agent claude-opus-5-5
@@ -171,13 +169,10 @@ internal val blockSight: GameTestScope.() -> Unit = {
         player.xRot = 79.950005f
     }
     ticks(3)
-    // The face the navigator's own pick finds with the rotation the server has
-    val picked = context.fromClient { mc ->
-        val player = checkNotNull(mc.player)
-        val hit = player.pick(navigation.body.sentRotation, player.blockInteractionRange() + 1.0)
-        hit.direction.takeIf { hit.type == HitResult.Type.BLOCK && hit.blockPos == edge }
+    val (south, top) = context.fromClient {
+        navigation.navigator.canClick(edge, Direction.SOUTH) to navigation.navigator.canClick(edge, Direction.UP)
     }
-    check(picked == Direction.UP) { "A look grazing the top edge picks the $picked face, not the top" }
+    check(!south && top) { "A look grazing the top edge clicks the south face" }
     run("attribute $playerName minecraft:gravity base reset")
 }
 

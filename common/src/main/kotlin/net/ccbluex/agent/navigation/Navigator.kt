@@ -217,6 +217,14 @@ public class Navigator @JvmOverloads constructor(
     public fun continueDestroy(pos: BlockPos, face: Direction): Boolean = tickBody.continueDestroy(pos, face)
 
     /**
+     * Whether a click on [face] of [pos] would go out now, as [useItemOn] checks it; callers that turned to the face
+     * wait for it, since the server gets the new rotation a tick or more later.
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun canClick(pos: BlockPos, face: Direction): Boolean = tickBody.canClick(pos, face)
+
+    /**
      * Whether a hit on [entity] may go out: no solid block stands between the eyes and it where the rotation the
      * server has meets it, unless [Options.canClickThroughBlocks].
      *

@@ -64,7 +64,9 @@ internal class Gapple : Technique(Skill.GAPPLE, 70, 60) {
         fight.moveControlled = true
         if (walls > 0) {
             val target = fight.target
-            if (target == null || !Building.wall(fight, target.position(), 2 - walls) || --walls == 0) {
+            // Null while it still turns to the face; WALL_TICKS bounds the wait
+            val built = if (target == null) false else Building.wall(fight, target.position(), 2 - walls)
+            if (built != null && (!built || --walls == 0)) {
                 walls = 0
                 startEating(fight)
             }

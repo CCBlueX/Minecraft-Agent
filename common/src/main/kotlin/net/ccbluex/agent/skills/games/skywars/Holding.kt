@@ -136,9 +136,11 @@ private fun Round.canPlaceAt(cell: BlockPos): Boolean {
 }
 
 /**
- * Puts a building block onto the top of [below]: aims for a tick, then clicks.
+ * Puts a building block onto the top of [below]: aims at it until the rotation the server has hits that face, at most
+ * a second, then clicks.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 internal suspend fun Round.place(below: BlockPos) {
     val slot = player.inventory.slotOf(ItemMatch(::isBuildingBlock))
@@ -149,10 +151,13 @@ internal suspend fun Round.place(below: BlockPos) {
     agent.takeMovement()
     body.hold(slot)
     body.look(rotation, LookPurpose.AIM)
-    scope.nextTick()
-    agent.takeMovement()
-    body.look(rotation, LookPurpose.AIM)
-    body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(hit, Direction.UP, below, false))
+    var ticks = 0
+    do {
+        scope.nextTick()
+        agent.takeMovement()
+        body.look(rotation, LookPurpose.AIM)
+    } while (!agent.navigator.canClick(below, Direction.UP) && ticks++ < 20)
+    agent.navigator.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(hit, Direction.UP, below, false))
     body.releaseHotbarSlot()
     scope.nextTick()
 }
