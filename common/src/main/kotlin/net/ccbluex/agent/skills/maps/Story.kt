@@ -57,12 +57,33 @@ internal class Story(
      * What was tried and had an effect since the player last got somewhere new.
      */
     private val pending = ArrayList<Pending>()
-    private var committedAt = 0
+
+    /**
+     * Tick the player last got somewhere new.
+     */
+    var committedAt = 0
+        private set
     private var next = 0
     private var resumed = false
     private val failures = HashMap<Int, Int>()
     private var lastLeadTick = 0
     private var lastTried: Vec3? = null
+
+    /**
+     * Notes what the player sees this tick.
+     */
+    fun observe(player: Player) {
+        leads.observe(player, changes.ticks)
+    }
+
+    /**
+     * A chat line: part of the scene the last person or entity button that answered started, if it started one.
+     * Switches and zones only click; a scene runs on past them, and past someone else still talking.
+     */
+    fun heard() {
+        pending.lastOrNull { it.action == Leads.Lead.Kind.USE_ENTITY.label || it.action == Leads.Lead.Kind.WALK_UP.label }
+            ?.let { it.lines++ }
+    }
 
     /**
      * Does the next thing: the known step from here, else one lead.
@@ -75,8 +96,10 @@ internal class Story(
     }
 
     /**
-     * Keeps the step the player got somewhere new after, as by a teleport, with the steps it followed on: one that
-     * turned on what it went for, as a button the teleporter it stepped into. Everything else tried is noise.
+     * Keeps the step the player got somewhere new after, as by a teleport, with the steps it followed on (one that
+     * turned on what it went for, as a button the teleporter it stepped into) and the scenes the way on waited for,
+     * as a briefing that opens a door when it ends. Everything else tried is noise: a switch that only answers in
+     * chat, a lever that does nothing.
      */
     fun commitIfProgressed(player: Player) {
         val progress = changes.since(committedAt).filter { it.kind in PROGRESS }
@@ -84,15 +107,14 @@ internal class Story(
         val map = map
         committedAt = changes.ticks
         failures.clear()
-        val kept = ArrayList<Pending>()
-        var last = pending.lastIndex
-        if (last >= 0) kept += pending[last]
-        while (last > 0 && pending[last].follows) kept.add(0, pending[--last])
+        leads.progressed()
+        val kept = Pending.keep(pending)
+        val noise = pending.size - kept.size
         pending.clear()
         if (map == null || kept.isEmpty()) {
             return
         }
-        report("map progress: ${progress.joinToString { "${it.kind.label} ${it.detail}" }}, keeping ${kept.size} step(s)")
+        report("map progress: ${progress.joinToString { "${it.kind.label} ${it.detail}" }}, keeping ${kept.size} step(s), dropping $noise")
         var from = map.steps.size.coerceAtMost(next)
         for (done in kept) {
             val step = KnownMap.Step(done.action, done.at, done.target, done.entity, done.effect, null, done.seconds)
@@ -105,26 +127,25 @@ internal class Story(
             report("map step ${from}/${map.steps.size} learnt: ${step.action} ${step.entity ?: ""} at ${step.target?.let(::describe)} (${step.effect})")
         }
         next = from
-        pending.clear()
         play.landmark(map, player)
         maps.save(map)
     }
 
     /**
-     * The known step to do from here: the next one in order, or a later one close by; at the start the one nearest
-     * the player, as after a restart. None once a step failed twice here.
+     * The known step to do now: the next one in order, wherever it is; when taken up, as after a restart, the one
+     * nearest the player. A step that failed twice is taken as done, as one a restart came after.
      */
     private fun knownStep(player: Player): KnownMap.Step? {
         val steps = map?.steps ?: return null
-        val position = player.position()
-        fun distance(index: Int) = steps[index].at.toVec3().distanceTo(position)
-        val candidates = steps.indices.filter { it >= next || !resumed }.filter { distance(it) < NEAR_STEP }
-        resumed = true
-        if (next < steps.size && distance(next) < STEP_RANGE) {
-            return steps[next].takeIf { (failures[next] ?: 0) < MAX_FAILURES }
+        if (!resumed) {
+            resumed = true
+            val position = player.position()
+            fun distance(index: Int) = steps[index].at.toVec3().distanceTo(position)
+            // A step far off belongs to another part of the map; from here on the map is worked out anew
+            next = steps.indices.filter { distance(it) < RESUME_RANGE }.minByOrNull(::distance) ?: steps.size
         }
-        next = candidates.minByOrNull(::distance) ?: return null
-        return steps[next].takeIf { (failures[next] ?: 0) < MAX_FAILURES }
+        while (next < steps.size && (failures[next] ?: 0) >= MAX_FAILURES) next++
+        return steps.getOrNull(next)
     }
 
     /**
@@ -179,11 +200,14 @@ internal class Story(
             waitTicks(IDLE_TICKS)
             return
         }
-        val lead = leads.best(player, changes, map?.signs.orEmpty(), now, lastTried)
+        val signs = Fingerprint.signs(player.level(), player.blockPosition(), SIGN_RANGE)
+        val lead = leads.best(player, changes, signs, now, lastTried)
         if (lead == null) {
             play.show(if (changes.isTalking || player.activeEffects.isNotEmpty() && !player.onGround()) "Watching the scene" else "Waiting", null)
             waitTicks(IDLE_TICKS)
-            if (!changes.isTalking && now - lastLeadTick > RETRY_ALL_TICKS) {
+            // Told to go on and look further, wandering starts at once
+            val urged = changes.recentChat(HINT_TICKS).any(EXPLORE::containsMatchIn)
+            if (urged || !changes.isTalking && now - lastLeadTick > RETRY_ALL_TICKS) {
                 lastLeadTick = now
                 leads.retry()
                 wander(agent, player)
@@ -194,9 +218,14 @@ internal class Story(
         play.show("Trying", lead.describe())
         report("map try ${lead.describe()}")
         val talking = changes.isTalking
-        val from = player.position()
         val mark = changes.mark()
         val reached = act(agent, player, lead)
+        // Put back where it was on the way there: that way is not the map's; the walk now keeps off long drops
+        changes.since(mark).firstOrNull { it.kind == Changes.Kind.RETURNED }?.let { back ->
+            report("map was sent back from ${describe(back.position)} on the way to ${lead.describe()}")
+            leads.tried(lead, changes.ticks, worked = false)
+            return
+        }
         // Sent on while going there: the place it happened is a zone to step into
         changes.since(mark).firstOrNull { it.kind == Changes.Kind.TELEPORT }?.let { teleport ->
             report("map walked into a place that sent the player on, at ${describe(teleport.position)}")
@@ -204,7 +233,7 @@ internal class Story(
             val at = KnownMap.Point.of(teleport.position)
             pending += Pending(
                 Leads.Lead.Kind.STEP_INTO.label, at, at, null, Changes.Kind.TELEPORT.label,
-                (teleport.tick - committedAt) / TICKS_PER_SECOND.toDouble(), follows = lead.isNew,
+                (teleport.tick - committedAt) / TICKS_PER_SECOND.toDouble(), follows = followsLast(lead),
             )
             return
         }
@@ -222,24 +251,32 @@ internal class Story(
             leads.seat(lead)
             return
         }
+        // A switch answers in chat even while a scene talks; one that turned something off goes back on
+        if (changes.recentChat(changes.ticks - mark).any(OFF::containsMatchIn)) {
+            report("map ${lead.describe()} switched something off, switching it back on")
+            leads.tried(lead, changes.ticks, worked = true)
+            act(agent, player, lead)
+            leads.avoid(lead)
+            return
+        }
         // A drop into open space glides once the wings are open, after this wait
         val fell = play.isFalling(player)
         leads.tried(lead, changes.ticks, worked = effects.isNotEmpty() || fell)
         if (effects.isEmpty() && !fell) return
         report("map ${lead.describe()} did: ${effects.joinToString { "${it.kind.label} ${it.detail}" }}${if (fell) " fall" else ""}")
-        val switchedOff = effects.firstOrNull { it.kind == Changes.Kind.CHAT && OFF.containsMatchIn(it.detail) }
-        if (switchedOff != null) {
-            report("map ${lead.describe()} switched something off, switching it back on")
-            act(agent, player, lead)
-            leads.avoid(lead)
-            return
-        }
         val labels = effects.map { it.kind.label } + listOfNotNull(Changes.Kind.GLIDE.label.takeIf { fell })
         pending += Pending(
-            lead.kind.label, KnownMap.Point.of(from), KnownMap.Point.of(lead.position), lead.entity?.let(Leads::typeOf),
-            labels.joinToString(), (changes.ticks - committedAt) / TICKS_PER_SECOND.toDouble(), lead.isNew,
+            lead.kind.label, KnownMap.Point.of(player.position()), KnownMap.Point.of(lead.position), lead.entity?.let(Leads::typeOf),
+            labels.joinToString(), (changes.ticks - committedAt) / TICKS_PER_SECOND.toDouble(), followsLast(lead),
         )
     }
+
+    /**
+     * Whether [lead] came up from the last thing that had an effect, as a teleporter a button turned on.
+     */
+    private fun followsLast(lead: Leads.Lead) = lead.isNew && pending.lastOrNull()?.let {
+        Changes.Kind.APPEARED.label in it.effect || Changes.Kind.REMOVED.label in it.effect
+    } == true
 
     /**
      * Goes to [lead] and does what it asks: interact, use, step into or walk up to it. False when it was not reached.
@@ -279,19 +316,22 @@ internal class Story(
                     ticks >= STEP_INTO_TICKS || !player.onGround() || player.position().distanceTo(lead.position) < STEP_REACH
                 }
             }
-            Leads.Lead.Kind.WALK_UP -> if (ending != Ending.ARRIVED) return false
+            // Close is near enough to whoever stands behind a counter
+            Leads.Lead.Kind.WALK_UP -> if (ending != Ending.ARRIVED && player.position().distanceTo(lead.position) > FIGURE_REACH) return false
         }
         return true
     }
 
     /**
-     * Walks somewhere new when nothing is left to try, to find what the map hides further away.
+     * Walks where the player has not been yet when nothing is left to try, to find what the map hides further away.
      */
     private suspend fun wander(agent: Agent, player: Player) {
-        val random = player.random
-        val angle = random.nextDouble() * Math.PI * 2
-        val distance = WANDER_MIN + random.nextDouble() * WANDER_MIN
-        val goal = player.position().add(Math.cos(angle) * distance, 0.0, Math.sin(angle) * distance)
+        val position = player.position()
+        val offset = player.random.nextDouble() * Math.PI
+        val goal = (0 until WANDER_DIRECTIONS).flatMap { index ->
+            val angle = offset + index * Math.PI * 2 / WANDER_DIRECTIONS
+            listOf(WANDER_MIN, WANDER_MIN * 2).map { position.add(Math.cos(angle) * it, 0.0, Math.sin(angle) * it) }
+        }.maxBy(changes::unvisited)
         play.show("Wandering", describe(goal))
         report("map wander to ${describe(goal)}")
         play.walk(agent, player, goal, WANDER_RADIUS)
@@ -303,10 +343,12 @@ internal class Story(
     private companion object {
         const val TICKS_PER_SECOND = 20
         val PROGRESS = setOf(Changes.Kind.TELEPORT, Changes.Kind.ARMOUR, Changes.Kind.EFFECT, Changes.Kind.GLIDE)
-        val OFF = Regex("""(?i)\b(off|disabled)\b""")
-        const val STEP_RANGE = 48.0
-        const val NEAR_STEP = 16.0
+        val OFF = Regex("""(?i):\s*off\b|\b(disabled|turned off)\b""")
+        val EXPLORE = Regex("""(?i)\b(explore|exploring|keep going|press on)\b""")
+        const val HINT_TICKS = 40 * TICKS_PER_SECOND
+        const val SIGN_RANGE = 24
         const val SAME_PLACE = 2.5
+        const val RESUME_RANGE = 48.0
         const val MAX_FAILURES = 2
         const val REPLAY_RETRY_TICKS = 100
         const val MIN_EFFECT_TICKS = 15 * TICKS_PER_SECOND
@@ -317,10 +359,12 @@ internal class Story(
         const val STEP_REACH = 0.7
         const val STEP_PUSH_RANGE = 6.0
         const val WALK_UP_REACH = 0.8
+        const val FIGURE_REACH = 3.0
         const val INTERACT_REACH = 4.5
         const val LOOK_TICKS = 2
         const val STEP_INTO_TICKS = 60
         const val WANDER_MIN = 12.0
+        const val WANDER_DIRECTIONS = 8
         const val WANDER_RADIUS = 3.0
 
         fun describe(point: KnownMap.Point) = "${point.x.toInt()},${point.y.toInt()},${point.z.toInt()}"

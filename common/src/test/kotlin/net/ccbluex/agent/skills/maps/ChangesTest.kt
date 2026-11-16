@@ -104,4 +104,30 @@ internal class ChangesTest {
         repeat(5) { changes.tick(player) }
         assertEquals(listOf(second.id), changes.appeared.map { it.entity })
     }
+
+    @Test
+    fun `a player put back where it was long ago is sent back, not on`() {
+        repeat(221) { changes.tick(player) }
+        player.snapTo(Vec3(30.5, 1.0, 0.5), 0f, 0f)
+        changes.tick(player)
+        assertEquals(Changes.Kind.TELEPORT, changes.since(220).single().kind)
+        val mark = changes.mark()
+        player.snapTo(Vec3(0.5, 1.0, 0.5), 0f, 0f)
+        changes.tick(player)
+        assertEquals(Changes.Kind.RETURNED, changes.since(mark).single().kind)
+        assertEquals(changes.ticks, changes.returnedAt)
+    }
+
+    @Test
+    fun `chat of the last ticks is told oldest first, places not visited are far from every place visited`() {
+        changes.tick(player)
+        changes.chat("one")
+        repeat(30) { changes.tick(player) }
+        changes.chat("two")
+        assertEquals(listOf("two"), changes.recentChat(10))
+        assertEquals(listOf("one", "two"), changes.recentChat(100))
+        assertTrue(changes.unvisited(Vec3(40.5, 1.0, 0.5)) > 30.0)
+        repeat(20) { changes.tick(player) }
+        assertTrue(changes.unvisited(Vec3(0.5, 1.0, 0.5)) < 1.0)
+    }
 }

@@ -35,6 +35,7 @@ import net.ccbluex.agent.tick.tickUntil
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
+import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
@@ -79,6 +80,7 @@ public class MapPlay(
     private var deaths = 0
     private var glides = 0
     private var isDone = false
+    private var savedAt = 0
 
     /**
      * Every block the gliding body touches, for the navigator: a collision, but for the touch-down where it lands.
@@ -105,6 +107,15 @@ public class MapPlay(
         val player = agent.body.player
         this.player = player
         changes.tick(player)
+        story.observe(player)
+        map?.takeIf { changes.ticks % LANDMARK_TICKS == 0 && player.isAlive }?.let { landmark(it, player) }
+        // Maps that keep players from harm, as with Resistance V and up, let the walk take any drop; until the map
+        // sends the player back from where one led, as off a balcony, till it gets somewhere new
+        val immune = (player.getEffect(MobEffects.RESISTANCE)?.amplifier ?: -1) >= IMMUNE_RESISTANCE
+        val maxFall = if (immune && changes.returnedAt <= story.committedAt) IMMUNE_FALL else NavigationOptions().maxFall
+        if (agent.navigator.options.maxFall != maxFall) {
+            agent.navigator.options = agent.navigator.options.copy(maxFall = maxFall)
+        }
         if (!started) {
             started = true
             scope.launch { play(agent) }
@@ -131,6 +142,7 @@ public class MapPlay(
      */
     public fun chat(line: String) {
         changes.chat(line)
+        story.heard()
         if (!isDone && DONE.containsMatchIn(line)) {
             isDone = true
             val map = map ?: return
@@ -155,18 +167,23 @@ public class MapPlay(
     }
 
     /**
-     * Walks to [goal] within [radius]; null when it took too long, the player died or took off.
+     * Walks to [goal] within [radius]; null when it took too long for the way, the player died or took off.
      */
     internal suspend fun walk(agent: Agent, player: Player, goal: Vec3, radius: Double): Ending? {
         var ending: Ending? = null
+        val limit = WALK_TICKS + (goal.distanceTo(player.position()) * TICKS_PER_BLOCK).toInt()
         agent.navigator.moveTo(goal, radius) { ending = it }
-        tickUntil { ticks -> ending != null || ticks >= WALK_TICKS || !player.isAlive || player.isFallFlying || isFalling(player) }
+        tickUntil { ticks -> ending != null || ticks >= limit || !player.isAlive || player.isFallFlying || isFalling(player) }
         if (ending == null) agent.navigator.stop()
         return ending
     }
 
     private suspend fun play(agent: Agent) {
         show("Looking around", null)
+        // Taken up in the air, as after a restart mid-glide: steered at once, the map is told once down
+        while (agent.body.player.let { it.isFallFlying || isFalling(it) }) {
+            step(agent)
+        }
         // The chunks around the player come in over the first ticks
         tickUntil { it >= LOAD_TICKS || allLoaded(agent.body.player) }
         val first = agent.body.player
@@ -174,15 +191,19 @@ public class MapPlay(
         recognise(first)
         startTick = changes.ticks
         while (true) {
-            // A respawn makes a new player
-            val player = agent.body.player
-            when {
-                !player.isAlive || player.isDeadOrDying -> respawn(agent, player)
-                player.isFallFlying -> glide(agent, player)
-                isFalling(player) -> openWings(agent, player)
-                player.isPassenger -> leaveSeat(agent)
-                else -> story.advance(agent, player)
-            }
+            step(agent)
+        }
+    }
+
+    private suspend fun step(agent: Agent) {
+        // A respawn makes a new player
+        val player = agent.body.player
+        when {
+            !player.isAlive || player.isDeadOrDying -> respawn(agent, player)
+            player.isFallFlying -> glide(agent, player)
+            isFalling(player) -> openWings(agent, player)
+            player.isPassenger -> leaveSeat(agent)
+            else -> story.advance(agent, player)
         }
     }
 
@@ -209,13 +230,18 @@ public class MapPlay(
     }
 
     /**
-     * Samples around where the player is, so the map is told again from here too; once per place.
+     * Samples around where the player is, so the map is told again from here too, as after a restart; once per
+     * place, written down now and then.
      */
     internal fun landmark(map: KnownMap, player: Player) {
         val here = player.blockPosition()
         if (map.samples.none { here.distManhattan(BlockPos(it.x, it.y, it.z)) < LANDMARK_SPACING }) {
             map.samples += Fingerprint.sample(player.level(), here)
             map.signs += Fingerprint.signs(player.level(), here, SIGN_RANGE).filter { it !in map.signs }
+            if (changes.ticks - savedAt >= SAVE_TICKS) {
+                savedAt = changes.ticks
+                maps.save(map)
+            }
         }
     }
 
@@ -248,13 +274,14 @@ public class MapPlay(
         // Dropping into open space is the story moving on
         story.commitIfProgressed(player)
         val start = player.position()
-        if (glides++ == 0) {
+        if (map != null && glides++ == 0) {
             val seconds = (changes.ticks - startTick) / TICKS_PER_SECOND.toDouble()
             report("map entry done in ${"%.1f".format(seconds)}s")
-            map?.let { if (seconds < (it.best["entry"] ?: Double.MAX_VALUE)) it.best["entry"] = seconds }
+            if (seconds < (map.best["entry"] ?: Double.MAX_VALUE)) map.best["entry"] = seconds
         }
-        val course = map?.courses?.filter { it.start.toVec3().distanceTo(start) < COURSE_RANGE }
-            ?.minByOrNull { it.start.toVec3().distanceTo(start) }
+        // Taken up mid-course too, as after a restart: the course that passes nearest
+        fun distance(course: KnownMap.Course) = course.points.minOf { it.toVec3().distanceTo(start) }
+        val course = map?.courses?.filter { it.points.isNotEmpty() && distance(it) < COURSE_RANGE }?.minByOrNull(::distance)
         report("map course start at ${describe(start)} known=${course != null}")
         val deathsBefore = deaths
         val flight = Glide(changes)
@@ -271,6 +298,7 @@ public class MapPlay(
         val end = player.position()
         val landed = agent.body.player === player && player.isAlive && !player.isDeadOrDying
         report("map course ${if (landed) "landed" else "ended"} at ${describe(end)} after ${"%.1f".format(seconds)}s touches=$touches")
+        // A glide taken up in the air, as after a restart, flies before the map is known and is only part of a course
         if (map == null || !landed || deaths != deathsBefore || flight.points.size < MIN_COURSE_POINTS) return
         map.asks += KnownMap.ASK_GLIDE
         val known = map.courses.indexOfFirst { it.start.toVec3().distanceTo(start) < COURSE_RANGE }
@@ -302,10 +330,16 @@ public class MapPlay(
         const val RESPAWN_TICKS = 100
         const val WINGS_TICKS = 40
         const val SEAT_TICKS = 10
-        const val WALK_TICKS = 30 * TICKS_PER_SECOND
+        const val WALK_TICKS = 10 * TICKS_PER_SECOND
+        const val TICKS_PER_BLOCK = 12
+        const val IMMUNE_RESISTANCE = 4
+        const val IMMUNE_FALL = 32
         const val FALL_SPEED = -0.3
         const val FALL_DISTANCE = 2.0
+        const val GLIDE_DROP = 8
         const val LANDMARK_SPACING = 48
+        const val LANDMARK_TICKS = 40
+        const val SAVE_TICKS = 30 * TICKS_PER_SECOND
         const val SIGN_RANGE = 24
         const val COURSE_RANGE = 48.0
         const val MIN_COURSE_POINTS = 5

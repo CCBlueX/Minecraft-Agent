@@ -28,8 +28,8 @@ import net.minecraft.world.level.block.entity.SignBlockEntity
 import net.minecraft.world.level.block.entity.SignTextSlot
 
 /**
- * Tells a map by its blocks: samples on a fixed grid around a place, compared with what the level holds there now.
- * Only loaded chunks count, and only places where either side has a block, so open sky matches nothing.
+ * Tells a map by its blocks: blocks sampled around a place, compared with what the level holds there now. Only
+ * loaded chunks count, and only blocks, never air: a room in the void tells as much as a valley.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -37,17 +37,19 @@ import net.minecraft.world.level.block.entity.SignTextSlot
 internal object Fingerprint {
 
     /**
-     * Blocks on a 9 x 4 x 9 grid, 4 apart, around [center]; unloaded chunks are left out.
+     * Up to [SAMPLES] blocks spread over a 3-apart grid 36 wide and 18 high around [center]; air and unloaded chunks
+     * are left out.
      */
     fun sample(level: Level, center: BlockPos): List<KnownMap.Sample> {
-        val samples = ArrayList<KnownMap.Sample>()
-        for (dx in -16..16 step 4) for (dz in -16..16 step 4) for (dy in -4..8 step 4) {
+        val blocks = ArrayList<KnownMap.Sample>()
+        for (dx in -18..18 step 3) for (dz in -18..18 step 3) for (dy in -6..12 step 3) {
             val x = center.x + dx
             val y = center.y + dy
             val z = center.z + dz
-            blockAt(level, x, y, z)?.let { samples += KnownMap.Sample(x, y, z, it) }
+            blockAt(level, x, y, z)?.takeIf { it !in AIR }?.let { blocks += KnownMap.Sample(x, y, z, it) }
         }
-        return samples
+        val every = (blocks.size + SAMPLES - 1) / SAMPLES
+        return if (every <= 1) blocks else blocks.filterIndexed { index, _ -> index % every == 0 }
     }
 
     /**
@@ -99,5 +101,6 @@ internal object Fingerprint {
     }
 
     private val AIR = setOf("minecraft:air", "minecraft:cave_air", "minecraft:void_air")
+    private const val SAMPLES = 96
     private val SPACES = Regex("""\s+""")
 }

@@ -54,7 +54,8 @@ internal class Glide(private val changes: Changes) {
         private set
 
     /**
-     * Glides until the player is on the ground or dead.
+     * Glides until the player is on the ground or dead. A goal stays until the player comes near it or the way
+     * turns away from it, as every new one is a new route for the navigator.
      */
     suspend fun fly(agent: Agent, course: KnownMap.Course?) {
         val player = agent.body.player
@@ -63,17 +64,20 @@ internal class Glide(private val changes: Changes) {
         var heading = player.deltaMovement.horizontal().takeIf { it.lengthSqr() > 1e-4 }?.normalize() ?: player.lookAngle.horizontal().normalize()
         while (player.isAlive && player.isFallFlying) {
             if (ticks % POINT_TICKS == 0) points += KnownMap.Point.of(player.position())
-            val landHere = landing == null && changes.lastChat?.lowercase()?.let { LAND.containsMatchIn(it) } == true &&
-                changes.isTalking
+            val landHere = landing == null && changes.recentChat(LAND_TICKS).any { LAND.containsMatchIn(it.lowercase()) }
             if (landHere || landing == null && ticks % GOAL_TICKS == 0) {
+                val position = player.position()
                 val next = when {
                     landHere -> ground(player, heading)?.also { landing = it }
-                    course != null -> ahead(course, player.position())
+                    course != null -> ahead(course, position)
                     else -> openWay(player, heading)
-                }
-                if (next != null && next != goal) {
+                }?.let { if (it == landing) it else aloft(player, it) }
+                val current = goal
+                val due = current == null || next == landing || current.distanceTo(position) < NEAR_GOAL ||
+                    next != null && angle(next.subtract(position), current.subtract(position)) > TURNED
+                if (next != null && due) {
                     goal = next
-                    heading = next.subtract(player.position()).horizontal().takeIf { it.lengthSqr() > 1e-4 }?.normalize() ?: heading
+                    heading = next.subtract(position).horizontal().takeIf { it.lengthSqr() > 1e-4 }?.normalize() ?: heading
                     navigator.moveTo(next, if (next == landing) LANDING_RADIUS else PASS_RADIUS)
                 }
             }
@@ -84,7 +88,7 @@ internal class Glide(private val changes: Changes) {
     }
 
     /**
-     * The course point [AHEAD] blocks past the one nearest [position]; its end once that is closer.
+     * The course point [AHEAD] blocks past the one nearest [position]; its end, where it landed, once that is closer.
      */
     private fun ahead(course: KnownMap.Course, position: Vec3): Vec3? {
         val points = course.points.map { it.toVec3() }
@@ -98,8 +102,24 @@ internal class Glide(private val changes: Changes) {
     }
 
     /**
+     * [goal] lifted off any floor right below it: the navigator lands on a goal with ground, and the map's course
+     * kills a player landing before its end.
+     */
+    private fun aloft(player: Player, goal: Vec3): Vec3 {
+        val level = player.level()
+        val below = BlockPos.containing(goal).below()
+        return if (level.getBlockState(below).getCollisionShape(level, below).isEmpty) goal else goal.add(0.0, LIFT, 0.0)
+    }
+
+    private fun angle(a: Vec3, b: Vec3): Double {
+        val lengths = a.length() * b.length()
+        return if (lengths < 1e-6) 0.0 else Math.toDegrees(Math.acos((a.dot(b) / lengths).coerceIn(-1.0, 1.0)))
+    }
+
+    /**
      * A point far along the most open way from the player, not turning back on [heading]: down a shaft at first,
-     * along the cave after.
+     * along the cave after. Far past what is seen along a cave, as the navigator flies on into what is not loaded
+     * yet; short of the floor down a shaft, so the glide turns where the shaft does.
      */
     private fun openWay(player: Player, heading: Vec3): Vec3 {
         val eye = player.eyePosition
@@ -113,7 +133,8 @@ internal class Glide(private val changes: Changes) {
             val score = free - abs(dYaw) * TURN_COST
             if (score > bestScore) {
                 bestScore = score
-                best = eye.add(direction.scale(free.coerceAtLeast(MIN_FREE) * FAR))
+                val reach = if (xRot >= STEEP) (free - FLOOR_GAP).coerceAtLeast(MIN_FREE) else free.coerceAtLeast(MIN_FREE) * FAR
+                best = eye.add(direction.scale(reach))
             }
         }
         return best
@@ -143,15 +164,17 @@ internal class Glide(private val changes: Changes) {
 
     private companion object {
         const val POINT_TICKS = 10
-        const val GOAL_TICKS = 40
+        const val GOAL_TICKS = 10
         const val SIGHT = 96.0
         const val MIN_FREE = 8.0
-
-        /**
-         * How far past the open stretch seen the goal lies, so the navigator flies on into what is not loaded yet.
-         */
         const val FAR = 4.0
-        const val AHEAD = 60.0
+        const val STEEP = 50
+        const val FLOOR_GAP = 6.0
+        const val AHEAD = 120.0
+        const val NEAR_GOAL = 48.0
+        const val TURNED = 35.0
+        const val LIFT = 3.0
+        const val LAND_TICKS = 100
         const val MIN_LAND = 6.0
         const val DROP = 40.0
         const val PASS_RADIUS = 4.0

@@ -22,10 +22,15 @@ package net.ccbluex.agent.skills.maps
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
+import net.ccbluex.agent.skills.TestInventories
 import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.EntityTypes
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.Interaction
 import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
@@ -43,6 +48,7 @@ internal class LeadsTest {
     companion object {
         init {
             MinecraftBootstrap.ensureInitialized()
+            TestInventories.bootstrap()
         }
     }
 
@@ -125,5 +131,53 @@ internal class LeadsTest {
         assertEquals(near, best()?.entity)
         val toggle = KnownMap.Sign(3, 1, 0, "Toggle music")
         assertEquals(far, leads.best(player, changes, listOf(toggle), 0, null)?.entity)
+    }
+
+    @Test
+    fun `a person with a name over the head is walked up to where a player stands, even when invisible`() {
+        val guide = ArmorStand(EntityTypes.ARMOR_STAND, level).also {
+            it.setPos(4.5, 3.0, 0.5)
+            it.setCustomName(Component.literal("Guide"))
+            it.isCustomNameVisible = true
+            it.setInvisible(true)
+            level.add(it)
+        }
+        val lead = assertNotNull(best())
+        assertEquals(Leads.Lead.Kind.WALK_UP, lead.kind)
+        assertEquals(guide, lead.entity)
+        assertEquals(Vec3(4.5, 1.0, 0.5), lead.position)
+    }
+
+    @Test
+    fun `a wall taken away down to the floor is a door to step into`() {
+        world.fill(4, 1, 0, 4, 2, 0)
+        world.fill(4, 1, 0, 4, 2, 0, TestWorld.AIR)
+        changes.tick(player)
+        changes.blockChanged(BlockPos(4, 2, 0), TestWorld.AIR, player.position())
+        changes.blockChanged(BlockPos(4, 1, 0), TestWorld.AIR, player.position())
+        val lead = assertNotNull(best())
+        assertEquals(Leads.Lead.Kind.STEP_INTO, lead.kind)
+        assertEquals(Vec3(4.5, 1.0, 0.5), lead.position)
+    }
+
+    @Test
+    fun `nothing is tried far off while a scene talks`() {
+        interaction(30.5, 0.5)
+        changes.tick(player)
+        changes.chat("Welcome to the lab")
+        assertNull(best())
+        val near = interaction(10.5, 0.5)
+        assertEquals(near, best()?.entity)
+    }
+
+    @Test
+    fun `told to drop with wings on, the nearest edge over a deep drop is a way on`() {
+        player.setItemSlot(EquipmentSlot.CHEST, ItemStack(Items.ELYTRA))
+        player.snapTo(Vec3(39.5, 1.0, 0.5), 0f, 0f)
+        changes.tick(player)
+        changes.chat("Jump off the ledge and glide down")
+        val lead = assertNotNull(best())
+        assertEquals(Leads.Lead.Kind.STEP_INTO, lead.kind)
+        assertEquals(Vec3(41.5, 1.0, 0.5), lead.position)
     }
 }

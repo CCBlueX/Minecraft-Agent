@@ -46,8 +46,15 @@ internal class Changes {
     private val seenEffects = HashSet<String>()
     private var lastEntities: Set<Int> = emptySet()
     private var wasFallFlying = false
+    private val visited = ArrayDeque<Pair<Int, Vec3>>()
 
     private val events = ArrayList<Event>()
+
+    /**
+     * Tick the map last put the player back where it already was.
+     */
+    var returnedAt = -1
+        private set
 
     /**
      * Tick of the last chat line from the server.
@@ -57,6 +64,16 @@ internal class Changes {
 
     val lastChat: String?
         get() = events.lastOrNull { it.kind == Kind.CHAT }?.detail
+
+    /**
+     * The chat lines of the last [ticks] ticks, oldest first.
+     */
+    fun recentChat(ticks: Int): List<String> = events.filter { it.kind == Kind.CHAT && this.ticks - it.tick < ticks }.map { it.detail }
+
+    /**
+     * How far [pos] is from every place the player was lately.
+     */
+    fun unvisited(pos: Vec3): Double = visited.minOfOrNull { it.second.distanceTo(pos) } ?: Double.MAX_VALUE
 
     /**
      * Places of blocks the server took away near the player, newest last.
@@ -80,10 +97,17 @@ internal class Changes {
             val moved = position.distanceTo(last)
             // A fall or a glide is fast too, but never this fast in one tick; the place left is where it was set off
             if (moved > TELEPORT_DISTANCE && !player.isFallFlying) {
-                add(Kind.TELEPORT, last, "to ${position.x.toInt()},${position.y.toInt()},${position.z.toInt()}")
+                // Put back where it already was, as by a map that keeps players from the wrong way: no way on
+                val back = visited.any { (tick, at) -> ticks - tick > RETURN_AGE && at.distanceTo(position) < RETURN_RANGE }
+                if (back) returnedAt = ticks
+                add(if (back) Kind.RETURNED else Kind.TELEPORT, last, "to ${position.x.toInt()},${position.y.toInt()},${position.z.toInt()}")
             }
         }
         lastPosition = position
+        if (ticks % VISIT_TICKS == 0) {
+            visited.addLast(ticks to position)
+            if (visited.size > MAX_VISITED) visited.removeFirst()
+        }
         if (player.isFallFlying && !wasFallFlying) add(Kind.GLIDE, position, "took off")
         wasFallFlying = player.isFallFlying
         val armour = EquipmentSlot.entries.filter { it.isArmor }.map { BuiltInRegistries.ITEM.getKey(player.getItemBySlot(it).item).toString() }
@@ -154,6 +178,7 @@ internal class Changes {
         REMOVED("blocks removed"),
         APPEARED("entity appeared"),
         GLIDE("glide"),
+        RETURNED("teleport back"),
     }
 
     /**
@@ -163,6 +188,10 @@ internal class Changes {
 
     private companion object {
         const val TELEPORT_DISTANCE = 6.0
+        const val VISIT_TICKS = 20
+        const val MAX_VISITED = 600
+        const val RETURN_AGE = 200
+        const val RETURN_RANGE = 6.0
         const val NEAR = 24.0
         const val ENTITY_SCAN_TICKS = 5
         const val KEEP_TICKS = 20 * 60
