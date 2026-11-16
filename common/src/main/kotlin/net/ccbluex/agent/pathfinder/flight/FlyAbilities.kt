@@ -61,14 +61,20 @@ public class FlyAbilities(
             if (!abilities.mayfly && !abilities.flying) {
                 return null
             }
+            return creative(abilities.flyingSpeed, abilities.flying)
+        }
 
+        /**
+         * Creative flight at [flyingSpeed], as `Abilities.flyingSpeed` gives it.
+         */
+        public fun creative(flyingSpeed: Float, isFlying: Boolean): FlyAbilities {
             // Sprinting doubles the flying speed, and the speed settles where drag takes what the keys add.
-            val speed = abilities.flyingSpeed.toDouble()
+            val speed = flyingSpeed.toDouble()
             return FlyAbilities(
                 Acceleration.MOMENTUM,
                 horizontalSpeed = 2.0 * speed * INPUT_SCALE / (1.0 - FLYING_AIR_DRAG),
                 verticalSpeed = speed * VERTICAL_THRUST / (1.0 - VERTICAL_DRAG),
-                isFlying = abilities.flying,
+                isFlying = isFlying,
             )
         }
     }

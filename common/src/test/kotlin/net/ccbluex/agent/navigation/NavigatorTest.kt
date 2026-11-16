@@ -61,7 +61,6 @@ internal class NavigatorTest {
         override var safeWalk = false
         override val latencyMillis = 0
         override val traits = BodyTraits()
-        override val flight: FlightControl? = null
         override val teleporter: Teleporter? = null
 
         override fun press(input: Input, exact: Boolean) = Unit

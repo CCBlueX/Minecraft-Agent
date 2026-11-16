@@ -27,6 +27,9 @@ import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.entity.LivingEntity.Companion.FLYING_AIR_DRAG
 import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * How the player's flight answers the keys, measured from what the player did after them: the motion the keys add a
@@ -136,7 +139,7 @@ internal class Handling {
         val before = lastMove
         if (pressed != null && move != null && before != null && move.lengthSqr() < MAX_MOVE * MAX_MOVE) {
             if (!player.horizontalCollision) {
-                measureLevel(move, before, pressed, player.isSprinting)
+                measureLevel(move, before, pressed, player.yRot, player.isSprinting)
             }
             if (!player.verticalCollision) {
                 measureVertical(move.y, before.y, pressed)
@@ -156,24 +159,46 @@ internal class Handling {
         return player.position().add(move.x * coast, move.y * verticalDrag / (1.0 - verticalDrag), move.z * coast)
     }
 
-    private fun measureLevel(move: Vec3, before: Vec3, pressed: Input, sprint: Boolean) {
-        val pushes = pressed.forward || pressed.backward || pressed.left || pressed.right
-        if (pushes) {
-            val drag = drag
-            val added = Vec3(move.x - before.x * drag, 0.0, move.z - before.z * drag).horizontalDistance()
-            if (sprint) {
-                measuredSprintThrust = blend(measuredSprintThrust, added)
-            } else {
-                measuredThrust = blend(measuredThrust, added)
-            }
+    private fun measureLevel(move: Vec3, before: Vec3, pressed: Input, yRot: Float, sprint: Boolean) {
+        val strafe = (if (pressed.left) 1.0 else 0.0) - (if (pressed.right) 1.0 else 0.0)
+        val forward = (if (pressed.forward) 1.0 else 0.0) - (if (pressed.backward) 1.0 else 0.0)
+        if (strafe == 0.0 && forward == 0.0) {
+            measureDrag(move, before.x, before.z)
             return
         }
 
-        val beforeSqr = before.horizontalDistanceSqr()
-        if (beforeSqr > MIN_MOVE * MIN_MOVE) {
-            val kept = (move.x * before.x + move.z * before.z) / beforeSqr
-            measuredDrag = blend(measuredDrag, kept.coerceIn(0.0, MAX_DRAG))
+        // Across the keys' direction the motion only fades, so a turn measures the drag with the keys held
+        val yaw = Math.toRadians(yRot.toDouble())
+        val length = sqrt(strafe * strafe + forward * forward)
+        val directionX = (strafe * cos(yaw) - forward * sin(yaw)) / length
+        val directionZ = (forward * cos(yaw) + strafe * sin(yaw)) / length
+        val along = before.x * directionX + before.z * directionZ
+        measureDrag(move, before.x - along * directionX, before.z - along * directionZ)
+
+        val drag = drag
+        val added = Vec3(move.x - before.x * drag, 0.0, move.z - before.z * drag).horizontalDistance()
+        if (sprint) {
+            measuredSprintThrust = blend(measuredSprintThrust, added)
+        } else {
+            measuredThrust = blend(measuredThrust, added)
         }
+    }
+
+    /**
+     * Measures the share of the earlier motion ([x], [z]) that [move] kept, where no keys pushed along it.
+     */
+    private fun measureDrag(move: Vec3, x: Double, z: Double) {
+        val lengthSqr = x * x + z * z
+        if (lengthSqr <= MIN_MOVE * MIN_MOVE) {
+            return
+        }
+        if (measuredDrag.isNaN()) {
+            // The thrust so far was taken against the assumed drag
+            measuredThrust = Double.NaN
+            measuredSprintThrust = Double.NaN
+        }
+        val kept = (move.x * x + move.z * z) / lengthSqr
+        measuredDrag = blend(measuredDrag, kept.coerceIn(0.0, MAX_DRAG))
     }
 
     private fun measureVertical(move: Double, before: Double, pressed: Input) {
@@ -183,6 +208,7 @@ internal class Handling {
             // Falling faster or turning around without keys is gravity or the fly mode's own push, not drag
             val kept = move / before
             if (kept in 0.0..1.0) {
+                if (measuredVerticalDrag.isNaN()) measuredVerticalThrust = Double.NaN
                 measuredVerticalDrag = blend(measuredVerticalDrag, kept.coerceAtMost(MAX_DRAG))
             }
         }

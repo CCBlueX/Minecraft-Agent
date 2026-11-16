@@ -20,14 +20,12 @@
 package net.ccbluex.agent.navigation.flight
 
 import net.ccbluex.agent.math.Vec3
-import net.ccbluex.agent.navigation.FlightControl
 import net.ccbluex.agent.navigation.FollowState
 import net.ccbluex.agent.navigation.TestBody
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.pathfinder.advanceToEnd
-import net.ccbluex.agent.pathfinder.flight.Acceleration
 import net.ccbluex.agent.pathfinder.flight.Route
 import net.ccbluex.agent.pathfinder.flight.RouteSearch
 import net.ccbluex.agent.pathfinder.found
@@ -90,9 +88,7 @@ internal class FollowerTest {
      *
      * @agent claude-opus-5-5
      */
-    private class FlyMode(val speed: Double, val drag: Double) : FlightControl {
-        override val control: Acceleration
-            get() = if (drag > 0.0) Acceleration.MOMENTUM else Acceleration.DIRECT
+    private class FlyMode(val speed: Double, val drag: Double) {
 
         private var velocity = Vec3.ZERO
 
@@ -115,7 +111,7 @@ internal class FollowerTest {
     fun `a fly mode of any speed flies the route to its end and stops there`(speed: Double, drag: Double) {
         val handle = TestLevel(TestWorld()).player(START)
         val mode = FlyMode(speed, drag)
-        val body = TestBody(handle, mode)
+        val body = TestBody(handle, isFlying = true)
         val player = body.player
         val context = body.context()
         val handling = Handling()
@@ -167,7 +163,7 @@ internal class FollowerTest {
      *
      * @agent claude-opus-5-5
      */
-    private class HopMode(world: TestWorld, start: Vec3) : FlightControl {
+    private class HopMode(world: TestWorld, start: Vec3) {
         private val motion = PlayerMotion(world.terrain()).also { it.reset(start, Vec3.ZERO, onGround = true) }
         private var wait = 0
         private var last = Input.EMPTY
@@ -210,12 +206,12 @@ internal class FollowerTest {
         val end = TestWorld.feet(0, 7, 20)
         val handle = TestLevel(world).player(start)
         val mode = HopMode(world, start)
-        val body = TestBody(handle, mode)
+        val body = TestBody(handle, isFlying = true)
         val player = body.player
         val context = body.context()
         val handling = Handling()
         val follower = Follower(context, handling)
-        follower.follow(Route(start, listOf(start, Vec3(end.x, start.y, end.z), end), canReach = true))
+        follower.follow(Route(start, listOf(start, end), canReach = true))
 
         repeat(MAX_TICKS) {
             val abilities = checkNotNull(context.captureFlight(handling))
@@ -236,7 +232,7 @@ internal class FollowerTest {
      *
      * @agent claude-opus-5-5
      */
-    private class VanillaMode(world: TestWorld, start: Vec3, onGround: Boolean) : FlightControl {
+    private class VanillaMode(world: TestWorld, start: Vec3, onGround: Boolean) {
         private val motion = PlayerMotion(world.terrain()).also { it.reset(start, Vec3.ZERO, onGround) }
 
         fun move(player: Player, input: Input) {
@@ -281,7 +277,7 @@ internal class FollowerTest {
         val end = TestWorld.feet(40, 10, 0)
         val handle = TestLevel(world).player(start)
         val mode = VanillaMode(world, start, onGround)
-        val body = TestBody(handle, mode)
+        val body = TestBody(handle, isFlying = true)
         val player = body.player
         val context = body.context()
         val handling = Handling()

@@ -19,14 +19,12 @@
 
 package net.ccbluex.agent.skills.games
 
-import net.ccbluex.agent.navigation.FlightControl
-
 /**
- * The host's flight, such as a fly module, turned on and off by a game mode; while on, `Body.flight` must be non-null.
+ * The host's flight, such as a fly module, turned on and off by a game mode; while on, `Body.isFlying` must be true.
  *
  * @agent claude-opus-5-5
  */
-public interface FlightSwitch : FlightControl {
+public interface FlightSwitch {
 
     /**
      * Whether the flight runs right now; void rescue leaves a flying player alone.

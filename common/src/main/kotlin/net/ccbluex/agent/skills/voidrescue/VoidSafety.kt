@@ -26,7 +26,6 @@ import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.Throws
-import net.ccbluex.agent.skills.games.FlightSwitch
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.world.Input
@@ -168,7 +167,7 @@ internal class VoidSafety : VoidRescue {
      */
     private fun isFlying(agent: Agent): Boolean {
         val player = agent.body.player
-        val hostFlies = (agent.body.flight as? FlightSwitch)?.isFlying == true && !freeFall.isFalling
+        val hostFlies = agent.body.isFlying && !freeFall.isFalling
         return player.abilities.flying || player.isFallFlying || hostFlies
     }
 }

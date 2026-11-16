@@ -23,9 +23,9 @@ import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.flight.FlyAbilities
 
 /**
- * How the body flies now: the host's [net.ccbluex.agent.navigation.FlightControl] while it runs, else creative
- * flight, at the speeds [handling] measured; null when [net.ccbluex.agent.navigation.Options.canFly] is off or the
- * body cannot fly.
+ * How the body flies now: the host's flight while [net.ccbluex.agent.navigation.Body.isFlying], else creative flight,
+ * at the speeds [handling] measured; null when [net.ccbluex.agent.navigation.Options.canFly] is off or the body cannot
+ * fly. A host's flight starts out as creative flight at the player's flying speed until it is measured.
  *
  * @agent claude-opus-5-5
  */
@@ -34,17 +34,11 @@ internal fun NavigationContext.captureFlight(handling: Handling): FlyAbilities? 
         return null
     }
 
-    val control = body.flight
-    val base = if (control != null) {
-        FlyAbilities(control.control, HOST_SPEED, HOST_VERTICAL_SPEED, isFlying = true)
+    val abilities = body.player.abilities
+    val base = if (body.isFlying) {
+        FlyAbilities.creative(abilities.flyingSpeed, isFlying = true)
     } else {
-        FlyAbilities.of(body.player.abilities) ?: return null
+        FlyAbilities.of(abilities) ?: return null
     }
     return handling.abilities(base)
 }
-
-/**
- * Blocks a tick a host's flight is taken to fly level until measured.
- */
-private const val HOST_SPEED = 1.0
-private const val HOST_VERTICAL_SPEED = 0.5

@@ -23,7 +23,6 @@ import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
-import net.ccbluex.agent.pathfinder.flight.Acceleration
 import net.ccbluex.agent.simulation.PlayerSimulation
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulationHooks
@@ -144,9 +143,12 @@ public interface Body {
     public fun useItem(hand: InteractionHand): Boolean
 
     /**
-     * Flight a feature of the host gives while it runs; null while none runs.
+     * Whether a feature of the host, such as a fly module, flies the player right now, besides creative flight. The
+     * navigator measures how fast it flies and how far it coasts from what the player does, so the feature may change
+     * its speed at any time.
      */
-    public val flight: FlightControl?
+    public val isFlying: Boolean
+        get() = false
 
     /**
      * Whether the host keeps an elytra glide going along the floor, as an elytra recast feature does.
@@ -214,23 +216,6 @@ public class BodyTraits(
      */
     public val navigatesInMovementTick: Boolean = true,
 )
-
-/**
- * Flight a feature of the host gives while it runs, such as a fly module, besides creative flight. The navigator
- * measures how fast it flies and how far it coasts from what the player does after the keys, so a fly mode may
- * change its speed at any time.
- *
- * @agent claude-opus-5-5
- */
-public interface FlightControl {
-
-    /**
-     * Whether the keys set the speed right away or build up speed that coasts on; what the navigator expects until
-     * it measured the flight.
-     */
-    public val control: Acceleration
-        get() = Acceleration.DIRECT
-}
 
 /**
  * Moves the body along a teleport route.

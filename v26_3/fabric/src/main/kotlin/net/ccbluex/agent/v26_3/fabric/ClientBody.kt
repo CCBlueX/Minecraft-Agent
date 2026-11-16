@@ -27,7 +27,6 @@ import net.ccbluex.agent.math.copy
 import net.ccbluex.agent.math.turned
 import net.ccbluex.agent.navigation.Body
 import net.ccbluex.agent.navigation.BodyTraits
-import net.ccbluex.agent.navigation.FlightControl
 import net.ccbluex.agent.navigation.LedgeSneak
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.Teleporter
@@ -106,9 +105,6 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
      * Simulations of the local player are kept from touching the level by this module's mixins.
      */
     override val traits: BodyTraits = BodyTraits(jumpClimbsLadders = true, exactSimulation = true)
-
-    override val flight: FlightControl?
-        get() = null
 
     /**
      * None by default: a client teleport also needs the host to rewrite its own movement packets while

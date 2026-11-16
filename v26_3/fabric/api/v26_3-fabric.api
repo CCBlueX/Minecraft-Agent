@@ -3,7 +3,6 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/navig
 	public fun <init> (Lnet/ccbluex/agent/navigation/Turning;)V
 	public synthetic fun <init> (Lnet/ccbluex/agent/navigation/Turning;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun continueDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
-	public fun getFlight ()Lnet/ccbluex/agent/navigation/FlightControl;
 	public fun getLatencyMillis ()I
 	public fun getMovementYRot ()F
 	public fun getPlayer ()Lnet/ccbluex/agent/world/entity/Player;

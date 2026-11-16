@@ -21,7 +21,6 @@ package net.ccbluex.agent.v26_3.paper
 
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.BodyTraits
-import net.ccbluex.agent.navigation.FlightControl
 import net.ccbluex.agent.navigation.Teleporter
 import net.ccbluex.agent.bukkit.BotBody
 import net.ccbluex.agent.v26_3.paper.body.BotPlayer
@@ -183,12 +182,6 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Bo
     override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
         SimulatedPlayer.fromPlayer(handle, input, TRAITS.navigatesInMovementTick, simulationHooks)
             .also { it.yRot = yRot }
-
-    /**
-     * A server bot flies by creative flight only, when it may fly.
-     */
-    override val flight: FlightControl?
-        get() = null
 
     override val teleporter: Teleporter = PositionTeleporter(handle)
 

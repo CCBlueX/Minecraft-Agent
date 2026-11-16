@@ -40,7 +40,7 @@ import net.minecraft.world.entity.player.Player as McPlayer
  */
 internal class TestBody(
     val handle: McPlayer,
-    override val flight: FlightControl? = null,
+    override val isFlying: Boolean = false,
     override val teleporter: Teleporter? = null,
 ) : Body {
 

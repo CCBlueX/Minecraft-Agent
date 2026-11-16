@@ -24,7 +24,6 @@ import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.BodyTraits
-import net.ccbluex.agent.navigation.FlightControl
 import net.ccbluex.agent.navigation.Teleporter
 import net.ccbluex.agent.bukkit.BotBody
 import net.ccbluex.agent.v1_8_8.spigot.body.BotPlayer
@@ -154,9 +153,6 @@ public class SpigotBody internal constructor(internal val handle: BotPlayer) : B
      */
     override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
         throw UnsupportedOperationException("A 1.8 body is predicted with PlayerMotion")
-
-    override val flight: FlightControl?
-        get() = null
 
     override val teleporter: Teleporter?
         get() = null
