@@ -20,6 +20,8 @@
 package net.ccbluex.agent.v26_3.fabric
 
 import net.ccbluex.agent.v26_3.fabric.mixin.ClientInputAccessor
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.copy
 import net.ccbluex.agent.math.turned
@@ -30,18 +32,21 @@ import net.ccbluex.agent.navigation.LedgeSneak
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.Teleporter
 import net.ccbluex.agent.navigation.Turning
+import net.ccbluex.agent.simulation.PlayerSimulation
 import net.ccbluex.agent.simulation.SimulatedInput
+import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Player
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.ClientInput
 import net.minecraft.client.player.LocalPlayer
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ServerboundPunchPacket
 import net.minecraft.util.Mth
-import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.BlockHitResult
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -84,7 +89,10 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
     private val minecraft: Minecraft
         get() = Minecraft.getInstance()
 
-    override val player: LocalPlayer
+    override val player: Player
+        get() = localPlayer.toAgent()
+
+    private val localPlayer: LocalPlayer
         get() = checkNotNull(minecraft.player) { "There is no local player" }
 
     /**
@@ -112,7 +120,7 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
 
     override val latencyMillis: Int
         get() {
-            val player = player
+            val player = localPlayer
             return player.connection.getPlayerInfo(player.uuid)?.latency ?: 0
         }
 
@@ -192,7 +200,7 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
     override fun look(rotation: ViewRotation, purpose: LookPurpose) {
         when (purpose) {
             LookPurpose.VIEW -> {
-                val player = player
+                val player = localPlayer
                 player.yRot = rotation.yRot
                 player.xRot = rotation.xRot.coerceIn(MIN_X_ROT, MAX_X_ROT)
             }
@@ -218,7 +226,7 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
     }
 
     override fun selectHotbarSlot(slot: Int) {
-        val inventory = player.inventory
+        val inventory = localPlayer.inventory
         if (ownSlot == NO_SLOT) {
             ownSlot = inventory.selectedSlot
         }
@@ -238,7 +246,7 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
      */
     override fun startDestroy(pos: BlockPos, face: Direction): Boolean {
         val gameMode = minecraft.gameMode ?: return false
-        val started = gameMode.startDestroyBlock(pos, face)
+        val started = gameMode.startDestroyBlock(pos.toMinecraft(), face.toMinecraft())
         isDestroying = gameMode.isDestroying
         swingAttack()
         return started
@@ -250,7 +258,7 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
     override fun continueDestroy(pos: BlockPos, face: Direction): Boolean {
         val gameMode = minecraft.gameMode ?: return false
         isDestroying = true
-        val continued = gameMode.continueDestroyBlock(pos, face)
+        val continued = gameMode.continueDestroyBlock(pos.toMinecraft(), face.toMinecraft())
         if (continued) {
             swingAttack()
         }
@@ -267,10 +275,11 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
      */
     override fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean {
         val gameMode = minecraft.gameMode ?: return false
-        val player = player
+        val player = localPlayer
+        val hand = hand.toMinecraft()
         val stack = player.getItemInHand(hand)
         val count = stack.count
-        val result = gameMode.useItemOn(player, hand, hit)
+        val result = gameMode.useItemOn(player, hand, hit.toMinecraft())
         if (result !is InteractionResult.Success) {
             return false
         }
@@ -289,7 +298,8 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
      */
     override fun useItem(hand: InteractionHand): Boolean {
         val gameMode = minecraft.gameMode ?: return false
-        val player = player
+        val player = localPlayer
+        val hand = hand.toMinecraft()
         val stack = player.getItemInHand(hand)
         if (stack.isEmpty) {
             return false
@@ -341,16 +351,21 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
 
         val pressed = pressed
         this.pressed = null
-        input.keyPresses = when {
+        val keys = when {
             // Sprint left unset leaves it to the player's own key, unless the keys are exact
             pressed != null -> pressed.turned(pressedYRot, player.yRot)
-                .copy(sprint = pressed.sprint() || !pressedExact && input.keyPresses.sprint())
+                .copy(sprint = pressed.sprint || !pressedExact && input.keyPresses.sprint())
 
-            rotation != null -> input.keyPresses.turned(view.yRot, player.yRot)
+            rotation != null -> input.keyPresses.toAgent().turned(view.yRot, player.yRot)
             else -> return
         }
-        (input as ClientInputAccessor).agentSetMoveVector(SimulatedInput(input.keyPresses).moveVector)
+        input.keyPresses = keys.toMinecraft()
+        (input as ClientInputAccessor).agentSetMoveVector(SimulatedInput(keys).moveVector.toMinecraft())
     }
+
+    override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
+        SimulatedPlayer.fromPlayer(localPlayer, input, traits.navigatesInMovementTick, simulationHooks)
+            .also { it.yRot = yRot }
 
     /**
      * Back from a rotation of its own, the camera's yaw is moved by whole turns next to the yaw sent last, which looks
@@ -450,8 +465,8 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
     private fun quantize(value: Float, step: Float) = if (step > 0f) (value / step).roundToInt() * step else value
 
     private fun swingAttack() {
-        val player = player
-        player.swing(InteractionHand.MAIN_HAND, player.mainHandItem.attackAnimation, false)
+        val player = localPlayer
+        player.swing(net.minecraft.world.InteractionHand.MAIN_HAND, player.mainHandItem.attackAnimation, false)
         player.connection.send(ServerboundPunchPacket.INSTANCE)
     }
 

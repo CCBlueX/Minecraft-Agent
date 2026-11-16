@@ -23,6 +23,7 @@ package net.ccbluex.agent.v26_3.fabric
 
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.pathfinder.level.SectionCache
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.player.ClientInput
@@ -251,8 +252,9 @@ internal fun blockConfirmed(level: ClientLevel, pos: BlockPos, state: BlockState
     if (level !== Minecraft.getInstance().level) {
         return
     }
-    val immutable = pos.immutable()
-    forEachNavigation { it.navigator.blockConfirmed(immutable, state) }
+    val agentPos = pos.toAgent()
+    val agentState = state.toAgent()
+    forEachNavigation { it.navigator.blockConfirmed(agentPos, agentState) }
 }
 
 /**
@@ -262,9 +264,9 @@ internal fun blockChanged(level: ClientLevel, pos: BlockPos) {
     if (level !== Minecraft.getInstance().level) {
         return
     }
-    val immutable = pos.immutable()
-    SectionCache.blockChanged(level, immutable)
-    forEachNavigation { it.navigator.blockChanged(immutable) }
+    SectionCache.blockChanged(level, pos.immutable())
+    val agentPos = pos.toAgent()
+    forEachNavigation { it.navigator.blockChanged(agentPos) }
 }
 
 /**

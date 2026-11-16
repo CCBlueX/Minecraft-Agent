@@ -12,6 +12,7 @@ kotlin {
 
 dependencies {
     api(project(":common"))
+    api(project(":v26_3-adapter"))
 }
 
 // The library artifact is bundled into other plugins, whose own plugin.yml this would clash with

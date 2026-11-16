@@ -19,13 +19,11 @@
 
 package net.ccbluex.agent.v26_3.paper
 
-import java.util.Locale
-import java.util.UUID
-import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.math.max
 import net.ccbluex.agent.bukkit.BotSkin
 import net.ccbluex.agent.v26_3.paper.body.BlockFeed
 import net.ccbluex.agent.v26_3.paper.body.BotEvents
+import net.ccbluex.agent.v26_3.defineGameTypes
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.core.BlockPos
 import org.bukkit.Chunk
 import org.bukkit.Location
@@ -35,6 +33,10 @@ import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitTask
 import org.slf4j.LoggerFactory
+import java.util.Locale
+import java.util.UUID
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.math.max
 
 /**
  * Every bot of the server: spawns their bodies, ticks their navigation before the entities move, and brings bodies
@@ -118,6 +120,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
     }
 
     internal fun start() {
+        defineGameTypes()
         val pluginManager = plugin.server.pluginManager
         pluginManager.registerEvents(BotEvents(this), plugin)
         pluginManager.registerEvents(BlockFeed(this), plugin)
@@ -173,7 +176,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
      * @agent claude-sonnet-5-5
      */
     internal fun eliminated(bot: Bot, killer: net.minecraft.world.entity.Entity?) {
-        bot.agent?.listener?.died(killer)
+        bot.agent?.listener?.died(killer?.toAgent())
         notify(bot, "died") { it.died(bot) }
         bot.isDead = true
     }
@@ -215,7 +218,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
             val location = entity.location
             val dx = location.x - pos.x
             val dz = location.z - pos.z
-            if (dx * dx + dz * dz <= range * range) navigator.blockChanged(pos)
+            if (dx * dx + dz * dz <= range * range) navigator.blockChanged(pos.toAgent())
         }
     }
 

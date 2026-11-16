@@ -22,6 +22,7 @@ package net.ccbluex.agent.v26_3.fabric
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.navigation.Options
+import net.ccbluex.agent.v26_3.defineGameTypes
 
 /**
  * Runs a [Navigator] for the local player: while it holds a walk ([Navigator.moveTo], [Navigator.follow],
@@ -41,6 +42,10 @@ public class ClientNavigation @JvmOverloads constructor(
     options: Options = Options(),
     listener: Listener = Listener.NONE,
 ) {
+
+    init {
+        defineGameTypes()
+    }
 
     public val navigator: Navigator = Navigator(body, options, listener)
 

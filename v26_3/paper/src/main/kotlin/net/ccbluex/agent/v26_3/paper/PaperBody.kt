@@ -19,8 +19,6 @@
 
 package net.ccbluex.agent.v26_3.paper
 
-import kotlin.math.abs
-import kotlin.math.max
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.BodyTraits
 import net.ccbluex.agent.navigation.FlightControl
@@ -34,17 +32,20 @@ import net.ccbluex.agent.v26_3.paper.body.InventoryClicks
 import net.ccbluex.agent.v26_3.paper.body.PositionTeleporter
 import net.ccbluex.agent.v26_3.paper.body.launch
 import net.ccbluex.agent.v26_3.paper.body.spawnBotPlayer
+import net.ccbluex.agent.simulation.PlayerSimulation
+import net.ccbluex.agent.simulation.SimulatedInput
+import net.ccbluex.agent.simulation.SimulatedPlayer
 import net.ccbluex.agent.skills.AgentBody
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.ContainerMenu
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
@@ -58,6 +59,11 @@ import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Projectile
 import org.bukkit.plugin.Plugin
+import kotlin.math.abs
+import kotlin.math.max
+import net.ccbluex.agent.math.BlockPos as AgentBlockPos
+import net.ccbluex.agent.math.Direction as AgentDirection
+import net.ccbluex.agent.world.BlockHitResult as AgentBlockHitResult
 
 /**
  * The body of a server bot: a player on the server that clients and anticheats see as any other player, driven by
@@ -77,16 +83,16 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
     public val entity: org.bukkit.entity.Player
         get() = handle.bukkitEntity
 
-    override val player: Player
-        get() = handle
+    override val player: net.ccbluex.agent.world.entity.Player
+        get() = handle.toAgent()
 
     /**
      * The level's players and the other living bot bodies in it, which the level keeps out of its player list.
      */
-    override fun players(): List<Player> {
+    override fun players(): List<net.ccbluex.agent.world.entity.Player> {
         val level = handle.level()
         val bodies = BotPlayer.spawned.filter { it !== handle && it.level() === level && it.isAlive && !it.isRemoved }
-        return if (bodies.isEmpty()) level.players() else level.players() + bodies
+        return (if (bodies.isEmpty()) level.players() else level.players() + bodies).map(Player::toAgent)
     }
 
     /**
@@ -108,12 +114,12 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
     /**
      * A server bot has no host features to change keys, so [exact] changes nothing.
      */
-    override fun press(input: Input, exact: Boolean) {
-        handle.forward = axis(input.forward(), input.backward())
-        handle.strafe = axis(input.left(), input.right())
-        handle.jump = input.jump()
-        handle.isShiftKeyDown = input.shift()
-        handle.sprintKey = input.sprint()
+    override fun press(input: net.ccbluex.agent.world.Input, exact: Boolean) {
+        handle.forward = axis(input.forward, input.backward)
+        handle.strafe = axis(input.left, input.right)
+        handle.jump = input.jump
+        handle.isShiftKeyDown = input.shift
+        handle.sprintKey = input.sprint
     }
 
     /**
@@ -165,16 +171,21 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         inventory.selectedSlot = slot
     }
 
-    override fun startDestroy(pos: BlockPos, face: Direction): Boolean = digging.start(pos, face)
+    override fun startDestroy(pos: AgentBlockPos, face: AgentDirection): Boolean =
+        digging.start(pos.toMinecraft(), face.toMinecraft())
 
-    override fun continueDestroy(pos: BlockPos, face: Direction): Boolean = digging.proceed(pos, face)
+    override fun continueDestroy(pos: AgentBlockPos, face: AgentDirection): Boolean =
+        digging.proceed(pos.toMinecraft(), face.toMinecraft())
 
     override fun stopDestroy() {
         digging.stop()
     }
 
+    override fun useItemOn(hand: net.ccbluex.agent.world.InteractionHand, hit: AgentBlockHitResult): Boolean =
+        useItemOn(hand.toMinecraft(), hit.toMinecraft())
+
     // ServerGamePacketListenerImpl.handleUseItemOn: the server's checks, then the block's use and the item's
-    override fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean {
+    private fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean {
         val level = handle.level()
         val stack = handle.getItemInHand(hand)
         val pos = hit.blockPos
@@ -193,8 +204,10 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         return result.consumesAction()
     }
 
+    override fun useItem(hand: net.ccbluex.agent.world.InteractionHand): Boolean = useItem(hand.toMinecraft())
+
     // ServerGamePacketListenerImpl.handleUseItem, with the rotation the body has
-    override fun useItem(hand: InteractionHand): Boolean {
+    private fun useItem(hand: InteractionHand): Boolean {
         val level = handle.level()
         val stack = handle.getItemInHand(hand)
         if (stack.isEmpty || !stack.isItemEnabled(level.enabledFeatures())) return false
@@ -205,6 +218,10 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         }
         return result.consumesAction()
     }
+
+    override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
+        SimulatedPlayer.fromPlayer(handle, input, TRAITS.navigatesInMovementTick, simulationHooks)
+            .also { it.yRot = yRot }
 
     /**
      * A server bot flies by creative flight only, when it may fly.
@@ -311,8 +328,8 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         handle.jump = jump
     }
 
-    override fun swing(hand: InteractionHand) {
-        handle.swingHand(hand)
+    override fun swing(hand: net.ccbluex.agent.world.InteractionHand) {
+        handle.swingHand(hand.toMinecraft())
     }
 
     /**
@@ -322,8 +339,8 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
      */
     public fun attack(target: org.bukkit.entity.Entity): Boolean = handle.attackAsPlayer((target as CraftEntity).handle)
 
-    override fun attack(target: Entity) {
-        handle.attackAsPlayer(target)
+    override fun attack(target: net.ccbluex.agent.world.entity.Entity) {
+        handle.attackAsPlayer(target.toMinecraft())
     }
 
     /**
@@ -357,7 +374,8 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
     /**
      * Starts using the item in [hand]: raising a shield, eating, drinking, drawing a bow.
      */
-    override fun startUsingItem(hand: InteractionHand): Boolean {
+    override fun startUsingItem(hand: net.ccbluex.agent.world.InteractionHand): Boolean {
+        val hand = hand.toMinecraft()
         val item = handle.getItemInHand(hand)
         if (item.isEmpty || handle.isUsingItem || handle.cooldowns.isOnCooldown(item)) return false
         handle.startUsingItem(hand)
@@ -393,19 +411,19 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         clicks.drop(inventorySlot, wholeStack)
     }
 
-    override val containerMenu: AbstractContainerMenu?
-        get() = handle.containerMenu.takeIf { it !== handle.inventoryMenu }
+    override val containerMenu: ContainerMenu?
+        get() = handle.containerMenu.takeIf { it !== handle.inventoryMenu }?.toAgent()
 
     override fun takeFromContainer(containerSlot: Int) {
         clicks.click(containerSlot, 0, ContainerInput.QUICK_MOVE)
     }
 
-    override fun clickContainer(containerSlot: Int, button: Int, type: ContainerInput) {
-        clicks.click(containerSlot, button, type)
+    override fun clickContainer(containerSlot: Int, button: Int, type: net.ccbluex.agent.world.ContainerInput) {
+        clicks.click(containerSlot, button, type.toMinecraft())
     }
 
     override fun closeContainer() {
-        if (containerMenu != null) handle.closeContainer()
+        if (handle.containerMenu !== handle.inventoryMenu) handle.closeContainer()
     }
 
     /**
@@ -465,7 +483,7 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
         touched += hit.blockPos
         touched += hit.blockPos.relative(hit.direction)
         if (!result.consumesAction()) return false
-        swing(InteractionHand.MAIN_HAND)
+        handle.swingHand(InteractionHand.MAIN_HAND)
         return true
     }
 
@@ -491,7 +509,7 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Ag
      */
     public fun destroyBlock(block: Block): Boolean {
         if (!handle.gameMode.destroyBlock(posOf(block))) return false
-        swing(InteractionHand.MAIN_HAND)
+        handle.swingHand(InteractionHand.MAIN_HAND)
         return true
     }
 

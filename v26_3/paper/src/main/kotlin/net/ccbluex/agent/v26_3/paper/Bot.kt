@@ -19,8 +19,7 @@
 
 package net.ccbluex.agent.v26_3.paper
 
-import java.util.EnumMap
-import java.util.Random
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Navigator
@@ -32,9 +31,9 @@ import net.ccbluex.agent.skills.AgentListener
 import net.ccbluex.agent.skills.Personality
 import net.ccbluex.agent.skills.Skills
 import net.ccbluex.agent.skills.games.GameMode
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.Level
 import org.bukkit.Location
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
@@ -42,6 +41,8 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import java.util.EnumMap
+import java.util.Random
 
 /**
  * A bot: its name, home and settings, and the body [Bots] spawns for it at home, again after a death or an unloaded
@@ -173,7 +174,7 @@ public class Bot internal constructor(
         val agent = checkNotNull(agent) { "Bot $name has no body" }
         val fight = checkNotNull(agent.skills.fight) { "Bot $name fights with no fight ability" }
         engaged = target
-        fight.engage((target as CraftLivingEntity).handle)
+        fight.engage((target as CraftLivingEntity).handle.toAgent())
     }
 
     /**
@@ -286,7 +287,7 @@ public class Bot internal constructor(
      * The body took a hit; the agent hears of it while it plays or fights.
      */
     internal fun damaged(attacker: net.minecraft.world.entity.Entity?) {
-        if (acting) agent?.damaged(attacker)
+        if (acting) agent?.damaged(attacker?.toAgent())
     }
 
     internal fun tick() {
@@ -309,7 +310,9 @@ public class Bot internal constructor(
             }
             else -> walk(body, navigator)
         }
-        body.drainTouched { navigator.blockConfirmed(it, body.level.getBlockState(it)) }
+        body.drainTouched {
+            navigator.blockConfirmed(it.toAgent(), body.handle.level().getBlockState(it).toAgent())
+        }
     }
 
     private fun walk(body: PaperBody, navigator: Navigator) {

@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.v26_3.paper.body
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.Teleporter
-import net.minecraft.world.phys.Vec3
 
 /**
  * Teleports a server bot by setting its position step by step: the server is the one that decides where it is.
@@ -39,8 +39,9 @@ internal class PositionTeleporter(private val player: BotPlayer) : Teleporter {
         if (moved === player) {
             player.moveTo(position.x, position.y, position.z, player.yRot, player.xRot)
         } else {
-            moved.setPos(position)
+            moved.setPos(position.x, position.y, position.z)
         }
-        moved.deltaMovement = Vec3.ZERO
+        moved.deltaMovement = net.minecraft.world.phys.Vec3.ZERO
+        player.resetFallDistance()
     }
 }

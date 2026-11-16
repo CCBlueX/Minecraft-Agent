@@ -21,6 +21,7 @@ package net.ccbluex.agent.v26_3.paper.body
 
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import net.ccbluex.agent.v26_3.paper.Bots
+import net.ccbluex.agent.v26_3.toAgent
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Entity
@@ -122,7 +123,7 @@ internal class BotEvents(private val bots: Bots) : Listener {
             }
         }
         val killer = event.entity.killer?.let { (it as CraftEntity).handle }
-        bot.agent?.listener?.died(killer)
+        bot.agent?.listener?.died(killer?.toAgent())
         bots.bodyDied(bot)
     }
 

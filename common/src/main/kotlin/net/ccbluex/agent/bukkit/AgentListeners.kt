@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.bukkit
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.skills.AgentListener
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.item.ItemStack
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.item.ItemStack
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**

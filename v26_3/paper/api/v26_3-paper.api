@@ -122,17 +122,17 @@ public final class net/ccbluex/agent/v26_3/paper/MinecraftAgent {
 }
 
 public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/skills/AgentBody {
-	public fun attack (Lnet/minecraft/world/entity/Entity;)V
+	public fun attack (Lnet/ccbluex/agent/world/entity/Entity;)V
 	public final fun attack (Lorg/bukkit/entity/Entity;)Z
-	public fun clickContainer (IILnet/minecraft/world/inventory/ContainerInput;)V
+	public fun clickContainer (IILnet/ccbluex/agent/world/ContainerInput;)V
 	public fun closeContainer ()V
-	public fun continueDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+	public fun continueDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
 	public final fun destroyBlock (Lorg/bukkit/block/Block;)Z
 	public final fun destroyProgress (Lorg/bukkit/block/Block;)F
 	public fun drop (IZ)V
 	public final fun getAnchored ()Z
 	public fun getAttackStrength ()F
-	public fun getContainerMenu ()Lnet/minecraft/world/inventory/AbstractContainerMenu;
+	public fun getContainerMenu ()Lnet/ccbluex/agent/world/ContainerMenu;
 	public final fun getEntity ()Lorg/bukkit/entity/Player;
 	public final fun getFallDistance ()F
 	public fun getFlight ()Lnet/ccbluex/agent/navigation/FlightControl;
@@ -141,7 +141,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public fun getLatencyMillis ()I
 	public fun getMaxAttackReach ()D
 	public fun getMinAttackReach ()D
-	public fun getPlayer ()Lnet/minecraft/world/entity/player/Player;
+	public fun getPlayer ()Lnet/ccbluex/agent/world/entity/Player;
 	public fun getSafeWalk ()Z
 	public fun getSentRotation ()Lnet/ccbluex/agent/math/ViewRotation;
 	public final fun getShieldCooldown ()I
@@ -162,7 +162,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public final fun moveTo (DDDFF)V
 	public final fun placeBlock (Lorg/bukkit/block/Block;Lorg/bukkit/block/BlockFace;Lorg/bukkit/inventory/ItemStack;)Z
 	public fun players ()Ljava/util/List;
-	public fun press (Lnet/minecraft/world/entity/player/Input;Z)V
+	public fun press (Lnet/ccbluex/agent/world/Input;Z)V
 	public final fun push (DDD)V
 	public fun releaseHotbarSlot ()V
 	public fun releaseUsingItem ()V
@@ -177,18 +177,19 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/s
 	public final fun setTabEntry (Z)V
 	public final fun setTurning (Lnet/ccbluex/agent/navigation/Turning;)V
 	public final fun showDestroyProgress (Lorg/bukkit/block/Block;F)V
+	public fun simulate (Lnet/ccbluex/agent/simulation/SimulatedInput;F)Lnet/ccbluex/agent/simulation/PlayerSimulation$Steered;
 	public fun stab ()V
-	public fun startDestroy (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
-	public fun startUsingItem (Lnet/minecraft/world/InteractionHand;)Z
+	public fun startDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
+	public fun startUsingItem (Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public fun stopDestroy ()V
 	public final fun stopUsingItem ()V
 	public fun swapWithHotbar (II)V
 	public fun swapWithOffhand (I)V
-	public fun swing (Lnet/minecraft/world/InteractionHand;)V
+	public fun swing (Lnet/ccbluex/agent/world/InteractionHand;)V
 	public fun takeFromContainer (I)V
-	public fun useItem (Lnet/minecraft/world/InteractionHand;)Z
+	public fun useItem (Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public final fun useItem (Lorg/bukkit/inventory/ItemStack;)Z
-	public fun useItemOn (Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Z
+	public fun useItemOn (Lnet/ccbluex/agent/world/InteractionHand;Lnet/ccbluex/agent/world/BlockHitResult;)Z
 	public final fun useItemOn (Lorg/bukkit/block/Block;Lorg/bukkit/block/BlockFace;Lorg/bukkit/inventory/ItemStack;)Z
 }
 
