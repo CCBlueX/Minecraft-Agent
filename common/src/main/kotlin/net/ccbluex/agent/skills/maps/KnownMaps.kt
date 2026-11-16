@@ -20,6 +20,8 @@
 package net.ccbluex.agent.skills.maps
 
 import com.google.gson.GsonBuilder
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.Level
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -81,15 +83,37 @@ public class KnownMaps(private val folder: File) {
      */
     internal data class Recognised(val map: KnownMap, val similarity: Double, val compared: Int)
 
-    private companion object {
-        val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
-        val NOT_ID = Regex("""[^a-z0-9]+""")
-        const val MAX_ID = 40
+    public companion object {
+
+        /**
+         * The map's name from what it shows: the server's [motd], the [sidebar] title, a [title] on the screen, a
+         * sign or chat line welcoming the player to it among [texts], and only then the description of its resource
+         * [pack] without words like "Resource Pack". Null when none tells.
+         */
+        @JvmStatic
+        public fun nameOf(motd: String?, sidebar: String?, title: String?, texts: List<String>, pack: String?): String? =
+            listOf(motd, sidebar, title).firstNotNullOfOrNull { it?.trim()?.takeIf(String::isNotEmpty) }
+                ?: texts.firstNotNullOfOrNull { WELCOME.find(it)?.groupValues?.get(1)?.trim()?.trimEnd('!', '.') }
+                ?: pack?.replace(PACK_WORDS, "")?.trim()?.takeIf(String::isNotEmpty)
+
+        /**
+         * The text of every sign within [radius] blocks of [center], each sign's lines joined by spaces: the [texts]
+         * of [nameOf] that the level shows.
+         */
+        @JvmStatic
+        public fun signTexts(level: Level, center: BlockPos, radius: Int): List<String> =
+            Fingerprint.signs(level, center, radius).map { it.text }
+
+        private val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+        private val NOT_ID = Regex("""[^a-z0-9]+""")
+        private val WELCOME = Regex("""\b[Ww]elcome to (?:the )?([A-Z][\w' -]{2,40})""")
+        private val PACK_WORDS = Regex("""(?i)\s*\b(resource ?pack|texture ?pack|RP)\b\s*""")
+        private const val MAX_ID = 40
 
         /**
          * Fewer places compared tell nothing, as in a world whose chunks are still loading.
          */
-        const val MIN_COMPARED = 24
-        const val MIN_SIMILARITY = 0.8
+        private const val MIN_COMPARED = 24
+        private const val MIN_SIMILARITY = 0.8
     }
 }

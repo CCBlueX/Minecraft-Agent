@@ -20,7 +20,7 @@
 package net.ccbluex.agent.skills.maps
 
 /**
- * Something tried that had an effect.
+ * Something tried that had an effect; [follows] when it went for what the one before turned on.
  *
  * @agent claude-opus-5-5
  */
@@ -31,4 +31,5 @@ internal data class Pending(
     val entity: String?,
     val effect: String,
     val seconds: Double,
+    val follows: Boolean,
 )

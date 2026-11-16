@@ -73,4 +73,12 @@ internal class KnownMapsTest {
         maps.create("Parkour Spiral")
         assertEquals("parkour-spiral-2", maps.create("Parkour Spiral").id)
     }
+
+    @Test
+    fun `a map is named by what the world shows before its resource pack`() {
+        assertEquals("Terra Swoop Force", KnownMaps.nameOf(null, null, null, listOf("Start Game"), "Terra Swoop Force Resource Pack"))
+        assertEquals("Geo Descent Labs", KnownMaps.nameOf(null, null, null, listOf("<Alan> Welcome to Geo Descent Labs!"), "Pack"))
+        assertEquals("Parkour Spiral", KnownMaps.nameOf("Parkour Spiral", "SPIRAL", null, emptyList(), "Pack"))
+        assertNull(KnownMaps.nameOf(null, null, null, listOf("welcome to the club"), null))
+    }
 }

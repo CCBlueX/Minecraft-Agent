@@ -75,29 +75,26 @@ internal class Story(
     }
 
     /**
-     * Keeps what was tried once the player got somewhere new since the last time, as by a teleport.
+     * Keeps the step the player got somewhere new after, as by a teleport, with the steps it followed on: one that
+     * turned on what it went for, as a button the teleporter it stepped into. Everything else tried is noise.
      */
     fun commitIfProgressed(player: Player) {
         val progress = changes.since(committedAt).filter { it.kind in PROGRESS }
         if (progress.isEmpty()) return
         val map = map
-        val teleport = progress.firstOrNull { it.kind == Changes.Kind.TELEPORT }
-        // Walked into a place that sent the player on, with nothing tried: the place is the step
-        if (pending.isEmpty() && teleport != null) {
-            pending += Pending(
-                Leads.Lead.Kind.STEP_INTO.label, KnownMap.Point.of(teleport.position), KnownMap.Point.of(teleport.position), null,
-                Changes.Kind.TELEPORT.label, (teleport.tick - committedAt) / TICKS_PER_SECOND.toDouble(),
-            )
-        }
         committedAt = changes.ticks
         failures.clear()
-        if (map == null || pending.isEmpty()) {
-            pending.clear()
+        val kept = ArrayList<Pending>()
+        var last = pending.lastIndex
+        if (last >= 0) kept += pending[last]
+        while (last > 0 && pending[last].follows) kept.add(0, pending[--last])
+        pending.clear()
+        if (map == null || kept.isEmpty()) {
             return
         }
-        report("map progress: ${progress.joinToString { "${it.kind.label} ${it.detail}" }}, keeping ${pending.size} step(s)")
+        report("map progress: ${progress.joinToString { "${it.kind.label} ${it.detail}" }}, keeping ${kept.size} step(s)")
         var from = map.steps.size.coerceAtMost(next)
-        for (done in pending) {
+        for (done in kept) {
             val step = KnownMap.Step(done.action, done.at, done.target, done.entity, done.effect, null, done.seconds)
             val same = map.steps.indexOfFirst { it.action == step.action && it.target.near(step.target) }
             if (same >= 0) {
@@ -176,6 +173,12 @@ internal class Story(
 
     private suspend fun explore(agent: Agent, player: Player) {
         val now = changes.ticks
+        // Carried by the map, as up a lift: nothing to try until it puts the player down
+        if (!player.onGround() && !player.isFallFlying && !play.isFalling(player) && !player.isInWater) {
+            play.show("Riding", null)
+            waitTicks(IDLE_TICKS)
+            return
+        }
         val lead = leads.best(player, changes, map?.signs.orEmpty(), now, lastTried)
         if (lead == null) {
             play.show(if (changes.isTalking || player.activeEffects.isNotEmpty() && !player.onGround()) "Watching the scene" else "Waiting", null)
@@ -193,14 +196,27 @@ internal class Story(
         val talking = changes.isTalking
         val from = player.position()
         val mark = changes.mark()
-        if (!act(agent, player, lead)) {
+        val reached = act(agent, player, lead)
+        // Sent on while going there: the place it happened is a zone to step into
+        changes.since(mark).firstOrNull { it.kind == Changes.Kind.TELEPORT }?.let { teleport ->
+            report("map walked into a place that sent the player on, at ${describe(teleport.position)}")
+            leads.tried(lead, changes.ticks, worked = true)
+            val at = KnownMap.Point.of(teleport.position)
+            pending += Pending(
+                Leads.Lead.Kind.STEP_INTO.label, at, at, null, Changes.Kind.TELEPORT.label,
+                (teleport.tick - committedAt) / TICKS_PER_SECOND.toDouble(), follows = lead.isNew,
+            )
+            return
+        }
+        if (!reached) {
             report("map could not reach ${lead.describe()}")
             leads.tried(lead, changes.ticks, worked = false, unreachable = true)
             return
         }
         tickUntil { ticks -> ticks >= EFFECT_TICKS || changes.since(mark).any { it.kind in PROGRESS } || play.isFalling(player) }
-        // A scene that talks on its own says nothing about what was tried
+        // A scene that talks on its own says nothing about what was tried, nor does a button going down
         val effects = changes.since(mark, if (talking) setOf(Changes.Kind.CHAT) else emptySet())
+            .filter { lead.block == null || it.kind != Changes.Kind.SET || BlockPos.containing(it.position) != lead.block }
         if (player.isPassenger) {
             report("map ${lead.describe()} is a seat")
             leads.seat(lead)
@@ -221,7 +237,7 @@ internal class Story(
         val labels = effects.map { it.kind.label } + listOfNotNull(Changes.Kind.GLIDE.label.takeIf { fell })
         pending += Pending(
             lead.kind.label, KnownMap.Point.of(from), KnownMap.Point.of(lead.position), lead.entity?.let(Leads::typeOf),
-            labels.joinToString(), (changes.ticks - committedAt) / TICKS_PER_SECOND.toDouble(),
+            labels.joinToString(), (changes.ticks - committedAt) / TICKS_PER_SECOND.toDouble(), lead.isNew,
         )
     }
 

@@ -22,7 +22,9 @@ package net.ccbluex.agent.skills.maps
 import kotlinx.coroutines.launch
 import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.navigation.Ending
+import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Navigator
+import net.ccbluex.agent.navigation.Options as NavigationOptions
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentBody
 import net.ccbluex.agent.skills.AgentListener
@@ -31,6 +33,7 @@ import net.ccbluex.agent.skills.games.GameMode
 import net.ccbluex.agent.tick.TickScope
 import net.ccbluex.agent.tick.tickUntil
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.player.Input
@@ -77,6 +80,27 @@ public class MapPlay(
     private var glides = 0
     private var isDone = false
 
+    /**
+     * Every block the gliding body touches, for the navigator: a collision, but for the touch-down where it lands.
+     */
+    internal val listener: Listener = object : Listener {
+        override fun touched(pos: BlockPos, direction: Direction) {
+            val glide = glide ?: return
+            val at = Vec3.atCenterOf(pos)
+            if (glide.landing?.let { it.distanceTo(at) < TOUCHDOWN } == true) return
+            touches++
+            map?.hazards?.add(KnownMap.Point.of(at))
+            val kind = when (direction) {
+                Direction.UP -> "ceiling"
+                Direction.DOWN -> "floor"
+                else -> "wall"
+            }
+            report("map collision $kind at ${describe(at)}")
+        }
+    }
+    private var glide: Glide? = null
+    private var touches = 0
+
     override fun tick(agent: Agent) {
         val player = agent.body.player
         this.player = player
@@ -94,7 +118,7 @@ public class MapPlay(
      */
     @JvmOverloads
     public fun agent(body: AgentBody, listener: AgentListener = AgentListener.NONE): Agent {
-        val navigator = Navigator(body)
+        val navigator = Navigator(body, NavigationOptions(glideClearance = 1.0), this.listener)
         return Agent(body, navigator, Skills(), listener = listener).also { it.game = this }
     }
 
@@ -233,22 +257,25 @@ public class MapPlay(
             ?.minByOrNull { it.start.toVec3().distanceTo(start) }
         report("map course start at ${describe(start)} known=${course != null}")
         val deathsBefore = deaths
-        var touches = 0
-        val flight = Glide(changes) { at, kind ->
-            touches++
-            map?.hazards?.add(KnownMap.Point.of(at))
-            report("map collision $kind at ${describe(at)}")
+        val flight = Glide(changes)
+        glide = flight
+        touches = 0
+        try {
+            flight.fly(agent, course)
+        } finally {
+            glide = null
         }
-        flight.fly(agent, course)
+        // The map kills a player that touched the ground in its course a moment later
+        tickUntil { it >= JUDGE_TICKS || agent.body.player !== player || !player.isAlive }
         val seconds = flight.ticks / TICKS_PER_SECOND.toDouble()
         val end = player.position()
-        val landed = player.isAlive && !player.isDeadOrDying
+        val landed = agent.body.player === player && player.isAlive && !player.isDeadOrDying
         report("map course ${if (landed) "landed" else "ended"} at ${describe(end)} after ${"%.1f".format(seconds)}s touches=$touches")
         if (map == null || !landed || deaths != deathsBefore || flight.points.size < MIN_COURSE_POINTS) return
         map.asks += KnownMap.ASK_GLIDE
         val known = map.courses.indexOfFirst { it.start.toVec3().distanceTo(start) < COURSE_RANGE }
         if (known < 0 || map.courses[known].seconds > seconds) {
-            val learnt = KnownMap.Course(KnownMap.Point.of(start), KnownMap.Point.of(end), flight.points.toList(), seconds, touches)
+            val learnt = KnownMap.Course(KnownMap.Point.of(start), KnownMap.Point.of(end), flight.points.toList(), seconds, deaths - deathsBefore)
             if (known < 0) map.courses += learnt else map.courses[known] = learnt
             map.best["course ${map.courses.indexOf(learnt) + 1}"] = seconds
         }
@@ -282,6 +309,8 @@ public class MapPlay(
         const val SIGN_RANGE = 24
         const val COURSE_RANGE = 48.0
         const val MIN_COURSE_POINTS = 5
+        const val JUDGE_TICKS = 10
+        const val TOUCHDOWN = 3.0
         val DONE = Regex("""(?i)thank(s| you) for playing|you (have )?(completed|finished) the map""")
     }
 }
