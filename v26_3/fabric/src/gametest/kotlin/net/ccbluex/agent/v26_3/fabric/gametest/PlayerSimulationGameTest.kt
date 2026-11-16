@@ -112,6 +112,8 @@ private fun GameTestScope.assertLevelStaysUntouched(ground: Int) {
  */
 private fun GameTestScope.play(scenario: Scenario, ground: Int): List<String> {
     val lane = Lane(this, ground)
+    // The next build would close around a player still standing where the last scenario left it
+    run("tp $playerName ${LANE_START - 6}.5 $ground $LANE_Z.5 -90 0")
     lane.fill(LANE_START - 2, 0, LANE_END, LANE_HEIGHT, "air", halfWidth = 3)
     scenario.build(lane)
     ticks(scenario.buildTicks)
