@@ -19,8 +19,9 @@
 
 package net.ccbluex.agent.v26_3.paper.body
 
-import net.ccbluex.agent.v26_3.paper.Bots
 import net.ccbluex.agent.pathfinder.level.SectionCache
+import net.ccbluex.agent.bukkit.Bots
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.core.BlockPos
 import org.bukkit.block.Block
 import org.bukkit.craftbukkit.CraftWorld
@@ -141,6 +142,6 @@ internal class BlockFeed(private val bots: Bots) : Listener {
     private fun changed(block: Block) {
         val pos = BlockPos(block.x, block.y, block.z)
         SectionCache.blockChanged((block.world as CraftWorld).handle, pos)
-        bots.blockChanged(block.world, pos)
+        bots.blockChanged(block.world, pos.toAgent())
     }
 }

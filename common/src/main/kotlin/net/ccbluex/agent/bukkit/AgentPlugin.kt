@@ -17,32 +17,28 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
+
+import org.bukkit.plugin.java.JavaPlugin
 
 /**
- * What happens to the bots of [Bots]; every method is optional and called on the server thread.
+ * The MinecraftAgent plugin: [Bots] for other plugins and the `/agent` command, the same on every server platform.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
-public interface BotListener {
+internal class AgentPlugin : JavaPlugin() {
 
-    /**
-     * The bot's body spawned, at first or again. The place to exempt [Bot.player] from an anticheat.
-     */
-    public fun spawned(bot: Bot) {}
+    override fun onEnable() {
+        MinecraftAgent.start(this)
+        val command = AgentCommand(MinecraftAgent.bots(), Skins(this))
+        getCommand("agent")?.let {
+            it.executor = command
+            it.tabCompleter = command
+        }
+    }
 
-    /**
-     * The bot's body is about to go, for a death, an unloaded chunk or a respawn. Anticheats forget it here.
-     */
-    public fun despawned(bot: Bot) {}
-
-    /**
-     * The body died.
-     */
-    public fun died(bot: Bot) {}
-
-    /**
-     * The bot was removed for good.
-     */
-    public fun removed(bot: Bot) {}
+    override fun onDisable() {
+        MinecraftAgent.stop()
+    }
 }

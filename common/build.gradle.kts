@@ -15,6 +15,8 @@ dependencies {
     compileOnlyApi(libs.fastutil)
     compileOnlyApi(libs.slf4j.api)
     implementation(libs.kotlinx.coroutines.core)
+    // The oldest API every supported server runs: what compiles against it links on 1.8.8 and on Paper 26.3
+    compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     testImplementation(libs.fastutil)
     testImplementation(testFixtures(project(":v26_3-adapter")))
 }

@@ -1,6 +1,6 @@
 name: MinecraftAgent
 version: "${version}"
-main: net.ccbluex.agent.v26_3.paper.AgentPlugin
+main: net.ccbluex.agent.bukkit.AgentPlugin
 api-version: "26.3"
 description: Bots that walk, build, fight and play games as players
 libraries: ${libraries}

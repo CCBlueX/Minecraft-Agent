@@ -17,13 +17,13 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
 
 import org.bukkit.plugin.Plugin
 
 /**
  * The way in for other plugins: they list the MinecraftAgent plugin under `depend` in their plugin.yml, or bundle
- * the library and [start] it from their own plugin.
+ * the library and [start] it from their own plugin. The same on every server platform.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -37,7 +37,7 @@ public object MinecraftAgent {
      * The bots of this server, while Minecraft Agent runs.
      */
     @JvmStatic
-    public fun bots(): Bots = checkNotNull(bots) { NOT_STARTED }
+    public fun bots(): Bots = checkNotNull(bots) { "Minecraft Agent is not started" }
 
     /**
      * Starts the bots on behalf of [plugin], which owns their tasks and listeners. A plugin bundling the library
@@ -46,7 +46,7 @@ public object MinecraftAgent {
     @JvmStatic
     public fun start(plugin: Plugin) {
         check(bots == null) { "Minecraft Agent is already started" }
-        val bots = Bots(plugin)
+        val bots = Bots(plugin, Platform.current)
         bots.start()
         this.bots = bots
     }
@@ -59,6 +59,4 @@ public object MinecraftAgent {
         bots?.stop()
         bots = null
     }
-
-    private const val NOT_STARTED = "Minecraft Agent is not started"
 }

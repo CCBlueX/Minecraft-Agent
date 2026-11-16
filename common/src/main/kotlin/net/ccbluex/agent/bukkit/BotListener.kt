@@ -17,34 +17,32 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
-
-import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+package net.ccbluex.agent.bukkit
 
 /**
- * @agent claude-sonnet-5-5
+ * What happens to the bots of [Bots]; every method is optional and called on the server thread.
+ *
+ * @agent claude-opus-5-5
  */
-class BodyDeathTest {
+public interface BotListener {
 
-    @Test
-    fun `a body that ran out of health stays dead without a respawn`() {
-        assertTrue(bodyStaysDead(respawns = false, health = 0.0))
-    }
+    /**
+     * The bot's body spawned, at first or again. The place to exempt [Bot.player] from an anticheat.
+     */
+    public fun spawned(bot: Bot) {}
 
-    @Test
-    fun `a body without a player is dead`() {
-        assertTrue(bodyStaysDead(respawns = false, health = null))
-    }
+    /**
+     * The bot's body is about to go, for a death, an unloaded chunk or a respawn. Anticheats forget it here.
+     */
+    public fun despawned(bot: Bot) {}
 
-    @Test
-    fun `a faked death that keeps the body does not mark it dead`() {
-        assertFalse(bodyStaysDead(respawns = false, health = 20.0))
-    }
+    /**
+     * The body died.
+     */
+    public fun died(bot: Bot) {}
 
-    @Test
-    fun `a body that respawns is never dead for good`() {
-        assertFalse(bodyStaysDead(respawns = true, health = 0.0))
-    }
+    /**
+     * The bot was removed for good.
+     */
+    public fun removed(bot: Bot) {}
 }

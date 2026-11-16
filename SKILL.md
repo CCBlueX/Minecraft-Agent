@@ -75,6 +75,8 @@ bot.remove()
 A plugin can bundle the library instead of depending on the plugin: shade `minecraft-agent-paper` (its jar has
 no plugin.yml), call `MinecraftAgent.start(this)` in `onEnable` and `MinecraftAgent.stop()` in `onDisable`, and list
 the Kotlin libraries of the plugin jar's plugin.yml in its own. `start(this)` runs the bots, and `bots()` gives them.
+`MinecraftAgent`, `Bots`, `Bot`, `BotSettings` and `BotBody` are in `net.ccbluex.agent.bukkit` (`common`), the same on
+every server platform.
 
 ## Bots on your own host
 

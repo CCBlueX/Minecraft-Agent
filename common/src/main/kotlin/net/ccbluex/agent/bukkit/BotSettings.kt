@@ -17,7 +17,7 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
 
 import net.ccbluex.agent.navigation.Options
 import net.ccbluex.agent.skills.SkillLevel
@@ -57,7 +57,7 @@ public data class BotSettings @JvmOverloads constructor(
     /**
      * Degrees per tick the body turns towards where it looks.
      */
-    public val turnSpeed: Float = PaperBody.DEFAULT_TURN_SPEED,
+    public val turnSpeed: Float = DEFAULT_TURN_SPEED,
     /**
      * Whether a dead body comes back at the bot's home; without, the bot stays dead until respawned.
      */
@@ -106,5 +106,7 @@ public data class BotSettings @JvmOverloads constructor(
             anchored = true,
             respawnDelay = 20,
         )
+
+        internal const val DEFAULT_TURN_SPEED: Float = 40f
     }
 }

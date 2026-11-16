@@ -17,25 +17,20 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
 
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Navigator
-import net.ccbluex.agent.bukkit.AgentListeners
-import net.ccbluex.agent.bukkit.BotSkin
-import net.ccbluex.agent.bukkit.NavigationListeners
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentListener
 import net.ccbluex.agent.skills.Personality
 import net.ccbluex.agent.skills.Skills
 import net.ccbluex.agent.skills.games.GameMode
-import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.Level
 import org.bukkit.Location
-import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -43,6 +38,8 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import java.util.EnumMap
 import java.util.Random
+import net.ccbluex.agent.world.entity.Entity as AgentEntity
+import net.ccbluex.agent.world.entity.LivingEntity as AgentLivingEntity
 
 /**
  * A bot: its name, home and settings, and the body [Bots] spawns for it at home, again after a death or an unloaded
@@ -94,7 +91,7 @@ public class Bot internal constructor(
     /**
      * The spawned body, null while there is none.
      */
-    public var body: PaperBody? = null
+    public var body: BotBody? = null
         private set
 
     /**
@@ -146,7 +143,7 @@ public class Bot internal constructor(
     public fun moveTo(location: Location, radius: Double) {
         val goal = location.clone()
         hold(Destination(radius) {
-            goal.takeIf { it.isWorldLoaded && it.world == body?.entity?.world }?.let(::position)
+            goal.takeIf { it.world != null && it.world == body?.entity?.world }?.let(::position)
         })
     }
 
@@ -174,7 +171,7 @@ public class Bot internal constructor(
         val agent = checkNotNull(agent) { "Bot $name has no body" }
         val fight = checkNotNull(agent.skills.fight) { "Bot $name fights with no fight ability" }
         engaged = target
-        fight.engage((target as CraftLivingEntity).handle.toAgent())
+        fight.engage(bots.platform.toAgent(target) as AgentLivingEntity)
     }
 
     /**
@@ -259,7 +256,7 @@ public class Bot internal constructor(
         agentListeners.remove(listener)
     }
 
-    internal fun attach(body: PaperBody) {
+    internal fun attach(body: BotBody) {
         this.body = body
         val navigator = Navigator(body, settings.navigation, navigationListeners)
         this.navigator = navigator
@@ -268,7 +265,7 @@ public class Bot internal constructor(
         apply(body, settings)
     }
 
-    internal fun detach(): PaperBody? {
+    internal fun detach(): BotBody? {
         agent?.let {
             it.game = null
             it.stop()
@@ -286,8 +283,8 @@ public class Bot internal constructor(
     /**
      * The body took a hit; the agent hears of it while it plays or fights.
      */
-    internal fun damaged(attacker: net.minecraft.world.entity.Entity?) {
-        if (acting) agent?.damaged(attacker?.toAgent())
+    internal fun damaged(attacker: AgentEntity?) {
+        if (acting) agent?.damaged(attacker)
     }
 
     internal fun tick() {
@@ -311,11 +308,11 @@ public class Bot internal constructor(
             else -> walk(body, navigator)
         }
         body.drainTouched {
-            navigator.blockConfirmed(it.toAgent(), body.handle.level().getBlockState(it).toAgent())
+            navigator.blockConfirmed(it, body.level.getBlockState(it))
         }
     }
 
-    private fun walk(body: PaperBody, navigator: Navigator) {
+    private fun walk(body: BotBody, navigator: Navigator) {
         val walk = walk ?: return
         if (!navigator.isInProgress) navigator.follow(walk)
         // Navigator.halt keeps the keys of the last walk, so they are let go of before every tick of it
@@ -342,19 +339,19 @@ public class Bot internal constructor(
         body?.let(::releaseKeys)
     }
 
-    private fun newAgent(body: PaperBody, navigator: Navigator, skills: Skills?, personality: Personality?): Agent {
+    private fun newAgent(body: BotBody, navigator: Navigator, skills: Skills?, personality: Personality?): Agent {
         val settings = settings
         val leaning = personality ?: settings.personality ?: Personality.roll(RANDOM)
         val abilities = skills ?: Skills.builtIn(body, settings.skillLevel, leaning)
         return Agent(body, navigator, abilities, leaning, settings.skillLevel, agentListeners)
     }
 
-    private fun releaseKeys(body: PaperBody) {
+    private fun releaseKeys(body: BotBody) {
         body.press(Input.EMPTY, true)
         body.isShiftKeyDown = settings.sneak
     }
 
-    private fun apply(body: PaperBody, settings: BotSettings) {
+    private fun apply(body: BotBody, settings: BotSettings) {
         body.immortal = settings.immortal
         body.knockback = settings.knockback
         if (body.anchored != settings.anchored) body.anchored = settings.anchored

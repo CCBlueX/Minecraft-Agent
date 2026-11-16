@@ -17,6 +17,21 @@ repositories {
     maven("https://maven.ccbluex.net/releases")
     maven("https://maven.ccbluex.net/snapshots")
     maven("https://repo.papermc.io/repository/maven-public/")
+    // The 1.8.8 API server-common builds against, and its chat library
+    maven("https://hub.spigotmc.org/nexus/content/repositories/public/") {
+        content {
+            includeModule("org.spigotmc", "spigot-api")
+            includeGroup("net.md-5")
+        }
+    }
+    // Spigot does not publish the 1.8.8 server jar v1_8_8-spigot builds against; CodeMC's nms repository has it
+    exclusiveContent {
+        forRepository { maven("https://repo.codemc.io/repository/nms/") }
+        filter {
+            includeModule("org.spigotmc", "spigot")
+            includeModule("org.spigotmc", "spigot-parent")
+        }
+    }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(jdk)

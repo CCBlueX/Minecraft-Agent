@@ -17,26 +17,21 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
 
-import net.ccbluex.agent.bukkit.BotSkin
-import net.ccbluex.agent.v26_3.paper.body.BlockFeed
-import net.ccbluex.agent.v26_3.paper.body.BotEvents
-import net.ccbluex.agent.v26_3.defineGameTypes
-import net.ccbluex.agent.v26_3.toAgent
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.math.BlockPos
 import org.bukkit.Chunk
 import org.bukkit.Location
 import org.bukkit.World
-import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitTask
-import org.slf4j.LoggerFactory
 import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.logging.Level
 import kotlin.math.max
+import net.ccbluex.agent.world.entity.Entity as AgentEntity
 
 /**
  * Every bot of the server: spawns their bodies, ticks their navigation before the entities move, and brings bodies
@@ -44,7 +39,7 @@ import kotlin.math.max
  *
  * @agent claude-opus-5-5
  */
-public class Bots internal constructor(private val plugin: Plugin) {
+public class Bots internal constructor(private val plugin: Plugin, internal val platform: Platform) {
 
     private val bots = LinkedHashMap<String, Bot>()
     private val bodies = HashMap<UUID, Bot>()
@@ -53,7 +48,6 @@ public class Bots internal constructor(private val plugin: Plugin) {
     private val listeners = CopyOnWriteArrayList<BotListener>()
     private var task: BukkitTask? = null
     private var tick = 0L
-    private val chunkHolds = ChunkHolds(plugin)
 
     public val all: List<Bot>
         get() = bots.values.toList()
@@ -120,10 +114,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
     }
 
     internal fun start() {
-        defineGameTypes()
-        val pluginManager = plugin.server.pluginManager
-        pluginManager.registerEvents(BotEvents(this), plugin)
-        pluginManager.registerEvents(BlockFeed(this), plugin)
+        platform.start(plugin, this)
         task = plugin.server.scheduler.runTaskTimer(plugin, Runnable { tick() }, 1L, 1L)
     }
 
@@ -135,14 +126,13 @@ public class Bots internal constructor(private val plugin: Plugin) {
 
     private fun spawnBody(bot: Bot) {
         despawn(bot)
-        val body = PaperBody.spawn(plugin, bot.home, bot.name, bot.skin)
+        val body = platform.spawn(plugin, bot.home, bot.name, bot.skin)
         val entity = body.entity
         try {
-            entity.getAttribute(Attribute.MAX_HEALTH)?.baseValue = max(1.0, bot.settings.health)
-            entity.health = entity.getAttribute(Attribute.MAX_HEALTH)?.value ?: entity.health
+            entity.maxHealth = max(1.0, bot.settings.health)
+            entity.health = entity.maxHealth
             entity.removeWhenFarAway = false
-            val equipment = entity.equipment
-            bot.equipment.forEach { (slot, item) -> equipment.setItem(slot, item.clone()) }
+            bot.equipment.forEach { (slot, item) -> platform.equip(entity, slot, item.clone()) }
         } catch (e: RuntimeException) {
             body.remove()
             throw e
@@ -157,7 +147,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
 
     private fun despawn(bot: Bot) {
         goneSince.remove(bot)
-        chunkHolds.release(bot)
+        platform.release(bot)
         val entity = bot.player ?: return
         notify(bot, "despawned") { it.despawned(bot) }
         bodies.remove(entity.uniqueId)
@@ -175,8 +165,8 @@ public class Bots internal constructor(private val plugin: Plugin) {
      *
      * @agent claude-sonnet-5-5
      */
-    internal fun eliminated(bot: Bot, killer: net.minecraft.world.entity.Entity?) {
-        bot.agent?.listener?.died(killer?.toAgent())
+    internal fun eliminated(bot: Bot, killer: AgentEntity?) {
+        bot.agent?.listener?.died(killer)
         notify(bot, "died") { it.died(bot) }
         bot.isDead = true
     }
@@ -199,8 +189,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
      * A minigame body keeps the chunks around [location] loaded, from its spawn and each teleport on.
      */
     internal fun hold(bot: Bot, location: Location) {
-        if (!bot.settings.minigame) return
-        chunkHolds.hold(bot, location.world, location.blockX shr CHUNK_SHIFT, location.blockZ shr CHUNK_SHIFT)
+        if (bot.settings.minigame) platform.hold(bot, location)
     }
 
     internal fun worldUnloading(world: World) {
@@ -218,7 +207,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
             val location = entity.location
             val dx = location.x - pos.x
             val dz = location.z - pos.z
-            if (dx * dx + dz * dz <= range * range) navigator.blockChanged(pos.toAgent())
+            if (dx * dx + dz * dz <= range * range) navigator.blockChanged(pos)
         }
     }
 
@@ -232,7 +221,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
                     try {
                         bot.tick()
                     } catch (e: RuntimeException) {
-                        LOGGER.error("Bot {} failed to tick", bot.name, e)
+                        plugin.logger.log(Level.SEVERE, "Bot ${bot.name} failed to tick", e)
                     }
                     continue
                 }
@@ -249,7 +238,7 @@ public class Bots internal constructor(private val plugin: Plugin) {
             try {
                 spawnBody(bot)
             } catch (e: RuntimeException) {
-                LOGGER.error("Bot {} failed to spawn", bot.name, e)
+                plugin.logger.log(Level.SEVERE, "Bot ${bot.name} failed to spawn", e)
                 respawnAt[bot] = tick + SPAWN_RETRY_TICKS
             }
         }
@@ -261,13 +250,12 @@ public class Bots internal constructor(private val plugin: Plugin) {
             try {
                 call(listener)
             } catch (e: Exception) {
-                LOGGER.error("A listener failed on bot {} {}", bot.name, what, e)
+                plugin.logger.log(Level.SEVERE, "A listener failed on bot ${bot.name} $what", e)
             }
         }
     }
 
     private companion object {
-        val LOGGER = LoggerFactory.getLogger("Agent/Bots")
         const val CHUNK_SHIFT = 4
         // How long a dead body lies before it goes, as a player's death animation
         const val DEATH_TICKS = 20L
@@ -276,8 +264,10 @@ public class Bots internal constructor(private val plugin: Plugin) {
 
         fun key(name: String): String = name.lowercase(Locale.ROOT)
 
-        fun isLoaded(location: Location): Boolean =
-            location.isWorldLoaded && location.world.isChunkLoaded(location.blockX shr CHUNK_SHIFT, location.blockZ shr CHUNK_SHIFT)
+        fun isLoaded(location: Location): Boolean {
+            val world = location.world ?: return false
+            return world.isChunkLoaded(location.blockX shr CHUNK_SHIFT, location.blockZ shr CHUNK_SHIFT)
+        }
     }
 }
 

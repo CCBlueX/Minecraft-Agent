@@ -17,28 +17,34 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
 
-import org.bukkit.plugin.java.JavaPlugin
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
- * The MinecraftAgent plugin: [Bots] for other plugins and the `/agent` command.
- *
- * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
  */
-internal class AgentPlugin : JavaPlugin() {
+class BodyDeathTest {
 
-    override fun onEnable() {
-        MinecraftAgent.start(this)
-        val command = AgentCommand(MinecraftAgent.bots(), Skins(this))
-        getCommand("agent")?.let {
-            it.setExecutor(command)
-            it.tabCompleter = command
-        }
+    @Test
+    fun `a body that ran out of health stays dead without a respawn`() {
+        assertTrue(bodyStaysDead(respawns = false, health = 0.0))
     }
 
-    override fun onDisable() {
-        MinecraftAgent.stop()
+    @Test
+    fun `a body without a player is dead`() {
+        assertTrue(bodyStaysDead(respawns = false, health = null))
+    }
+
+    @Test
+    fun `a faked death that keeps the body does not mark it dead`() {
+        assertFalse(bodyStaysDead(respawns = false, health = 20.0))
+    }
+
+    @Test
+    fun `a body that respawns is never dead for good`() {
+        assertFalse(bodyStaysDead(respawns = true, health = 0.0))
     }
 }

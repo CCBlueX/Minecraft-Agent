@@ -20,7 +20,7 @@
 package net.ccbluex.agent.v26_3.paper.body
 
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
-import net.ccbluex.agent.v26_3.paper.Bots
+import net.ccbluex.agent.bukkit.Bots
 import net.ccbluex.agent.v26_3.toAgent
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -100,7 +100,7 @@ internal class BotEvents(private val bots: Bots) : Listener {
         val bot = bots.get(event.entity) ?: return
         val damager = (event as? EntityDamageByEntityEvent)?.damager
         val attacker = (damager as? Projectile)?.shooter as? Entity ?: damager
-        bot.damaged(attacker?.let { (it as CraftEntity).handle })
+        bot.damaged(attacker?.let { (it as CraftEntity).handle.toAgent() })
     }
 
     // Unless it plays by the server's rules, gear comes from whoever set the bot up and nothing repairs it

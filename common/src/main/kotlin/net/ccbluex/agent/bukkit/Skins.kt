@@ -17,7 +17,7 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -30,9 +30,7 @@ import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.util.Locale
-import net.ccbluex.agent.bukkit.BotSkin
 import org.bukkit.plugin.Plugin
-import org.slf4j.LoggerFactory
 
 /**
  * The skins of Minecraft accounts by name, looked up from Mojang off the server thread and kept for the session.
@@ -68,12 +66,12 @@ internal class Skins(private val plugin: Plugin) {
     private fun fetchOrWarn(name: String): BotSkin? {
         try {
             val skin = fetch(name)
-            if (skin == null) LOGGER.warn("No Minecraft account named {} for a bot skin", name)
+            if (skin == null) plugin.logger.warning("No Minecraft account named $name for a bot skin")
             return skin
         } catch (e: IOException) {
-            LOGGER.warn("Could not look up the skin of {}: {}", name, e.toString())
+            plugin.logger.warning("Could not look up the skin of $name: $e")
         } catch (e: RuntimeException) {
-            LOGGER.warn("Could not look up the skin of {}: {}", name, e.toString())
+            plugin.logger.warning("Could not look up the skin of $name: $e")
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
         }
@@ -102,16 +100,17 @@ internal class Skins(private val plugin: Plugin) {
         return null
     }
 
+    @Suppress("DEPRECATION")
     private fun json(url: String): JsonObject? {
         val request = HttpRequest.newBuilder(URI.create(url)).timeout(TIMEOUT).GET().build()
         val response = http.send(request, HttpResponse.BodyHandlers.ofString())
         if (response.statusCode() == NO_CONTENT || response.statusCode() == NOT_FOUND) return null
         if (response.statusCode() != OK) throw IOException("HTTP ${response.statusCode()} from $url")
-        return JsonParser.parseString(response.body()).asJsonObject
+        // 1.8 bundles Gson 2.2, which has no JsonParser.parseString
+        return JsonParser().parse(response.body()).asJsonObject
     }
 
     private companion object {
-        val LOGGER = LoggerFactory.getLogger("Agent/Skins")
         val TIMEOUT: Duration = Duration.ofSeconds(10)
         const val PROFILE_URL = "https://api.mojang.com/users/profiles/minecraft/"
         const val SESSION_URL = "https://sessionserver.mojang.com/session/minecraft/profile/"

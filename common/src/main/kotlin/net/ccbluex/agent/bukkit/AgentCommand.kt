@@ -17,7 +17,7 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper
+package net.ccbluex.agent.bukkit
 
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -157,13 +157,13 @@ internal class AgentCommand(
         val bot = bot(sender, name) ?: return
         val player = bot.player
         val material = itemName?.let(Material::matchMaterial)
-        if (player == null || material == null || !material.isItem) {
+        if (player == null || material == null || material == Material.AIR) {
             sender.sendMessage(if (player == null) "${bot.name} has no body" else "No item named ${itemName ?: "?"}")
             return
         }
         val amount = count?.toIntOrNull()?.coerceIn(1, material.maxStackSize) ?: 1
         player.inventory.addItem(ItemStack(material, amount))
-        sender.sendMessage("Gave ${bot.name} $amount ${material.key.key}")
+        sender.sendMessage("Gave ${bot.name} $amount ${material.name.lowercase()}")
     }
 
     private fun bot(sender: CommandSender, name: String): Bot? {

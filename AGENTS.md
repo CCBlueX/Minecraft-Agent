@@ -11,6 +11,9 @@ Minecraft 26.3 (Mojang names, unobfuscated), Java 25, Kotlin. Root package `net.
 | `v26_3/paper/` | `minecraft-agent-paper`, plugin jar (classifier `plugin`) | `agent.paper` (paperweight) | server-common, vanilla |
 | `gradle/build-logic/` | - | convention plugins and checks | - |
 
+- `server/common` is the Bukkit layer (`Bots`, `Bot`, `BotBody`, `/agent`) and compiles against spigot-api 1.8.8, the
+  oldest API a supported server runs, so it links on every one. A platform implements the internal `Platform` and
+  names it in `META-INF/services/net.ccbluex.agent.bukkit.Platform`.
 - Version-neutral modules (`agent.neutral`) see only `world`'s game types (Mojang names); `checkGameClasses` fails
   on `net.minecraft`, `com.mojang` or `org.bukkit.craftbukkit` in their main sources or classes. An adapter
   (`vanilla` for 26.3) converts at the boundary with `toAgent()`/`toMinecraft()`; hosts call `defineGameTypes()` once

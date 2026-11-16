@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.v26_3.paper
 
+import net.ccbluex.agent.bukkit.Bot
 import org.bukkit.World
 import org.bukkit.plugin.Plugin
 import java.util.UUID
