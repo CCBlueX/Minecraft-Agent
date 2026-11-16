@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.skills.voidrescue
 
+import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.ItemMatch
@@ -34,8 +35,8 @@ import net.minecraft.world.phys.Vec3
 /**
  * The built-in [VoidRescue]. On the ground it holds back moves that would drop the agent into the void, as little as
  * keeps it up ([EdgeHold]), except while the navigator bridges on purpose. Once a fall into the void is under way,
- * knocked off or stepped off, it puts blocks under the fall ([Clutch]), else throws an ender pearl back to the last
- * safe ground or its spawn.
+ * knocked off or stepped off, it puts blocks under the fall ([Clutch]), else steers back towards the last safe ground
+ * in the air and throws an ender pearl back to it or its spawn.
  *
  * From LiquidBounce: [VoidSafety.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/VoidSafety.kt#L67-L73)
  *
@@ -71,7 +72,10 @@ internal class VoidSafety : VoidRescue {
         if (!falling) return
 
         agent.takeMovement()
-        if (!Clutch.tick(agent)) throwPearlBack(agent)
+        if (!Clutch.tick(agent)) {
+            safeGround?.let { agent.press(steering(player.position(), it, body.inputYRot)) }
+            throwPearlBack(agent)
+        }
     }
 
     override fun guard(agent: Agent, input: Input): Input {
@@ -139,5 +143,10 @@ internal class VoidSafety : VoidRescue {
          */
         private const val PEARL_DROP = 1.0
         private val PEARL = ItemMatch.of(Items.ENDER_PEARL)
+
+        /**
+         * The keys a player falling at [here] holds for air control towards [ground], moving along [yRot].
+         */
+        fun steering(here: Vec3, ground: Vec3, yRot: Float): Input = getDirectionalInputTowards(ground.subtract(here), yRot)
     }
 }
