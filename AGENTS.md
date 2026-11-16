@@ -9,8 +9,11 @@ Minecraft 26.3 (Mojang names, unobfuscated), Java 25, Kotlin. Root package `net.
 | `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.client` (Loom, client) | navigation, vanilla |
 | `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.fabric` (Loom, client) | common |
 | `v26_3/paper/` | `minecraft-agent-paper`, plugin jar (classifier `plugin`) | `agent.paper` (paperweight) | server-common, vanilla |
+| `v1_8_8/spigot/` | `minecraft-agent-spigot`, plugin jar (classifier `plugin`) | `agent.spigot` (Spigot 1.8.8 jar) | server-common |
 | `gradle/build-logic/` | - | convention plugins and checks | - |
 
+- `client/common` and `server/common` hold what every mod loader or server platform shares; `client/fabric`,
+  `server/paper` and `v1_8_8/spigot` are friends of their common part and use its internals.
 - `server/common` is the Bukkit layer (`Bots`, `Bot`, `BotBody`, `/agent`) and compiles against spigot-api 1.8.8, the
   oldest API a supported server runs, so it links on every one. A platform implements the internal `Platform` and
   names it in `META-INF/services/net.ccbluex.agent.bukkit.Platform`.
@@ -24,6 +27,12 @@ Minecraft 26.3 (Mojang names, unobfuscated), Java 25, Kotlin. Root package `net.
   (`MinecraftBootstrap`, `TestWorld`, `TestLevel`), which brings the game's jar onto their test classpath.
 - The Paper plugin jar bundles the library modules; Kotlin and coroutines come from `libraries` in `plugin.yml`
   (write `libraries: ${libraries}` and `version: "${version}"`, the build fills them in).
+- `v1_8_8/spigot` is its own adapter for 1.8.8 (`v1_8_R3`, Spigot's obfuscated names; decompile the server jar to
+  read them). Block states are by section id (`block id << 4 | data`, not `Block.getCombinedId`); shapes come from the
+  server's block code on the main thread, so `snapshot` copies them for blocks whose shape depends on neighbours.
+  Its plugin jar bundles Kotlin and coroutines (1.8 has no `libraries`).
+- The 1.8.8 server jar is not published: pass a local one as `-PserverJar=<jar>` to `runServer`/`runSmoke`
+  and never commit or name it.
 - Dependency repositories are in `agent.kotlin`, not in settings: Loom and paperweight add project repositories,
   which make Gradle ignore the settings ones.
 
@@ -36,10 +45,13 @@ flock /tmp/minecraft-agent-gradle.lock ./gradlew -Dorg.gradle.jvmargs=-Xmx2g bui
 flock /tmp/minecraft-agent-gradle.lock ./gradlew -Dorg.gradle.jvmargs=-Xmx2g updateKotlinAbi   # after an intended API change
 timeout 900 flock /tmp/minecraft-agent-gradle.lock xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :v26_3-fabric:runClientGameTest
 timeout 600 flock /tmp/minecraft-agent-gradle.lock ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :v26_3-paper:runServer
+timeout 900 flock /tmp/minecraft-agent-gradle.lock ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :v1_8_8-spigot:runSmoke -PserverJar=<jar>
 ```
 
 - `build` runs the unit tests, the ABI check (`api/*.api`), `checkLicenseHeaders`, `checkGameClasses` and
   `checkClientClasses`.
+- `runSmoke` builds a course on a flat 1.8.8 world, logs one `SMOKE PASS`/`SMOKE FAIL` line per check and stops the
+  server; count those lines.
 - Game clients and servers run with `-Xmx2g` (set by the build) and a hard timeout; `runClientGameTest` has a
   10 minute Gradle timeout (`-PgameTestTimeoutMinutes` for a whole local run). Kill leftovers afterwards (`ps`,
   check `/proc/<pid>/cwd`).

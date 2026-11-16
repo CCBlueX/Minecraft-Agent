@@ -1,0 +1,13 @@
+name: MinecraftAgent
+version: "${version}"
+main: net.ccbluex.agent.bukkit.AgentPlugin
+description: Bots that walk, fight and build as players
+commands:
+  agent:
+    description: Spawns, moves and removes bots
+    usage: /agent <spawn|remove|list|goto|follow|fight|give|stop>
+    permission: agent.admin
+permissions:
+  agent.admin:
+    description: Use /agent
+    default: op

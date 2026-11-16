@@ -10,12 +10,14 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`, 
 
 | Artifact | Use it for |
 |---|---|
-| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes; what server bots share on every server platform |
+| `minecraft-agent-common` | Predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes; server bots as Bukkit sees them: `MinecraftAgent`, `Bots`, `Bot`, `BotBody` |
 | `minecraft-agent-fabric` | The local player as a body (Fabric mod) |
-| `minecraft-agent-paper` | Server bots (Paper plugin `MinecraftAgent`) |
+| `minecraft-agent-paper` | Server bots on Paper 26.3 (plugin `MinecraftAgent`), with minigames |
+| `minecraft-agent-spigot` | Server bots on Spigot 1.8.8 (plugin `MinecraftAgent`) |
 
 Each one brings what it builds on: `navigation` brings `pathfinder` and `simulation`, `skills` brings `navigation`,
-`fabric` brings `common`, `paper` brings `common`.
+`fabric` brings `common`, `server/paper` and `v1_8_8/spigot` bring `server/common` and
+`skills`.
 Everything public is callable from Java.
 
 ## Fabric mod

@@ -37,7 +37,8 @@ navigation.navigator.moveTo(Vec3(100.5, 64.0, -20.5)) { ending -> println(ending
 
 ### Server
 
-Bots as players on the server, as a Paper plugin. Install the `MinecraftAgent` plugin jar on the server, or shade
+Bots as players on the server, the same on every server platform: `v26_3/paper` as a Paper plugin, `v1_8_8/spigot` as
+a [Spigot 1.8.8 plugin](v1_8_8/spigot/README.md). Install the `MinecraftAgent` plugin jar on the server, or shade
 `minecraft-agent-paper` into a plugin with bots of its own and call `MinecraftAgent.start(this)` in its `onEnable`.
 
 ```kotlin
