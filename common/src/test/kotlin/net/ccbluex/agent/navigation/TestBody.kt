@@ -19,25 +19,32 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.ViewRotation
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.BlockHitResult
+import net.ccbluex.agent.simulation.PlayerSimulation
+import net.ccbluex.agent.simulation.SimulatedInput
+import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Player
 import org.slf4j.LoggerFactory
+import net.minecraft.world.entity.player.Player as McPlayer
 
 /**
- * A [Body] over a [player] the test moves itself: it keeps the keys pressed and the rotation looked for last.
+ * A [Body] over a [handle] the test moves itself: it keeps the keys pressed and the rotation looked for last.
  *
  * @agent claude-opus-5-5
  */
 internal class TestBody(
-    override val player: Player,
+    val handle: McPlayer,
     override val flight: FlightControl? = null,
     override val teleporter: Teleporter? = null,
 ) : Body {
+
+    override val player: Player = handle.toAgent()
 
     var pressed: Input = Input.EMPTY
         private set
@@ -66,6 +73,10 @@ internal class TestBody(
     override fun stopDestroy() = Unit
     override fun useItemOn(hand: InteractionHand, hit: BlockHitResult) = false
     override fun useItem(hand: InteractionHand) = false
+
+    override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
+        SimulatedPlayer.fromPlayer(handle, input, traits.navigatesInMovementTick, simulationHooks)
+            .also { it.yRot = yRot }
 
     /**
      * What the parts of a navigator over this body share, with default options.

@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.pathfinder
 
+import net.ccbluex.agent.v26_3.defineGameTypes
 import net.minecraft.SharedConstants
 import net.minecraft.server.Bootstrap
 
@@ -32,6 +33,7 @@ public object MinecraftBootstrap {
     private val bootstrapped by lazy {
         SharedConstants.tryDetectVersion()
         Bootstrap.bootStrap()
+        defineGameTypes()
     }
 
     public fun ensureInitialized() {

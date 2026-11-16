@@ -20,18 +20,21 @@
 package net.ccbluex.agent.skills
 
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.item.ItemStack
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.data.registries.VanillaRegistries
-import net.minecraft.world.entity.EntityEquipment
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStack
+import net.ccbluex.agent.world.item.Item as AgentItem
+import net.minecraft.world.item.ItemStack as McItemStack
 
 /**
  * Item stacks and inventories without a world or a player, for tests of what an agent holds.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 object TestInventories {
 
@@ -47,14 +50,32 @@ object TestInventories {
     fun bootstrap() {}
 
     /**
-     * An inventory holding [stacks] from slot 0 on; its player is missing, which only item lookups tolerate.
+     * An inventory holding [stacks] from slot 0 on, with the hotbar's first slot selected.
      */
-    fun of(vararg stacks: ItemStack): Inventory {
-        val constructor = Inventory::class.java.getConstructor(Player::class.java, EntityEquipment::class.java)
-        val inventory = constructor.newInstance(null, EntityEquipment())
-        stacks.forEachIndexed { slot, stack -> inventory.setItem(slot, stack) }
-        return inventory
+    fun of(vararg stacks: ItemStack): TestInventory = TestInventory().apply {
+        stacks.forEachIndexed { slot, stack -> setItem(slot, stack) }
     }
 
-    fun stack(item: Item, count: Int = 1): ItemStack = ItemStack(item, count)
+    fun stack(item: Item, count: Int = 1): ItemStack = McItemStack(item, count).toAgent()
+
+    fun stack(item: AgentItem, count: Int = 1): ItemStack = stack(item.toMinecraft(), count)
+}
+
+/**
+ * The game's player inventory layout: 36 slots, four armour slots, the offhand.
+ *
+ * @agent claude-opus-5-5
+ */
+class TestInventory : Inventory {
+    private val items = Array(41) { ItemStack.EMPTY }
+
+    override val containerSize: Int get() = items.size
+
+    override fun getItem(slot: Int): ItemStack = items[slot]
+
+    override val selectedSlot: Int get() = 0
+
+    fun setItem(slot: Int, stack: ItemStack) {
+        items[slot] = stack
+    }
 }

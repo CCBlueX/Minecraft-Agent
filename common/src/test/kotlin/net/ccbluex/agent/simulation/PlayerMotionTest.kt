@@ -19,14 +19,14 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.SharedConstants
-import net.minecraft.core.BlockPos
-import net.minecraft.server.Bootstrap
-import net.minecraft.world.level.EmptyBlockGetter
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.pathfinder.MinecraftBootstrap
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.EmptyBlockGetter
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.VoxelShape
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.shapes.VoxelShape
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -43,12 +43,12 @@ class PlayerMotionTest {
 
     companion object {
         init {
-            SharedConstants.tryDetectVersion()
-            Bootstrap.bootStrap()
+            MinecraftBootstrap.ensureInitialized()
         }
 
-        private val SLIME = Blocks.SLIME_BLOCK.defaultBlockState()
-        private val BED = Blocks.BED.red().defaultBlockState()
+        private val AIR = Blocks.AIR.defaultBlockState().toAgent()
+        private val SLIME = Blocks.SLIME_BLOCK.defaultBlockState().toAgent()
+        private val BED = Blocks.BED.red().defaultBlockState().toAgent()
         private const val BOUNCE_TICKS = 60
         private const val WALK_TICKS = 40
     }
@@ -107,7 +107,7 @@ class PlayerMotionTest {
 
     @Test
     fun `a fall onto carpet on slime bounces as onto the slime`() {
-        val grid = slime().fill(-20, 1, -20, 20, 1, 20, Blocks.CARPET.red().defaultBlockState())
+        val grid = slime().fill(-20, 1, -20, 20, 1, 20, Blocks.CARPET.red().defaultBlockState().toAgent())
         assertEquals(7.5364, bounceHeight(grid, 11.0), 1.0E-3)
     }
 
@@ -164,7 +164,7 @@ class PlayerMotionTest {
         private val blocks = HashMap<BlockPos, BlockState>()
 
         fun fill(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int, state: BlockState) = apply {
-            for (pos in BlockPos.betweenClosed(x1, y1, z1, x2, y2, z2)) {
+            for (pos in BlockPos.betweenClosed(BlockPos(x1, y1, z1), BlockPos(x2, y2, z2))) {
                 blocks[pos.immutable()] = state
             }
         }
@@ -172,16 +172,16 @@ class PlayerMotionTest {
         fun set(x: Int, y: Int, z: Int, state: BlockState) = fill(x, y, z, x, y, z, state)
 
         override fun state(x: Int, y: Int, z: Int): BlockState =
-            blocks[BlockPos(x, y, z)] ?: Blocks.AIR.defaultBlockState()
+            blocks[BlockPos(x, y, z)] ?: AIR
 
         override fun shape(x: Int, y: Int, z: Int): VoxelShape =
-            state(x, y, z).getCollisionShape(EmptyBlockGetter.INSTANCE, BlockPos(x, y, z))
+            state(x, y, z).getCollisionShape(EmptyBlockGetter, BlockPos(x, y, z))
 
         companion object {
             /**
              * A stone floor at y 0 from -40 to 40, so the feet stand at y 1.
              */
-            fun flat() = Grid().fill(-40, 0, -40, 40, 0, 40, Blocks.STONE.defaultBlockState())
+            fun flat() = Grid().fill(-40, 0, -40, 40, 0, 40, Blocks.STONE.defaultBlockState().toAgent())
         }
     }
 }

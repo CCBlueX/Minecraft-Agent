@@ -19,6 +19,9 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.FollowState
@@ -35,10 +38,9 @@ import net.ccbluex.agent.pathfinder.walk.RouteSearch
 import net.ccbluex.agent.pathfinder.walkAbilities
 import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -75,23 +77,25 @@ internal class FollowerTest {
             MotionTraits((default.walkingSpeed * speedFactor).toFloat(), default.jumpStrength, default.jumpBoostPower),
         )
 
+        val position: Vec3 get() = player.position().toAgent()
+
         init {
-            motion.reset(player.position(), PlayerMotion.RESTING, onGround = true)
+            motion.reset(position, PlayerMotion.RESTING, onGround = true)
         }
 
         fun turnTo(target: Vec3?) {
-            val wanted = target?.takeIf { it.horizontalDistanceTo(player.position()) > 0.75 }
-                ?.subtract(player.position())?.yRot ?: return
+            val wanted = target?.takeIf { it.horizontalDistanceTo(position) > 0.75 }
+                ?.subtract(position)?.yRot ?: return
             player.yRot += Mth.wrapDegrees(wanted - player.yRot).coerceIn(-turn, turn)
         }
 
         fun move(keys: MovementKeys, sprint: Boolean) {
             val input = keys.directionalInput
-            val forward = (if (input.forward()) 1 else 0) - (if (input.backward()) 1 else 0)
-            val strafe = (if (input.left()) 1 else 0) - (if (input.right()) 1 else 0)
+            val forward = (if (input.forward) 1 else 0) - (if (input.backward) 1 else 0)
+            val strafe = (if (input.left) 1 else 0) - (if (input.right) 1 else 0)
             motion.tick(player.yRot, forward, strafe, keys.jump, sprint, keys.sneak)
-            player.setPos(motion.position)
-            player.deltaMovement = motion.deltaMovement
+            player.setPos(motion.position.toMinecraft())
+            player.deltaMovement = motion.deltaMovement.toMinecraft()
             player.setOnGround(motion.onGround)
             player.horizontalCollision = motion.horizontalCollision
             player.isSprinting = motion.isSprinting
@@ -118,16 +122,16 @@ internal class FollowerTest {
             val state = follower.tick(keys, host.player.yRot)
             if (state == FollowState.FINISHED) {
                 val end = Vec3.atBottomCenterOf(goal)
-                val at = host.player.position()
+                val at = host.position
                 assertTrue(at.horizontalDistanceTo(end) <= ARRIVAL, "Ended at $at, not at $end")
                 return tick
             }
-            assertTrue(state != FollowState.STUCK, "Gave up a step at ${host.player.position()}")
+            assertTrue(state != FollowState.STUCK, "Gave up a step at ${host.position}")
             host.move(keys, follower.sprint)
             host.turnTo(follower.target)
-            assertTrue(host.player.y > floor, "Fell at ${host.player.position()}")
+            assertTrue(host.player.y > floor, "Fell at ${host.position}")
         }
-        error("Did not get to $goal in $MAX_TICKS ticks, at ${host.player.position()}")
+        error("Did not get to $goal in $MAX_TICKS ticks, at ${host.position}")
     }
 
     @ParameterizedTest(name = "walking {0} times as fast")

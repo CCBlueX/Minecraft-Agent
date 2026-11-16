@@ -20,6 +20,7 @@
 package net.ccbluex.agent.pathfinder
 
 import com.mojang.authlib.GameProfile
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Holder
 import net.minecraft.core.RegistryAccess
@@ -74,6 +75,7 @@ import net.minecraft.world.ticks.BlackholeTickAccess
 import net.minecraft.world.ticks.LevelTickAccess
 import java.util.UUID
 import java.util.function.Predicate
+import net.ccbluex.agent.math.Vec3 as AgentVec3
 
 /**
  * A server-side [Level] over the blocks of [world], so entities such as players move through a [TestWorld] as they
@@ -114,21 +116,21 @@ public class TestLevel(private val world: TestWorld) : Level(
      * A survival player standing still at [feet], facing [yRot], added to this level.
      */
     @JvmOverloads
-    public fun player(feet: Vec3, yRot: Float = 0f): Player {
+    public fun player(feet: AgentVec3, yRot: Float = 0f): Player {
         val player = object : Player(this, GameProfile(UUID.randomUUID(), "Tester")) {
             override fun gameMode(): GameType = GameType.SURVIVAL
         }
-        player.snapTo(feet, yRot, 0f)
+        player.snapTo(feet.toMinecraft(), yRot, 0f)
         player.setOnGround(true)
         add(player)
         return player
     }
 
-    override fun getBlockState(pos: BlockPos): BlockState = world.getBlockState(pos)
+    override fun getBlockState(pos: BlockPos): BlockState = world.blocks.getBlockState(pos)
 
-    override fun getFluidState(pos: BlockPos): FluidState = world.getFluidState(pos)
+    override fun getFluidState(pos: BlockPos): FluidState = world.blocks.getFluidState(pos)
 
-    override fun getChunkForCollisions(chunkX: Int, chunkZ: Int): BlockGetter = world
+    override fun getChunkForCollisions(chunkX: Int, chunkZ: Int): BlockGetter = world.blocks
 
     override fun hasChunk(chunkX: Int, chunkZ: Int): Boolean = true
 

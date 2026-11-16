@@ -24,10 +24,11 @@ import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.Input
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.minecraft.client.player.LocalPlayer
-import net.minecraft.world.entity.player.Input
 import net.minecraft.world.phys.Vec3
 
 /**
@@ -95,15 +96,16 @@ private class Course(
      * @agent claude-opus-5-5
      */
     fun difference(player: LocalPlayer): String? {
-        val motion = PlayerMotion(Terrain.live(player.level()), MotionTraits.capture(player))
-        motion.reset(player)
+        val motion = PlayerMotion(Terrain.live(player.level().toAgent()), MotionTraits.capture(player.toAgent()))
+        motion.reset(player.toAgent())
         val keys = Input(forward > 0, forward < 0, strafe > 0, strafe < 0, jump, sneak, sprint)
         val game = SimulatedPlayer.fromPlayer(player, SimulatedInput(keys), continuesTick = false)
 
         repeat(ticks) { tick ->
             motion.tick(player.yRot, forward, strafe, jump, sprint, sneak)
             game.tick()
-            if (motion.position.distanceTo(game.position()) > TOLERANCE || motion.onGround != game.onGround()) {
+            val gamePosition = game.position().toAgent()
+            if (motion.position.distanceTo(gamePosition) > TOLERANCE || motion.onGround != game.onGround()) {
                 return "$name: tick $tick is ${motion.position} on ground ${motion.onGround}, " +
                     "the game moves to ${game.position()} on ground ${game.onGround()}"
             }

@@ -20,6 +20,7 @@
 package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.GameTestScope.Companion.DEFAULT_TIMEOUT
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -123,7 +124,7 @@ internal fun GameTestScope.matchingBlocks(from: BlockPos, to: BlockPos, referenc
  * @agent claude-fable-5-2
  */
 internal fun Vec3.arrivedAt(goal: Vec3, radius: Double) =
-    horizontalDistanceTo(goal) <= radius + 0.1 && abs(y - goal.y) < 1.0
+    toAgent().horizontalDistanceTo(goal.toAgent()) <= radius + 0.1 && abs(y - goal.y) < 1.0
 
 /**
  * From LiquidBounce: [NavigationGameTests.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/gametest/kotlin/net/ccbluex/liquidbounce/gametest/navigation/NavigationGameTests.kt#L148-L148)

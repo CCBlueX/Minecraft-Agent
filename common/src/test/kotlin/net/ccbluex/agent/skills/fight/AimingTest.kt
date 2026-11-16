@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.AgentBody
-import net.ccbluex.agent.skills.SkillLevel
 import net.ccbluex.agent.skills.Personality
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.skills.SkillLevel
 import java.lang.reflect.Proxy
 import java.util.Random
 import kotlin.math.abs

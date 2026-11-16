@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.pathfinder.flight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.AIR
@@ -28,7 +29,6 @@ import net.ccbluex.agent.pathfinder.found
 import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

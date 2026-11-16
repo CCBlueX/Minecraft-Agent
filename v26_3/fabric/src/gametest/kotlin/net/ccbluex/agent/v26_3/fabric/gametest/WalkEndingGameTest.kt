@@ -26,6 +26,7 @@ import net.ccbluex.agent.navigation.Options
 import net.ccbluex.agent.navigation.walkTo
 import net.ccbluex.agent.tick.TickScope
 import net.ccbluex.agent.tick.requires
+import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -58,17 +59,19 @@ internal val walkEnding: GameTestScope.() -> Unit = {
         buildCourse(origin.y)
         moveTo(Vec3(0.5, y, 0.5), yRot = -90f)
 
-        val arrived = walk(scope, "to open ground") { navigation.navigator.walkTo(Vec3(12.5, y, 0.5), 1.0) }
+        val arrived = walk(scope, "to open ground") { navigation.navigator.walkTo(Vec3(12.5, y, 0.5).toAgent(), 1.0) }
         check(arrived == Ending.ARRIVED) { "The walk to open ground ended $arrived" }
 
-        val sealed = walk(scope, "into the sealed box") { navigation.navigator.walkTo(Vec3(28.5, y, 0.5), 1.0) }
+        val sealed = walk(scope, "into the sealed box") {
+            navigation.navigator.walkTo(Vec3(28.5, y, 0.5).toAgent(), 1.0)
+        }
         check(sealed == Ending.UNREACHABLE) { "The walk into the sealed box ended $sealed" }
 
         moveTo(Vec3(0.5, y, 0.5), yRot = -90f)
         var replaced: Ending? = null
-        context.onClient { scope.launch { replaced = navigation.navigator.walkTo(Vec3(20.5, y, 8.5), 1.0) } }
+        context.onClient { scope.launch { replaced = navigation.navigator.walkTo(Vec3(20.5, y, 8.5).toAgent(), 1.0) } }
         context.waitTicks(20)
-        context.onClient { navigation.navigator.moveTo(Vec3(0.5, y, 0.5)) }
+        context.onClient { navigation.navigator.moveTo(Vec3(0.5, y, 0.5).toAgent()) }
         await(context, 5, "The replaced walk did not end") { context.fromClient { replaced != null } }
         check(replaced == Ending.STOPPED) { "The replaced walk ended $replaced" }
         await(context, WALK_TICKS, "The walk that replaced it did not arrive") {
@@ -82,7 +85,7 @@ internal val walkEnding: GameTestScope.() -> Unit = {
             scope.launch {
                 requires { allowed }
                 try {
-                    navigation.navigator.walkTo(Vec3(20.5, y, -8.5), 1.0)
+                    navigation.navigator.walkTo(Vec3(20.5, y, -8.5).toAgent(), 1.0)
                     after = true
                 } finally {
                     cleanedUp = true

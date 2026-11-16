@@ -19,6 +19,10 @@
 
 package net.ccbluex.agent.pathfinder
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.AIR
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.STONE
@@ -32,12 +36,9 @@ import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.RouteSearch
 import net.ccbluex.agent.pathfinder.walk.Step
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LadderBlock
-import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -259,7 +260,7 @@ class WalkJumpTest {
 
     @Test
     fun `a ladder across a gap is caught and climbed`() {
-        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.WEST)
+        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.WEST.toMinecraft())
         val world = TestWorld().fill(0, 0, 0, 0, 0, 0).fill(4, 1, 0, 4, 6, 0).fill(4, 6, 0, 6, 6, 0)
             .fill(3, 1, 0, 3, 6, 0, ladder)
         val goal = BlockPos(5, 7, 0)

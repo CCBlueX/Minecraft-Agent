@@ -23,8 +23,10 @@ import net.ccbluex.agent.math.DIRECTION_FORWARDS
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.Input
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.player.Input
 import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -44,7 +46,7 @@ class PositionExtrapolationTest {
         }
     }
 
-    private val feet = TestWorld.feet(0, 1, 0)
+    private val feet = TestWorld.feet(0, 1, 0).toMinecraft()
 
     @Test
     fun `a constant position never moves`() {
@@ -65,7 +67,7 @@ class PositionExtrapolationTest {
 
     @Test
     fun `a forecast is read at the nearest tick up to tick 30`() {
-        val player = TestLevel(TestWorld.flat()).player(feet)
+        val player = TestLevel(TestWorld.flat()).player(feet.toAgent())
         val forecast = Forecast(SimulatedPlayer.fromPlayer(player, SimulatedInput(DIRECTION_FORWARDS), false))
         val extrapolation = PositionExtrapolation.of(forecast)
 
@@ -76,7 +78,7 @@ class PositionExtrapolationTest {
 
     @Test
     fun `a player is extrapolated by its forecast`() {
-        val player = TestLevel(TestWorld.flat()).player(feet)
+        val player = TestLevel(TestWorld.flat()).player(feet.toAgent())
         player.setPos(feet.add(0.0, 0.0, 0.2))
         val forecasts = Forecasts()
 
@@ -86,18 +88,18 @@ class PositionExtrapolationTest {
 
     @Test
     fun `the keys of a player are guessed from its last move`() {
-        val player = TestLevel(TestWorld.flat()).player(feet)
-        assertEquals(Input.EMPTY, SimulatedInput.guess(player).keys, "stands still")
+        val player = TestLevel(TestWorld.flat()).player(feet.toAgent())
+        assertEquals(Input.EMPTY, SimulatedInput.guess(player.toAgent()).keys, "stands still")
 
         // Yaw 0 faces south (+z): a sprint's 0.28 a tick that way is forwards.
         player.setPos(feet.add(0.0, 0.0, 0.28))
-        val sprinting = SimulatedInput.guess(player).keys
+        val sprinting = SimulatedInput.guess(player.toAgent()).keys
         assertTrue(sprinting.forward && sprinting.sprint)
         assertFalse(sprinting.backward || sprinting.left || sprinting.right || sprinting.jump)
 
         player.setOnGround(false)
         player.setPos(feet.add(0.0, 0.0, -0.1))
-        val walkingBack = SimulatedInput.guess(player).keys
+        val walkingBack = SimulatedInput.guess(player.toAgent()).keys
         assertTrue(walkingBack.backward && walkingBack.jump)
         assertFalse(walkingBack.sprint)
     }

@@ -21,8 +21,8 @@ package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.v26_3.fabric.ClientBody
 import net.ccbluex.agent.navigation.Options
+import net.ccbluex.agent.world.Input
 import net.minecraft.client.Minecraft
-import net.minecraft.world.entity.player.Input
 
 /**
  * The key timing the walkers of the running scenario use, and the keys their bodies pressed meanwhile. Only on the

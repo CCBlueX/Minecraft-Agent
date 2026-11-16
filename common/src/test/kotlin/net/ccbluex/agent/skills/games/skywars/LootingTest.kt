@@ -18,7 +18,7 @@
  */
 package net.ccbluex.agent.skills.games.skywars
 
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.math.BlockPos
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

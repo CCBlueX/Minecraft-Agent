@@ -21,13 +21,13 @@ package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.world.Input
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.RedStoneOreBlock
 import net.minecraft.world.phys.Vec3

@@ -21,12 +21,13 @@ package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.navigation.DestinationSource
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.Input
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
 import net.ccbluex.gametest.harness.action.fill
 import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Input
 import net.minecraft.world.phys.Vec3
 
 private const val GOAL_RADIUS = 0.8
@@ -162,7 +163,7 @@ private fun GameTestScope.sprintAtLedge(toward: Vec3) {
             navigation.body.safeWalk = true
             SPRINT_FORWARD
         }
-        navigation.navigator.follow(DestinationSource { toward })
+        navigation.navigator.follow(DestinationSource { toward.toAgent() })
     }
 
     var sneaked = false

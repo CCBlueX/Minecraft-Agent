@@ -19,14 +19,16 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.item.ItemStack
 import net.minecraft.core.Holder
 import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.alchemy.Potion
 import net.minecraft.world.item.alchemy.PotionContents
 import net.minecraft.world.item.alchemy.Potions
 import java.util.EnumSet
+import net.minecraft.world.item.ItemStack as McItemStack
 
 /**
  * Duel kits as test fixtures: the items of each loadout (enchantments left out, they need a world's registries), the
@@ -144,7 +146,7 @@ internal enum class Kits(
     ),
 }
 
-private fun stack(item: Item, count: Int = 1) = ItemStack(item, count)
+private fun stack(item: Item, count: Int = 1) = McItemStack(item, count).toAgent()
 
 private fun splash(potion: Holder<Potion>, count: Int): ItemStack =
-    PotionContents.createItemStack(Items.SPLASH_POTION, potion).also { it.count = count }
+    PotionContents.createItemStack(Items.SPLASH_POTION, potion).also { it.count = count }.toAgent()

@@ -19,14 +19,14 @@
 
 package net.ccbluex.agent.skills.voidrescue
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.Turning
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.math.abs

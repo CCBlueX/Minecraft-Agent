@@ -20,9 +20,9 @@
 package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.v26_3.fabric.ClientBody
+import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
-import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.Items
 
 private const val EAT_TICKS = 32

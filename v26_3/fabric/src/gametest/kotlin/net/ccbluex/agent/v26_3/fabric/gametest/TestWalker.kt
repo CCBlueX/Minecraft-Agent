@@ -23,6 +23,7 @@ import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Options
+import net.ccbluex.agent.v26_3.toAgent
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.phys.Vec3
@@ -62,7 +63,7 @@ internal class TestWalker(
         get() = navigation.body.safeWalk
 
     private val source = object : DestinationSource {
-        override fun goal() = this@TestWalker.goal
+        override fun goal() = this@TestWalker.goal?.toAgent()
 
         override fun radius() = this@TestWalker.radius
     }

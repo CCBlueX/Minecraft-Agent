@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.pathfinder.ride
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.AIR
@@ -31,10 +33,9 @@ import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.walkAbilities
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.block.BlockState
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -56,8 +57,8 @@ class RideRoutingTest {
         private val LIMITS = Limits(maxLength = 64.0, maxVisitedNodes = 20_000, maxComputeNanos = Long.MAX_VALUE)
         private const val MAX_SLICES = 1000
 
-        private val WATER: BlockState get() = Blocks.WATER.defaultBlockState()
-        private val ICE: BlockState get() = Blocks.PACKED_ICE.defaultBlockState()
+        private val WATER: BlockState get() = Blocks.WATER.defaultBlockState().toAgent()
+        private val ICE: BlockState get() = Blocks.PACKED_ICE.defaultBlockState().toAgent()
 
         private val BOAT = Vehicle(
             kind = VehicleKind.BOAT,

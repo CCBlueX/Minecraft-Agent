@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.FightingStyle
 import net.ccbluex.agent.skills.Personality
 import net.ccbluex.agent.skills.games.WayCost
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull

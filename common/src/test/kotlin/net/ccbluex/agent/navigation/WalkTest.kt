@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

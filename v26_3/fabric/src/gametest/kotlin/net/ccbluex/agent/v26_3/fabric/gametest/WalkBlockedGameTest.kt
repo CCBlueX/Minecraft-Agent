@@ -20,6 +20,7 @@
 package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -95,7 +96,7 @@ private fun GameTestScope.standingTicks(goal: Vec3): Int {
     var last = context.playerPosition()
     val took = await(context, DETOUR_TICKS, "Did not walk through the other gap to $goal") {
         val position = context.playerPosition()
-        if (position.horizontalDistanceTo(last) < STANDING) {
+        if (position.toAgent().horizontalDistanceTo(last.toAgent()) < STANDING) {
             standing++
         }
         last = position

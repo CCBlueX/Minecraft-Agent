@@ -69,7 +69,7 @@ class WantedTest {
         val inventory = TestInventories.of(stack(Items.GOLDEN_APPLE, 10), stack(Items.ENDER_PEARL, 10))
         assertTrue(wanted.wants(inventory, stack(Items.GOLDEN_APPLE)))
         assertTrue(wanted.wants(inventory, stack(Items.ENDER_PEARL)))
-        assertFalse(wanted.wants(inventory, stack(Items.DIRT).copyWithCount(0)))
+        assertFalse(wanted.wants(inventory, stack(Items.DIRT, 0)))
     }
 
     @Test

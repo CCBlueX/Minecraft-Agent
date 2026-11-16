@@ -21,20 +21,27 @@ package net.ccbluex.agent.pathfinder
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import it.unimi.dsi.fastutil.longs.LongSet
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.route.Search
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.pathfinder.walk.Route
-import net.ccbluex.agent.pathfinder.level.LevelBlocks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.block.Blocks
+import net.ccbluex.agent.pathfinder.walk.WalkAbilities
+import net.ccbluex.agent.v26_3.GameBlocks
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.LevelBlocks
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.Blocks
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.FluidState
-import net.minecraft.world.phys.Vec3
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import net.minecraft.core.BlockPos as McBlockPos
+import net.minecraft.world.level.block.Blocks as McBlocks
+import net.minecraft.world.level.block.state.BlockState as McBlockState
 
 /**
  * An in-memory world for routing tests; every block is air unless filled.
@@ -45,19 +52,37 @@ import kotlin.test.assertTrue
  */
 public class TestWorld(
     private val known: (x: Int, z: Int) -> Boolean = { _, _ -> true },
-) : LevelBlocks {
+) : LevelBlocks, GameBlocks {
 
-    private val blocks = HashMap<BlockPos, BlockState>()
+    private val states = HashMap<BlockPos, BlockState>()
+
+    override val blocks: BlockGetter = object : BlockGetter {
+        override fun getBlockEntity(pos: McBlockPos): BlockEntity? = null
+
+        override fun getBlockState(pos: McBlockPos): McBlockState =
+            this@TestWorld.getBlockState(pos.toAgent()).toMinecraft()
+
+        override fun getFluidState(pos: McBlockPos): FluidState = getBlockState(pos).fluidState
+
+        override fun getHeight(): Int = height
+
+        override fun getMinY(): Int = minY
+    }
 
     public fun fill(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int, state: BlockState = STONE): TestWorld = apply {
         for (x in minOf(x1, x2)..maxOf(x1, x2)) {
             for (y in minOf(y1, y2)..maxOf(y1, y2)) {
                 for (z in minOf(z1, z2)..maxOf(z1, z2)) {
-                    blocks[BlockPos(x, y, z)] = state
+                    states[BlockPos(x, y, z)] = state
                 }
             }
         }
     }
+
+    public fun fill(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int, state: McBlockState): TestWorld =
+        fill(x1, y1, z1, x2, y2, z2, state.toAgent())
+
+    public fun set(x: Int, y: Int, z: Int, state: McBlockState): TestWorld = fill(x, y, z, x, y, z, state.toAgent())
 
     public fun set(x: Int, y: Int, z: Int, state: BlockState): TestWorld = fill(x, y, z, x, y, z, state)
 
@@ -67,18 +92,18 @@ public class TestWorld(
 
     override fun isInsideBorder(x: Double, z: Double): Boolean = true
 
-    override fun getBlockEntity(pos: BlockPos): BlockEntity? = null
+    override fun getBlockState(pos: BlockPos): BlockState = states[pos] ?: AIR
 
-    override fun getBlockState(pos: BlockPos): BlockState = blocks[pos] ?: AIR
+    override val height: Int get() = 384
 
-    override fun getFluidState(pos: BlockPos): FluidState = getBlockState(pos).fluidState
-
-    override fun getHeight(): Int = 384
-
-    override fun getMinY(): Int = -64
+    override val minY: Int get() = -64
 
     public companion object {
-        public val STONE: BlockState get() = Blocks.STONE.defaultBlockState()
+        init {
+            MinecraftBootstrap.ensureInitialized()
+        }
+
+        public val STONE: BlockState get() = McBlocks.STONE.defaultBlockState().toAgent()
         public val AIR: BlockState get() = Blocks.AIR.defaultBlockState()
 
         /**

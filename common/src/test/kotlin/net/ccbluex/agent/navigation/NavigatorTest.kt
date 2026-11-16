@@ -19,14 +19,16 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.BlockHitResult
+import net.ccbluex.agent.simulation.PlayerSimulation
+import net.ccbluex.agent.simulation.SimulatedInput
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Player
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
 
@@ -71,5 +73,7 @@ internal class NavigatorTest {
         override fun stopDestroy() = Unit
         override fun useItemOn(hand: InteractionHand, hit: BlockHitResult) = false
         override fun useItem(hand: InteractionHand) = false
+        override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
+            error("There is no player")
     }
 }

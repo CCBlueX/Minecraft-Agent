@@ -24,6 +24,7 @@ import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.Ending
 import net.ccbluex.agent.navigation.Turning
+import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -61,7 +62,7 @@ internal val turning: GameTestScope.() -> Unit = {
 
         for (goal in listOf(Vec3(0.5, y.toDouble(), -15.5), Vec3(15.5, y.toDouble(), -15.5))) {
             var ending: Ending? = null
-            context.onClient { navigation.navigator.moveTo(goal, 1.0) { ending = it } }
+            context.onClient { navigation.navigator.moveTo(goal.toAgent(), 1.0) { ending = it } }
             await(context, WALK_TICKS, "Did not walk to $goal") { context.fromClient { ending != null } }
             check(ending == Ending.ARRIVED) { "The walk to $goal ended $ending" }
         }

@@ -19,7 +19,7 @@
 package net.ccbluex.agent.skills
 
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.world.Input
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test

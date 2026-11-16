@@ -19,6 +19,9 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ifNaN
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
@@ -28,12 +31,10 @@ import net.ccbluex.agent.pathfinder.walk.Jumps
 import net.ccbluex.agent.pathfinder.walk.LeapInput
 import net.ccbluex.agent.pathfinder.walkAbilities
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.EndRodBlock
 import net.minecraft.world.level.block.LadderBlock
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -193,7 +194,7 @@ internal class AssistedJumpTest {
         // Gamerichie's Academy of Parkour, stage 16: a drop onto a 3x3 slime pad bounces up to a ladder on a block four
         // higher. The next slime block of the pad was the closer landing.
         val slime = Blocks.SLIME_BLOCK.defaultBlockState()
-        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.EAST)
+        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.EAST.toMinecraft())
         val world = TestWorld().fill(12, 106, 28, 15, 106, 28).fill(5, 101, 27, 7, 101, 29, slime)
             .set(2, 105, 28, TestWorld.STONE).set(3, 105, 28, ladder)
         val course = listOf(BlockPos(12, 106, 28), BlockPos(6, 101, 28), BlockPos(2, 105, 28))
@@ -319,7 +320,7 @@ internal class AssistedJumpTest {
     fun `a jump past an end rod under a hanging pillar goes beside it`() {
         // Parkour Challenge, level 3: three blocks between quartz pillars, straight through a quartz pillar that hangs
         // down to head height with an end rod under it at feet height. A ladder is on the pillar landed on.
-        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.WEST)
+        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.WEST.toMinecraft())
         val world = TestWorld().set(-124, 66, 9998, rod(Direction.DOWN)).fill(-124, 67, 9998, -124, 70, 9998, QUARTZ)
             .fill(-125, 67, 9998, -125, 70, 9998, ladder)
         val course = listOf(quartz(world, -122, 65, 9998), quartz(world, -125, 65, 9998))
@@ -477,7 +478,8 @@ internal class AssistedJumpTest {
         return BlockPos(x, top, z)
     }
 
-    private fun rod(facing: Direction) = Blocks.END_ROD.defaultBlockState().setValue(EndRodBlock.FACING, facing)
+    private fun rod(facing: Direction) =
+        Blocks.END_ROD.defaultBlockState().setValue(EndRodBlock.FACING, facing.toMinecraft())
 
     /**
      * A room of 196 Level Parkour: a floor at y 18 walled in from x 1 to 11 east of [x] and z 1 to 11.

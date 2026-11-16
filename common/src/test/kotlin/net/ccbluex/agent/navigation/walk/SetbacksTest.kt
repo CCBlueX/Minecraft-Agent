@@ -19,12 +19,13 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.state.properties.Half
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -84,8 +85,8 @@ internal class SetbacksTest {
     @Test
     fun `stairs the right way up are walked up, upside down ones jumped`() {
         val stairs = Blocks.RED_SANDSTONE_STAIRS.defaultBlockState()
-        assertTrue(isWalkableStair(stairs.setValue(StairBlock.HALF, Half.BOTTOM)))
-        assertFalse(isWalkableStair(stairs.setValue(StairBlock.HALF, Half.TOP)))
-        assertFalse(isWalkableStair(Blocks.STONE.defaultBlockState()))
+        assertTrue(isWalkableStair(stairs.setValue(StairBlock.HALF, Half.BOTTOM).toAgent()))
+        assertFalse(isWalkableStair(stairs.setValue(StairBlock.HALF, Half.TOP).toAgent()))
+        assertFalse(isWalkableStair(Blocks.STONE.defaultBlockState().toAgent()))
     }
 }

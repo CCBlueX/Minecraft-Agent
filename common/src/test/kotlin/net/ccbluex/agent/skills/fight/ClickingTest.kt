@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.SkillLevel
-import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

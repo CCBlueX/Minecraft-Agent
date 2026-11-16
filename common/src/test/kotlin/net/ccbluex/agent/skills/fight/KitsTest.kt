@@ -21,9 +21,9 @@ package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.skills.SkillLevel
 import net.ccbluex.agent.skills.TestInventories
-import net.minecraft.world.effect.MobEffects
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.entity.MobEffects
 import net.minecraft.world.item.DyeColor
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -81,12 +81,12 @@ class KitsTest {
 
     @Test
     fun `weapons rank swords and spears over axes and maces over shovels`() {
-        assertEquals(3, ItemStack(Items.DIAMOND_SWORD).weaponRank)
-        assertEquals(3, ItemStack(Items.NETHERITE_SPEAR).weaponRank)
-        assertEquals(2, ItemStack(Items.DIAMOND_AXE).weaponRank)
-        assertEquals(2, ItemStack(Items.MACE).weaponRank)
-        assertEquals(1, ItemStack(Items.DIAMOND_SHOVEL).weaponRank)
-        assertEquals(0, ItemStack(Items.DIAMOND_PICKAXE).weaponRank)
+        assertEquals(3, TestInventories.stack(Items.DIAMOND_SWORD).weaponRank)
+        assertEquals(3, TestInventories.stack(Items.NETHERITE_SPEAR).weaponRank)
+        assertEquals(2, TestInventories.stack(Items.DIAMOND_AXE).weaponRank)
+        assertEquals(2, TestInventories.stack(Items.MACE).weaponRank)
+        assertEquals(1, TestInventories.stack(Items.DIAMOND_SHOVEL).weaponRank)
+        assertEquals(0, TestInventories.stack(Items.DIAMOND_PICKAXE).weaponRank)
     }
 
     @Test
@@ -98,21 +98,21 @@ class KitsTest {
         assertFalse(pot.any { it.isGoldenApple })
 
         val smp = Kits.DIAMOND_SMP.items()
-        assertTrue(smp.single { it.isBuildingBlock }.`is`(Items.OAK_PLANKS))
+        assertTrue(smp.single { it.isBuildingBlock }.`is`(Items.OAK_PLANKS.toAgent()))
         assertTrue(smp.any { it.isGoldenApple })
 
-        assertFalse(ItemStack(Items.OBSIDIAN).isBuildingBlock, "obsidian is kept for crystals")
-        assertFalse(ItemStack(Items.SAND).isBuildingBlock, "sand falls")
-        assertFalse(ItemStack(Items.COBWEB).isBuildingBlock)
-        assertTrue(ItemStack(Items.WOOL.pick(DyeColor.WHITE)).isBuildingBlock)
-        assertTrue(ItemStack(Items.ENCHANTED_GOLDEN_APPLE).isGoldenApple)
+        assertFalse(TestInventories.stack(Items.OBSIDIAN).isBuildingBlock, "obsidian is kept for crystals")
+        assertFalse(TestInventories.stack(Items.SAND).isBuildingBlock, "sand falls")
+        assertFalse(TestInventories.stack(Items.COBWEB).isBuildingBlock)
+        assertTrue(TestInventories.stack(Items.WOOL.pick(DyeColor.WHITE)).isBuildingBlock)
+        assertTrue(TestInventories.stack(Items.ENCHANTED_GOLDEN_APPLE).isGoldenApple)
     }
 
     @Test
     fun `throwables are the minigame ones`() {
-        assertTrue(Ranged.throwable(ItemStack(Items.SNOWBALL)))
-        assertTrue(Ranged.throwable(ItemStack(Items.BROWN_EGG)))
-        assertTrue(Ranged.throwable(ItemStack(Items.WIND_CHARGE)))
-        assertFalse(Ranged.throwable(ItemStack(Items.ENDER_PEARL)))
+        assertTrue(Ranged.throwable(TestInventories.stack(Items.SNOWBALL)))
+        assertTrue(Ranged.throwable(TestInventories.stack(Items.BROWN_EGG)))
+        assertTrue(Ranged.throwable(TestInventories.stack(Items.WIND_CHARGE)))
+        assertFalse(Ranged.throwable(TestInventories.stack(Items.ENDER_PEARL)))
     }
 }

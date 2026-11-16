@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.math
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -64,7 +64,7 @@ class VectorExtensionsTest {
     fun `the same seed clicks the same spot, another block another one`() {
         assertEquals(clickPoint(block, Direction.UP, 7L), clickPoint(block, Direction.UP, 7L))
         val offsets = (0 until 8).map { step ->
-            val pos = block.east(step)
+            val pos = block.relative(Direction.EAST, step)
             clickPoint(pos, Direction.UP, 7L xor pos.asLong()).subtract(Vec3.atLowerCornerOf(pos))
         }
         assertNotEquals(1, offsets.distinct().size)

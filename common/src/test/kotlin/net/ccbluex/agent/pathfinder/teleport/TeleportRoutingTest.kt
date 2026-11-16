@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.pathfinder.teleport
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.AIR
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.STONE
@@ -31,12 +33,11 @@ import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.terrain.DestinationCheck
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.CropBlock
 import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.block.state.properties.SlabType
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.test.Test
@@ -52,6 +53,7 @@ import kotlin.test.assertTrue
  *
  * @agent claude-opus-5-5
  * @agent claude-fable-5-2
+ * @agent claude-sonnet-5-5
  */
 class TeleportRoutingTest {
 
@@ -159,7 +161,7 @@ class TeleportRoutingTest {
 
         val grown = Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE)
         world.set(1, 1, 0, grown)
-        assertFalse(terrain.invalidate(BlockPos(1, 1, 0), grown))
+        assertFalse(terrain.invalidate(BlockPos(1, 1, 0), grown.toAgent()))
 
         world.set(0, 2, 0, STONE)
         assertTrue(terrain.invalidate(BlockPos(0, 2, 0), STONE))

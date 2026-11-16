@@ -19,15 +19,16 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.world.item.DyeColor
 import net.minecraft.world.level.block.BedBlock
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.properties.BedPart
-import net.minecraft.world.phys.Vec3
 import java.util.Random
 import kotlin.math.abs
 import kotlin.test.BeforeTest
@@ -57,7 +58,7 @@ class DefenceTest {
     private fun TestWorld.withBed(): TestWorld = set(0, 1, 0, bed(BedPart.HEAD)).set(1, 1, 0, bed(BedPart.FOOT))
 
     private fun bed(part: BedPart) = Blocks.BED.pick(DyeColor.RED).defaultBlockState()
-        .setValue(BedBlock.FACING, Direction.WEST)
+        .setValue(BedBlock.FACING, Direction.WEST.toMinecraft())
         .setValue(BedBlock.PART, part)
 
     @Test

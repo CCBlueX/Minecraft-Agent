@@ -23,9 +23,9 @@ import net.ccbluex.agent.skills.FightingStyle
 import net.ccbluex.agent.skills.Personality
 import net.ccbluex.agent.skills.TestInventories
 import net.ccbluex.agent.skills.TestInventories.stack
-import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.item.Item
+import net.ccbluex.agent.world.item.Items
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.Random
+import net.minecraft.world.item.Items as McItems
 
 /**
  * The Bed Wars wish ladder, its tier skips and the team upgrade appeal, on a shop priced like a common Bed Wars default.
@@ -124,7 +125,7 @@ class WishesTest {
             TestInventories.bootstrap()
         }
 
-        val WOOL: Item = Items.WOOL.white()
+        val WOOL: Item = McItems.WOOL.white().toAgent()
     }
 
     private class TestCatalogue : Catalogue {
@@ -148,13 +149,13 @@ class WishesTest {
         )
 
         override fun upgrade(name: String): Offer? =
-            upgrades[name]?.let { Offer(ItemStack(Items.DIAMOND), Currency.DIAMOND, it, name) }
+            upgrades[name]?.let { Offer(TestInventories.stack(Items.DIAMOND), Currency.DIAMOND, it, name) }
 
         override fun upgradeTier(name: String): Int = 0
 
         override val activeTraps: Int = 0
 
         private fun offer(item: Item, amount: Int, currency: Currency, price: Int) =
-            Offer(ItemStack(item, amount), currency, price)
+            Offer(TestInventories.stack(item, amount), currency, price)
     }
 }

@@ -19,13 +19,14 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.EntityHitResult
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.EntityHitResult
+import net.ccbluex.agent.world.HitResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
@@ -83,8 +84,8 @@ class SimulatedArrowTest {
         val level = TestLevel(walled())
         val target = level.player(TestWorld.feet(6, 1, 0))
 
-        val hit = assertIs<EntityHitResult>(flyUntilHit(SimulatedArrow(level, start, east)))
-        assertSame(target, hit.entity)
+        val hit = assertIs<EntityHitResult>(flyUntilHit(SimulatedArrow(level.toAgent(), start, east)))
+        assertSame(target.toAgent(), hit.entity)
         assertEquals(target.boundingBox.minX, hit.location.x, 1.0E-9)
     }
 
@@ -93,7 +94,7 @@ class SimulatedArrowTest {
         val level = TestLevel(walled())
         level.player(TestWorld.feet(6, 1, 0))
 
-        assertIs<BlockHitResult>(flyUntilHit(SimulatedArrow(level, start, east, collideEntities = false)))
+        assertIs<BlockHitResult>(flyUntilHit(SimulatedArrow(level.toAgent(), start, east, collideEntities = false)))
     }
 
     @Test
@@ -101,7 +102,7 @@ class SimulatedArrowTest {
         val level = TestLevel(walled())
         level.player(TestWorld.feet(11, 1, 0))
 
-        assertIs<BlockHitResult>(flyUntilHit(SimulatedArrow(level, start, east)))
+        assertIs<BlockHitResult>(flyUntilHit(SimulatedArrow(level.toAgent(), start, east)))
     }
 
     private companion object {

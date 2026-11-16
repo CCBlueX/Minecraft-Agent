@@ -21,6 +21,9 @@ package net.ccbluex.agent.pathfinder
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import it.unimi.dsi.fastutil.longs.LongSet
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.AIR
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.STONE
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.feet
@@ -28,13 +31,13 @@ import net.ccbluex.agent.pathfinder.route.BlockDestination
 import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
-import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.pathfinder.walk.Move
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.RouteSearch
+import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.pathfinder.walk.isStraightWalkable
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.DoorBlock
@@ -44,7 +47,6 @@ import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
 import net.minecraft.world.level.block.state.properties.SlabType
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -126,7 +128,7 @@ class WalkRoutingTest {
 
         val fall = path.steps.single { it.move == Move.FALL }
         assertEquals(1, fall.to.y)
-        assertTrue(world.getBlockState(fall.to).`is`(Blocks.WATER))
+        assertTrue(world.getBlockState(fall.to).`is`(Blocks.WATER.toAgent()))
     }
 
     @Test
@@ -225,7 +227,7 @@ class WalkRoutingTest {
 
     @Test
     fun `ladders are climbed`() {
-        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.NORTH)
+        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.NORTH.toMinecraft())
         val world = TestWorld.flat()
             .fill(-40, 1, 1, 40, 4, 3)
             .fill(0, 1, 0, 0, 4, 0, ladder)
@@ -241,7 +243,7 @@ class WalkRoutingTest {
      */
     @Test
     fun `a drop into a ladder shaft aims where the player clears the ladder`() {
-        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.WEST)
+        val ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.WEST.toMinecraft())
         val world = TestWorld.flat()
             .fill(-3, 1, -3, 3, 5, 3)
             .fill(0, 1, 0, 0, 5, 0, ladder)
@@ -249,7 +251,7 @@ class WalkRoutingTest {
         val terrain = world.terrain()
         val path = completePath(search(world, feet(-2, 6, 0), BlockPos(0, 1, -1)))
 
-        val intoLadder = path.steps.filter { world.getBlockState(it.to).`is`(Blocks.LADDER) }
+        val intoLadder = path.steps.filter { world.getBlockState(it.to).`is`(Blocks.LADDER.toAgent()) }
         assertTrue(intoLadder.isNotEmpty())
         // The walk stops pressing keys this close to the feet.
         val stopsWithin = 0.1
@@ -309,7 +311,7 @@ class WalkRoutingTest {
         assertFalse(isComplete(result))
         if (result is Outcome.Found) {
             val breaks = result.value.steps.flatMap { it.breaks }
-            assertTrue(breaks.none { world.getBlockState(it.above()).`is`(Blocks.GRAVEL) })
+            assertTrue(breaks.none { world.getBlockState(it.above()).`is`(Blocks.GRAVEL.toAgent()) })
         }
     }
 
@@ -407,12 +409,12 @@ class WalkRoutingTest {
     fun `soul sand is walked around while ice is crossed like plain ground`() {
         val plain = completePath(search(TestWorld.flat(), feet(0, 1, 0), BlockPos(10, 1, 0)))
 
-        val soulSand = Blocks.SOUL_SAND.defaultBlockState()
+        val soulSand = Blocks.SOUL_SAND.defaultBlockState().toAgent()
         val sandWorld = TestWorld.flat().fill(3, 0, -2, 7, 0, 2, soulSand)
         val sand = completePath(search(sandWorld, feet(0, 1, 0), BlockPos(10, 1, 0)))
         assertTrue(sand.steps.none { sandWorld.getBlockState(it.to) == soulSand })
 
-        val ice = Blocks.ICE.defaultBlockState()
+        val ice = Blocks.ICE.defaultBlockState().toAgent()
         val iceWorld = TestWorld.flat().fill(3, 0, -2, 7, 0, 2, ice)
         val path = completePath(search(iceWorld, feet(0, 1, 0), BlockPos(10, 1, 0)))
         assertTrue(path.steps.any { iceWorld.getBlockState(it.to.below()) == ice })
@@ -434,14 +436,15 @@ class WalkRoutingTest {
     }
 
     private fun TestWorld.door(x: Int, z: Int, block: Block) = apply {
-        val lower = block.defaultBlockState().setValue(DoorBlock.FACING, Direction.EAST)
+        val lower = block.defaultBlockState().setValue(DoorBlock.FACING, Direction.EAST.toMinecraft())
         set(x, 1, z, lower)
         set(x, 2, z, lower.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER))
     }
 
     @Test
     fun `closed wooden doors and fence gates are opened instead of a long detour`() {
-        val gate = Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.EAST)
+        val gate = Blocks.OAK_FENCE_GATE.defaultBlockState()
+            .setValue(FenceGateBlock.FACING, Direction.EAST.toMinecraft())
         val world = TestWorld.flat()
             .fill(5, 1, -20, 5, 3, 20)
             .door(5, 0, Blocks.OAK_DOOR)

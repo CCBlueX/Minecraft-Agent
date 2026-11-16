@@ -22,8 +22,9 @@ package net.ccbluex.agent.simulation
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.Input
 import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -51,7 +52,7 @@ class FallingPlayerTest {
      * A player at rest in the air with its feet at [height] over the floor at (0, 0, 0).
      */
     private fun falling(height: Double): Player =
-        TestLevel(TestWorld.flat()).player(Vec3(0.5, height, 0.5)).apply { setOnGround(false) }
+        TestLevel(TestWorld.flat()).player(Vec3(0.5, height, 0.5).toAgent()).apply { setOnGround(false) }
 
     private fun still(player: Player) = FallingPlayer(player, SimulatedInput(Input.EMPTY), continuesTick = false)
 

@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.navigation.flight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.FlightControl
 import net.ccbluex.agent.navigation.FollowState
 import net.ccbluex.agent.navigation.TestBody
@@ -33,9 +34,9 @@ import net.ccbluex.agent.pathfinder.found
 import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.Input
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -51,6 +52,7 @@ import kotlin.test.fail
  * gets on to the platform behind it.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 internal class FollowerTest {
 
@@ -77,8 +79,8 @@ internal class FollowerTest {
         private val POINTS = listOf(START, Vec3(23.3, 10.0, 0.5), Vec3(23.3, 15.3, 21.9), Vec3(4.7, 15.3, 21.9))
 
         private fun axes(input: Input) = Pair(
-            (if (input.forward()) 1 else 0) - (if (input.backward()) 1 else 0),
-            (if (input.left()) 1 else 0) - (if (input.right()) 1 else 0),
+            (if (input.forward) 1 else 0) - (if (input.backward) 1 else 0),
+            (if (input.left) 1 else 0) - (if (input.right) 1 else 0),
         )
     }
 
@@ -95,14 +97,14 @@ internal class FollowerTest {
         private var velocity = Vec3.ZERO
 
         fun move(player: Player, input: Input) {
-            val x = (if (input.left()) 1.0 else 0.0) - (if (input.right()) 1.0 else 0.0)
-            val z = (if (input.forward()) 1.0 else 0.0) - (if (input.backward()) 1.0 else 0.0)
-            val y = (if (input.jump()) 1.0 else 0.0) - (if (input.shift()) 1.0 else 0.0)
+            val x = (if (input.left) 1.0 else 0.0) - (if (input.right) 1.0 else 0.0)
+            val z = (if (input.forward) 1.0 else 0.0) - (if (input.backward) 1.0 else 0.0)
+            val y = (if (input.jump) 1.0 else 0.0) - (if (input.shift) 1.0 else 0.0)
             val length = sqrt(x * x + z * z).coerceAtLeast(1.0)
             val thrust = speed * (1.0 - drag)
             velocity = velocity.scale(drag).add(x / length * thrust, y * thrust / 2.0, z / length * thrust)
-            player.setPos(player.position().add(velocity))
-            player.deltaMovement = velocity.scale(drag)
+            player.setPos(player.position().add(velocity.toMinecraft()))
+            player.deltaMovement = velocity.scale(drag).toMinecraft()
             player.setOnGround(false)
             player.tickCount++
         }
@@ -111,9 +113,10 @@ internal class FollowerTest {
     @ParameterizedTest(name = "speed {0}, drag {1}")
     @CsvSource("0.5, 0.0", "2.0, 0.0", "0.5, 0.8", "2.0, 0.8")
     fun `a fly mode of any speed flies the route to its end and stops there`(speed: Double, drag: Double) {
-        val player = TestLevel(TestWorld()).player(START)
+        val handle = TestLevel(TestWorld()).player(START)
         val mode = FlyMode(speed, drag)
-        val body = TestBody(player, mode)
+        val body = TestBody(handle, mode)
+        val player = body.player
         val context = body.context()
         val handling = Handling()
         val follower = Follower(context, handling)
@@ -126,7 +129,7 @@ internal class FollowerTest {
         var lastMove = Vec3.ZERO
         fun move(input: Input) {
             val before = player.position()
-            mode.move(player, input)
+            mode.move(handle, input)
             val moved = player.position().subtract(before)
             if (moved.horizontalDistanceSqr() > 1.0E-6 && moved.x * lastMove.x + moved.z * lastMove.z < 0.0) {
                 reversals++
@@ -173,7 +176,7 @@ internal class FollowerTest {
             // The mode reads the keys of the tick before
             if (wait > 0) {
                 wait--
-            } else if (!last.shift() || motion.onGround) {
+            } else if (!last.shift || motion.onGround) {
                 val (forward, strafe) = axes(last)
                 val length = sqrt((forward * forward + strafe * strafe).toDouble()).coerceAtLeast(1.0)
                 val hop = Vec3(strafe / length * HOP_STRAFE, HOP_SPEED, forward / length * HOP_STRAFE)
@@ -183,9 +186,9 @@ internal class FollowerTest {
             last = input
 
             val (forward, strafe) = axes(input)
-            motion.tick(player.yRot, forward, strafe, jump = false, sprint, sneak = input.shift())
-            player.setPos(motion.position)
-            player.deltaMovement = motion.deltaMovement
+            motion.tick(player.yRot, forward, strafe, jump = false, sprint, sneak = input.shift)
+            player.setPos(motion.position.toMinecraft())
+            player.deltaMovement = motion.deltaMovement.toMinecraft()
             player.setOnGround(motion.onGround)
             player.horizontalCollision = motion.horizontalCollision
             player.isSprinting = motion.isSprinting
@@ -205,9 +208,10 @@ internal class FollowerTest {
         val world = TestWorld().fill(-1, 9, -1, 1, 9, 1).fill(-1, 6, 19, 1, 6, 21)
         val start = TestWorld.feet(0, 10, 0)
         val end = TestWorld.feet(0, 7, 20)
-        val player = TestLevel(world).player(start)
+        val handle = TestLevel(world).player(start)
         val mode = HopMode(world, start)
-        val body = TestBody(player, mode)
+        val body = TestBody(handle, mode)
+        val player = body.player
         val context = body.context()
         val handling = Handling()
         val follower = Follower(context, handling)
@@ -220,8 +224,8 @@ internal class FollowerTest {
                 assertTrue(at.distanceTo(end) <= GOAL_RADIUS, "Finished at $at, ${at.distanceTo(end)} from $end")
                 return
             }
-            mode.move(player, body.pressed, follower.sprint)
-            assertTrue(player.y > 0.0, "Fell at ${player.position()}")
+            mode.move(handle, body.pressed, follower.sprint)
+            assertTrue(player.position().y > 0.0, "Fell at ${player.position()}")
         }
         fail("Did not land on $end in $MAX_TICKS ticks, at ${player.position()}")
     }
@@ -239,14 +243,14 @@ internal class FollowerTest {
             val (forward, strafe) = axes(input)
             val length = sqrt((forward * forward + strafe * strafe).toDouble()).coerceAtLeast(1.0)
             val y = when {
-                input.jump() && !input.shift() -> SPEED
-                input.shift() && !input.jump() -> -SPEED
+                input.jump && !input.shift -> SPEED
+                input.shift && !input.jump -> -SPEED
                 else -> 0.0
             }
             motion.reset(motion.position, Vec3(strafe / length * SPEED, y, forward / length * SPEED), motion.onGround)
-            motion.tick(player.yRot, forward, strafe, input.jump(), sprint = false, sneak = input.shift())
-            player.setPos(motion.position)
-            player.deltaMovement = motion.deltaMovement
+            motion.tick(player.yRot, forward, strafe, input.jump, sprint = false, sneak = input.shift)
+            player.setPos(motion.position.toMinecraft())
+            player.deltaMovement = motion.deltaMovement.toMinecraft()
             player.setOnGround(motion.onGround)
             player.horizontalCollision = motion.horizontalCollision
             player.tickCount++
@@ -275,9 +279,10 @@ internal class FollowerTest {
         // A wall too wide to fly around with its top at y 16, and a platform 19 blocks behind it
         val world = TestWorld().fill(20, 3, -30, 20, 15, 30).fill(39, 9, -1, 41, 9, 1)
         val end = TestWorld.feet(40, 10, 0)
-        val player = TestLevel(world).player(start)
+        val handle = TestLevel(world).player(start)
         val mode = VanillaMode(world, start, onGround)
-        val body = TestBody(player, mode)
+        val body = TestBody(handle, mode)
+        val player = body.player
         val context = body.context()
         val handling = Handling()
         val follower = Follower(context, handling)
@@ -294,8 +299,8 @@ internal class FollowerTest {
                 assertTrue(left <= ARRIVAL, "Finished at $at, $left from ${route.end}")
                 return
             }
-            mode.move(player, body.pressed)
-            assertTrue(player.y > end.y - 8.0, "Fell at ${player.position()} flying ${route.points}")
+            mode.move(handle, body.pressed)
+            assertTrue(player.position().y > end.y - 8.0, "Fell at ${player.position()} flying ${route.points}")
         }
         fail("Stopped at ${player.position()} flying ${route.points}")
     }

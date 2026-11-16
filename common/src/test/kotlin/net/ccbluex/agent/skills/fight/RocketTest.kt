@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.TestInventories
 import net.ccbluex.agent.skills.TestInventories.stack
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

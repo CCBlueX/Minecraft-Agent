@@ -33,6 +33,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.CopyOnWriteArrayList
+import net.ccbluex.agent.math.BlockPos as AgentBlockPos
+import net.ccbluex.agent.math.Vec3 as AgentVec3
 
 private const val GOAL_RADIUS = 0.8
 
@@ -129,7 +131,7 @@ private fun GameTestScope.checkDetour(walker: TestWalker, routeEvents: RouteEven
  * @agent claude-opus-5-5
  */
 private class RouteEvents : Listener, MutableList<String> by CopyOnWriteArrayList<String>() {
-    override fun routeSearching(start: Vec3, goal: Vec3, radius: Double, preview: List<Vec3>?) {
+    override fun routeSearching(start: AgentVec3, goal: AgentVec3, radius: Double, preview: List<AgentVec3>?) {
         add("searching")
     }
 
@@ -137,11 +139,11 @@ private class RouteEvents : Listener, MutableList<String> by CopyOnWriteArrayLis
         add("routeFound")
     }
 
-    override fun routeFollowing(points: List<Vec3>, progress: Progress) {
+    override fun routeFollowing(points: List<AgentVec3>, progress: Progress) {
         add("following")
     }
 
-    override fun stepReached(index: Int, pos: BlockPos) {
+    override fun stepReached(index: Int, pos: AgentBlockPos) {
         add("stepReached")
     }
 

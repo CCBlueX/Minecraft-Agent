@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.skills.games.blitz
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.games.WayCost
 import net.ccbluex.agent.skills.gear.GearScore
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Entity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNull

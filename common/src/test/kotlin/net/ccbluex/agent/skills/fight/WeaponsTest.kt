@@ -20,7 +20,7 @@
 package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.skills.TestInventories
-import net.minecraft.world.item.ItemStack
+import net.ccbluex.agent.skills.TestInventories.stack
 import net.minecraft.world.item.Items
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -39,15 +39,15 @@ class WeaponsTest {
 
     @Test
     fun `damage per second follows the vanilla weapon stats`() {
-        assertEquals(6.4, ItemStack(Items.WOODEN_SWORD).damagePerSecond, 1e-6)
-        assertEquals(11.2, ItemStack(Items.DIAMOND_SWORD).damagePerSecond, 1e-6)
-        assertEquals(9.0, ItemStack(Items.DIAMOND_AXE).damagePerSecond, 1e-6)
-        assertEquals(4.0, ItemStack(Items.STICK).damagePerSecond, 1e-6)
+        assertEquals(6.4, stack(Items.WOODEN_SWORD).damagePerSecond, 1e-6)
+        assertEquals(11.2, stack(Items.DIAMOND_SWORD).damagePerSecond, 1e-6)
+        assertEquals(9.0, stack(Items.DIAMOND_AXE).damagePerSecond, 1e-6)
+        assertEquals(4.0, stack(Items.STICK).damagePerSecond, 1e-6)
     }
 
     @Test
     fun `a stone axe beats a wooden sword, an iron sword beats a diamond axe`() {
-        assertTrue(ItemStack(Items.STONE_AXE).damagePerSecond > ItemStack(Items.WOODEN_SWORD).damagePerSecond)
-        assertTrue(ItemStack(Items.IRON_SWORD).damagePerSecond > ItemStack(Items.DIAMOND_AXE).damagePerSecond)
+        assertTrue(stack(Items.STONE_AXE).damagePerSecond > stack(Items.WOODEN_SWORD).damagePerSecond)
+        assertTrue(stack(Items.IRON_SWORD).damagePerSecond > stack(Items.DIAMOND_AXE).damagePerSecond)
     }
 }

@@ -26,6 +26,7 @@ import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Options
 import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.v26_3.toAgent
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.LocalPlayer
@@ -38,6 +39,7 @@ import net.minecraft.world.phys.Vec3
 import java.util.UUID
 import java.util.function.Consumer
 import kotlin.math.abs
+import net.ccbluex.agent.math.Vec3 as AgentVec3
 
 /**
  * LiquidBounce's AutoWalk on a [ClientNavigation] with the default options: `.goto` walks onto the ground at a block
@@ -92,7 +94,7 @@ internal object AutoWalk {
         private var goal = Vec3.ZERO
         private var known = false
 
-        override fun goal(): Vec3? {
+        override fun goal(): AgentVec3? {
             if (!known) {
                 val level = player.level()
                 goal = Vec3.atBottomCenterOf(feetAt(level, destination))
@@ -101,7 +103,7 @@ internal object AutoWalk {
             }
 
             if (player.rootVehicle.position().distanceTo(goal) > radius()) {
-                return goal
+                return goal.toAgent()
             }
             stop()
             return null
@@ -111,9 +113,9 @@ internal object AutoWalk {
          * The ground to stand on: the block above when [pos] is not but that one is.
          */
         private fun feetAt(level: Level, pos: BlockPos): BlockPos {
-            val terrain = Terrain.live(level)
+            val terrain = Terrain.live(level.toAgent())
             val above = pos.above()
-            return if (!terrain.isStandable(pos) && terrain.isStandable(above)) above else pos
+            return if (!terrain.isStandable(pos.toAgent()) && terrain.isStandable(above.toAgent())) above else pos
         }
     }
 
@@ -124,11 +126,11 @@ internal object AutoWalk {
          */
         private var lastSeen: Vec3? = null
 
-        override fun goal(): Vec3? {
+        override fun goal(): AgentVec3? {
             val player = player
             player.level().players().find { it !== player && it.gameProfile.name.equals(target, true) }
                 ?.let { lastSeen = it.position() }
-            return lastSeen
+            return lastSeen?.toAgent()
         }
 
         override fun radius() = FOLLOW_DISTANCE
@@ -140,16 +142,16 @@ internal object AutoWalk {
      */
     private class Direction : DestinationSource {
 
-        private var goal: Vec3? = null
+        private var goal: AgentVec3? = null
         private var goalYRot = 0f
         private var heading = Float.NaN
         private var tickEndYRot = Float.NaN
 
         val tickEnd = Consumer<LocalPlayer> { tickEndYRot = it.yRot }
 
-        override fun goal(): Vec3 {
+        override fun goal(): AgentVec3 {
             val player = player
-            val position = player.position()
+            val position = player.position().toAgent()
             heading = if (heading.isNaN() || tickEndYRot.isNaN()) {
                 player.yRot
             } else {

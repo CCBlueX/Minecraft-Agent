@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.pathfinder
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.AIR
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.feet
@@ -28,8 +30,6 @@ import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.route.StageDestination
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.RouteSearch
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals

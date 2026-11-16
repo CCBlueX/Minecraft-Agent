@@ -20,6 +20,7 @@
 package net.ccbluex.agent.v26_3.fabric.gametest
 
 import net.ccbluex.agent.math.yRot
+import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -177,7 +178,7 @@ private fun GameTestScope.runCourse(
     val lowest = origin.y + course.minOf { it.y }
 
     val first = Vec3.atBottomCenterOf(origin.offset(course.first()).above())
-    val yRot = if (facesGoal) Vec3.atBottomCenterOf(goal).subtract(first).yRot else -90f
+    val yRot = if (facesGoal) Vec3.atBottomCenterOf(goal).subtract(first).toAgent().yRot else -90f
     moveTo(if (carpet) first.add(0.0, CARPET_HEIGHT, 0.0) else first, yRot = yRot)
     if (assist) {
         Parkour.enable(context)
@@ -233,7 +234,7 @@ private fun GameTestScope.runAlongWall(origin: BlockPos): String? {
             }
 
             val next = path[minOf(reached + 1, path.lastIndex)]
-            val look = Vec3.atBottomCenterOf(next).subtract(position).yRot + LOOK_OFF
+            val look = Vec3.atBottomCenterOf(next).subtract(position).toAgent().yRot + LOOK_OFF
             context.onClient {
                 val turn = Mth.clamp(Mth.wrapDegrees(look - Parkour.viewYRot), -MAX_TURN, MAX_TURN)
                 Parkour.viewYRot += turn

@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.world.Input
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -53,23 +53,23 @@ internal class KeystrokesTest {
 
     @Test
     fun `a one tick tap lasts the least press`() {
-        val forward = listOf(keys(forward = true), keys(), keys(), keys(), keys()).map { shaped(it).forward() }
+        val forward = listOf(keys(forward = true), keys(), keys(), keys(), keys()).map { shaped(it).forward }
         assertEquals(listOf(true, true, true, false, false), forward)
     }
 
     @Test
     fun `a press right after a release waits for the least release`() {
         repeat(MIN_PRESS) { shaped(keys(left = true)) }
-        val left = listOf(keys(), keys(left = true), keys(left = true), keys(left = true)).map { shaped(it).left() }
+        val left = listOf(keys(), keys(left = true), keys(left = true), keys(left = true)).map { shaped(it).left }
         assertEquals(listOf(false, false, true, true), left)
     }
 
     @Test
     fun `a jump is held but never delayed`() {
         shaped(keys(jump = true))
-        repeat(MIN_PRESS - 1) { assertTrue(shaped(keys()).jump(), "The jump is held for its least press") }
-        assertFalse(shaped(keys()).jump())
-        assertTrue(shaped(keys(jump = true)).jump(), "A jump goes at once, even right after a release")
+        repeat(MIN_PRESS - 1) { assertTrue(shaped(keys()).jump, "The jump is held for its least press") }
+        assertFalse(shaped(keys()).jump)
+        assertTrue(shaped(keys(jump = true)).jump, "A jump goes at once, even right after a release")
     }
 
     @Test
@@ -77,17 +77,17 @@ internal class KeystrokesTest {
         shaped(keys(forward = true))
         repeat(MIN_PRESS + MIN_RELEASE + 2) {
             val keys = shaped(keys(backward = true))
-            assertFalse(keys.forward() && keys.backward(), "Forward and backward down together on tick $it")
+            assertFalse(keys.forward && keys.backward, "Forward and backward down together on tick $it")
         }
-        assertTrue(shaped(keys(backward = true)).backward(), "Backward goes down in the end")
+        assertTrue(shaped(keys(backward = true)).backward, "Backward goes down in the end")
     }
 
     @Test
     fun `exact ticks pass and still count`() {
         val tap = keys(forward = true)
         assertSame(tap, shaped(tap, exact = true))
-        assertFalse(shaped(keys(), exact = true).forward(), "An exact release goes at once")
-        assertFalse(shaped(keys(forward = true)).forward(), "The exact release counts for the next press")
+        assertFalse(shaped(keys(), exact = true).forward, "An exact release goes at once")
+        assertFalse(shaped(keys(forward = true)).forward, "The exact release counts for the next press")
     }
 
     private companion object {

@@ -27,19 +27,21 @@ import net.ccbluex.agent.math.isMoving
 import net.ccbluex.agent.math.turned
 import net.ccbluex.agent.navigation.walk.AssistedJump
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.pathfinder.walk.JumpTargets
 import net.ccbluex.agent.pathfinder.walk.Jumps
 import net.ccbluex.agent.pathfinder.walk.LeapInput
+import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.Input
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.util.Mth
-import net.minecraft.world.entity.player.Input
 import java.util.function.Consumer
 import java.util.function.ToDoubleFunction
 
@@ -92,11 +94,11 @@ internal object Parkour {
      * Right after the input read the keys, before the player moves.
      */
     private fun tick(player: LocalPlayer) {
-        val held = player.input.keyPresses
+        val held = player.input.keyPresses.toAgent()
         val yRot = turn(player)
         val keys = held.turned(viewYRot, yRot)
 
-        val running = held.isMoving && !held.shift()
+        val running = held.isMoving && !held.shift
         val free = !player.isInWater && !player.onClimbable() && !player.abilities.flying
         val pressed = if (!assist || !running || !free) {
             release()
@@ -110,13 +112,13 @@ internal object Parkour {
                 null -> jumpAtEdge(player, keys)
                 else -> Input(
                     leap.forward > 0, leap.forward < 0, leap.strafe > 0, leap.strafe < 0,
-                    leap.jump, leap.shift, held.sprint() || leap.sprint && leap.isMoving,
+                    leap.jump, leap.shift, held.sprint || leap.sprint && leap.isMoving,
                 )
             }
         }
 
-        player.input.keyPresses = pressed
-        (player.input as ClientInputAccessor).agentSetMoveVector(SimulatedInput(pressed).moveVector)
+        player.input.keyPresses = pressed.toMinecraft()
+        (player.input as ClientInputAccessor).agentSetMoveVector(SimulatedInput(pressed).moveVector.toMinecraft())
     }
 
     /**
@@ -124,7 +126,7 @@ internal object Parkour {
      */
     private fun turn(player: LocalPlayer): Float {
         if (assisted.target != null) {
-            val yRot = assisted.aimYRot(player.position(), player.deltaMovement, player.onGround())
+            val yRot = assisted.aimYRot(player.position().toAgent(), player.deltaMovement.toAgent(), player.onGround())
             if (!yRot.isNaN()) {
                 aimYRot = yRot
             }
@@ -140,15 +142,15 @@ internal object Parkour {
      * The keys the assist presses this tick, or null when there is nothing to assist.
      */
     private fun assist(player: LocalPlayer, held: Input, yRot: Float): LeapInput? {
-        val terrain = Terrain.live(player.level())
+        val terrain = Terrain.live(player.level().toAgent())
         val abilities = abilities(player)
         val state = PlayerMotion(terrain, abilities.motion)
-        state.reset(player)
+        state.reset(player.toAgent())
 
         val keys = LeapInput(
-            forward = (if (held.forward()) 1 else 0) - (if (held.backward()) 1 else 0),
-            strafe = (if (held.left()) 1 else 0) - (if (held.right()) 1 else 0),
-            jump = held.jump(),
+            forward = (if (held.forward) 1 else 0) - (if (held.backward) 1 else 0),
+            strafe = (if (held.left) 1 else 0) - (if (held.right) 1 else 0),
+            jump = held.jump,
             sprint = player.isSprinting,
         )
         val heading = getInputYRot(viewYRot, held)
@@ -191,7 +193,7 @@ internal object Parkour {
         waterFall = WATER_FALL,
         breakTicks = ToDoubleFunction { Double.POSITIVE_INFINITY },
         avoid = LongOpenHashSet(),
-        motion = MotionTraits.capture(player),
+        motion = MotionTraits.capture(player.toAgent()),
     )
 
     private val LeapInput.isMoving: Boolean

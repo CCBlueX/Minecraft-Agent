@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.world.Input
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -39,9 +39,9 @@ internal class LedgeSneakTest {
     @Test
     fun `at the ledge it sneaks and stops sprinting`() {
         val keys = ledge.keys(sprintForward, atLedge = true)
-        assertTrue(keys.shift())
-        assertFalse(keys.sprint())
-        assertTrue(keys.forward())
+        assertTrue(keys.shift)
+        assertFalse(keys.sprint)
+        assertTrue(keys.forward)
     }
 
     @Test
@@ -52,7 +52,7 @@ internal class LedgeSneakTest {
     @Test
     fun `the sneak is held a few ticks past the ledge, then let go`() {
         ledge.keys(sprintForward, atLedge = true)
-        val held = (1..3).map { ledge.keys(sprintForward, atLedge = false).shift() }
+        val held = (1..3).map { ledge.keys(sprintForward, atLedge = false).shift }
         assertEquals(listOf(true, true, false), held)
     }
 }

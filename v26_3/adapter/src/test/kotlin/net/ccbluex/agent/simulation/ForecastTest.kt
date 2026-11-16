@@ -23,7 +23,9 @@ import net.ccbluex.agent.math.DIRECTION_FORWARDS
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.Input
 import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -46,14 +48,14 @@ class ForecastTest {
     }
 
     // A standing player keeps one tick of gravity, so its first move already lands on the floor.
-    private fun standing(level: TestLevel = TestLevel(TestWorld.flat()), at: Vec3 = TestWorld.feet(0, 1, 0)) =
-        level.player(at).apply { deltaMovement = Vec3(0.0, -0.0784000015258789, 0.0) }
+    private fun standing(level: TestLevel = TestLevel(TestWorld.flat())) =
+        level.player(TestWorld.feet(0, 1, 0)).apply { deltaMovement = Vec3(0.0, -0.0784000015258789, 0.0) }
 
     @Test
     fun `tick 0 is the player handed over and later ticks are kept`() {
         val forecast = Forecast(SimulatedPlayer.fromPlayer(standing(), SimulatedInput(DIRECTION_FORWARDS), false))
 
-        assertEquals(TestWorld.feet(0, 1, 0), forecast.getSnapshotAt(0).pos)
+        assertEquals(TestWorld.feet(0, 1, 0).toMinecraft(), forecast.getSnapshotAt(0).pos)
         val tenth = forecast.getSnapshotAt(10)
         assertSame(tenth, forecast.getSnapshotAt(10), "a tick is simulated once")
         assertEquals(forecast.getSnapshotsBetween(0..10), forecast.simulate().take(11).toList())
@@ -81,7 +83,7 @@ class ForecastTest {
         val simulation = forecast.asSimulation()
 
         repeat(5) { simulation.tick() }
-        assertEquals(forecast.getSnapshotAt(5).pos, simulation.pos)
+        assertEquals(forecast.getSnapshotAt(5).pos.toAgent(), simulation.pos)
     }
 
     @Test

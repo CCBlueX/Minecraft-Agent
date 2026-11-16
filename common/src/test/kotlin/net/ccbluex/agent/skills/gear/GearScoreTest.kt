@@ -21,7 +21,7 @@ package net.ccbluex.agent.skills.gear
 
 import net.ccbluex.agent.skills.TestInventories
 import net.ccbluex.agent.skills.TestInventories.stack
-import net.minecraft.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.entity.EquipmentSlot
 import net.minecraft.world.item.Items
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

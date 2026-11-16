@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.skills.loot
 
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.math.BlockPos
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
