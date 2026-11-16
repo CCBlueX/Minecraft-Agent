@@ -77,7 +77,7 @@ internal class Stride {
         if (abs(walkingSpeed / motion.walkingSpeed - 1f) < SAME_PACE && now.jumpPower == motion.jumpPower) {
             return searched
         }
-        return searched.withMotion(MotionTraits(walkingSpeed, now.jumpStrength, now.jumpBoostPower))
+        return searched.withMotion(MotionTraits(walkingSpeed, now.jumpStrength, now.jumpBoostPower, now.mechanics))
     }
 
     /**

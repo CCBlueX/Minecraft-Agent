@@ -194,6 +194,12 @@ public interface Level : BlockGetter {
     public val worldBorder: WorldBorder
 
     /**
+     * The rules the game running this level moves and fights by.
+     */
+    public val mechanics: Mechanics
+        get() = Mechanics.MODERN
+
+    /**
      * The dimension's id, such as `minecraft:the_nether`.
      */
     public fun dimension(): String

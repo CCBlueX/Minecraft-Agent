@@ -85,7 +85,7 @@ internal fun Pacing.search(
  */
 internal fun Pacing.batches(route: Route): IntArray = when (this) {
     is Pacing.Batches -> route.batches(packetsPerTick)
-    Pacing.Burst, Pacing.Instant -> route.batches(Route.MAX_PACKETS_PER_TICK)
+    Pacing.Burst, Pacing.Instant -> route.batches(route.mechanics.maxPacketsPerTick)
 }
 
 private class OneTick(private val search: Search<Route>) : Search<Route> {

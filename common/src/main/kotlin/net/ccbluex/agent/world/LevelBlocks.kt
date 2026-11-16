@@ -37,6 +37,11 @@ public interface LevelBlocks : BlockGetter {
 
     public fun isInsideBorder(x: Double, z: Double): Boolean
 
+    /**
+     * The rules of the game these blocks are from.
+     */
+    public val mechanics: Mechanics get() = Mechanics.MODERN
+
 }
 
 /**
@@ -62,6 +67,8 @@ public class LiveLevel(private val level: Level) : LevelBlocks {
     override fun clip(context: ClipContext): BlockHitResult = level.clip(context)
 
     override val height: Int get() = level.height
+
+    override val mechanics: Mechanics get() = level.mechanics
 
     override val minY: Int get() = level.minY
 

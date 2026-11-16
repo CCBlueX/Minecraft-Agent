@@ -23,6 +23,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.copy
 import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.world.Mechanics
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -36,7 +37,11 @@ import kotlin.math.min
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
  */
-public class Route(public val points: List<Vec3>, public val steps: List<Step>) {
+public class Route(
+    public val points: List<Vec3>,
+    public val steps: List<Step>,
+    public val mechanics: Mechanics = Mechanics.MODERN,
+) {
 
     /**
      * One position packet, on the part of the route that starts at point [segment].
@@ -68,14 +73,14 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
         }
 
         steps.mapTo(linked) { Step(it.position, it.onGround, it.segment + 1) }
-        return Route(listOf(position) + points, linked)
+        return Route(listOf(position) + points, linked, mechanics)
     }
 
     /**
      * How many of [steps] each tick sends, staying inside the server's allowance from where the tick starts.
      */
     public fun batches(packetsPerTick: Int): IntArray {
-        val perTick = packetsPerTick.coerceIn(1, MAX_PACKETS_PER_TICK)
+        val perTick = packetsPerTick.coerceIn(1, mechanics.maxPacketsPerTick)
         val sizes = IntArrayList()
         var tickStart = start
         var inTick = 0
@@ -83,7 +88,7 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
         for ((index, step) in steps.withIndex()) {
             val packet = inTick + 1
             if (inTick > 0 &&
-                (packet > perTick || step.position.distanceToSqr(tickStart) >
+                (packet > perTick || mechanics.isMoveJudgedPerTick && step.position.distanceToSqr(tickStart) >
                     SAFE_DISTANCE * SAFE_DISTANCE * packet.toDouble())
             ) {
                 sizes.add(inTick)
@@ -103,7 +108,7 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
      * Whether the server takes every step of this route in one tick.
      */
     public val fitsOneTick: Boolean
-        get() = batches(MAX_PACKETS_PER_TICK).size <= 1
+        get() = batches(mechanics.maxPacketsPerTick).size <= 1
 
     public companion object {
 
@@ -116,8 +121,10 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
          */
         public const val BOUNCE: Double = 0.1
 
-        // A vanilla server sets the player back when the k-th position packet since its last tick ends more than
-        // 10 * sqrt(k) blocks from where that tick started; from the sixth packet on k counts as 1 again.
+        // A 26.3 server sets the player back when the k-th position packet since its last tick ends more than
+        // 10 * sqrt(k) blocks from where that tick started; from the sixth packet on k counts as 1 again. A 1.8 server
+        // judges each packet alone: the squared move less the squared motion must stay under 100 (Spigot's
+        // moved-too-quickly threshold), so 10 blocks a packet and no limit per tick. See [Mechanics].
         public const val MAX_PACKETS_PER_TICK: Int = 5
         public const val SAFE_DISTANCE: Double = 9.5
 
@@ -134,7 +141,7 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
                     return null
                 }
             }
-            return Route(points, steps)
+            return Route(points, steps, terrain.level.mechanics)
         }
 
         /**
@@ -145,7 +152,7 @@ public class Route(public val points: List<Vec3>, public val steps: List<Step>) 
             if (from.distanceToSqr(to) > SAFE_DISTANCE * SAFE_DISTANCE || !terrain.sweep(from, to)) {
                 return null
             }
-            return Route(listOf(from, to), listOf(Step(to, terrain.isSupported(to), 0)))
+            return Route(listOf(from, to), listOf(Step(to, terrain.isSupported(to), 0)), terrain.level.mechanics)
         }
 
         /**

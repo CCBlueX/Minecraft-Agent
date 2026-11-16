@@ -34,6 +34,7 @@ import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.terrain.DestinationCheck
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.Mechanics
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.CropBlock
 import net.minecraft.world.level.block.SlabBlock
@@ -41,6 +42,7 @@ import net.minecraft.world.level.block.state.properties.SlabType
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
@@ -147,6 +149,63 @@ class TeleportRoutingTest {
 
         // The opposite corner is only passed by a Z-first move.
         assertTrue(flat().set(0, 1, 1, STONE).terrain().sweep(start, end))
+    }
+
+    private fun flat(mechanics: Mechanics) = flat().also { it.mechanics = mechanics }
+
+    @Test
+    fun `sweep on 1_8 moves x before z whichever is longer`() {
+        val start = feet(0, 1, 0)
+        val end = Vec3(1.5, 1.0, 3.5)
+
+        // Z is the longer axis: 26.3 moves along Z first, 1.8 along X first.
+        for ((mechanics, xFirstBlocked, zFirstBlocked) in listOf(
+            Triple(Mechanics.MODERN, false, true),
+            Triple(Mechanics.V1_8, true, false),
+        )) {
+            assertEquals(!xFirstBlocked, flat(mechanics).set(1, 1, 0, STONE).terrain().sweep(start, end), "$mechanics")
+            assertEquals(!zFirstBlocked, flat(mechanics).set(0, 1, 1, STONE).terrain().sweep(start, end), "$mechanics")
+        }
+
+        // X is the longer axis: both move along X first.
+        val across = Vec3(3.5, 1.0, 1.5)
+        for (mechanics in Mechanics.entries) {
+            assertFalse(flat(mechanics).set(3, 1, 0, STONE).terrain().sweep(start, across), "$mechanics")
+            assertTrue(flat(mechanics).set(0, 1, 1, STONE).terrain().sweep(start, across), "$mechanics")
+        }
+    }
+
+    @Test
+    fun `routes keep the allowance of the terrain's game version`() {
+        val points = listOf(feet(-30, 1, 0), feet(30, 1, 0))
+        val modern = assertNotNull(Route.plan(flat().terrain(), points, 4.0))
+        val old = assertNotNull(Route.plan(flat(Mechanics.V1_8).terrain(), points, 4.0))
+
+        assertEquals(Mechanics.MODERN, modern.mechanics)
+        assertEquals(Mechanics.V1_8, old.mechanics)
+        assertEquals(modern.steps.size, old.steps.size)
+        assertFalse(modern.fitsOneTick)
+        assertTrue(old.fitsOneTick)
+    }
+
+    @Test
+    fun `packets per tick are limited on 26_3 only`() {
+        val steps = List(12) { Route.Step(feet(it + 1, 1, 0), true, 0) }
+        fun route(mechanics: Mechanics) = Route(listOf(feet(0, 1, 0), feet(12, 1, 0)), steps, mechanics)
+
+        assertContentEquals(intArrayOf(5, 5, 2), route(Mechanics.MODERN).batches(12))
+        assertContentEquals(intArrayOf(12), route(Mechanics.V1_8).batches(12))
+        assertContentEquals(intArrayOf(3, 3, 3, 3), route(Mechanics.V1_8).batches(3))
+    }
+
+    @Test
+    fun `a 26_3 server judges the packets of a tick from where it began, a 1_8 server each alone`() {
+        val steps = List(8) { Route.Step(feet(9 * (it + 1), 1, 0), true, 0) }
+        fun route(mechanics: Mechanics) = Route(listOf(feet(0, 1, 0), feet(72, 1, 0)), steps, mechanics)
+
+        // 9 blocks from the tick start fit the 9.5 allowance, 18 do not
+        assertContentEquals(IntArray(8) { 1 }, route(Mechanics.MODERN).batches(8))
+        assertContentEquals(intArrayOf(8), route(Mechanics.V1_8).batches(8))
     }
 
     @Test

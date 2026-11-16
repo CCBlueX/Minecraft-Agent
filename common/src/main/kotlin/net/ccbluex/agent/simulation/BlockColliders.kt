@@ -139,6 +139,42 @@ internal class BlockColliders(private val terrain: BlockGrid) {
     }
 
     /**
+     * Takes the blocks [box] touches, as [collect] does for its bounds.
+     *
+     * @agent claude-sonnet-5-5
+     */
+    fun collect(box: AABB) = collect(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
+
+    /**
+     * 1.8's AxisAlignedBB offsets: how far [box] gets along [axis] (0 x, 1 y, 2 z) up to [movement] before it touches
+     * a collected box, without the modern epsilon.
+     */
+    fun offset(axis: Int, box: AABB, movement: Double): Double {
+        moving[X] = box.minX
+        moving[Y] = box.minY
+        moving[Z] = box.minZ
+        moving[AXES + X] = box.maxX
+        moving[AXES + Y] = box.maxY
+        moving[AXES + Z] = box.maxZ
+        val a = (axis + 1) % AXES
+        val b = (axis + 2) % AXES
+        var moved = movement
+        for (offset in 0 until count * BOX step BOX) {
+            if (colliders[offset + AXES + a] <= moving[a] || colliders[offset + a] >= moving[AXES + a] ||
+                colliders[offset + AXES + b] <= moving[b] || colliders[offset + b] >= moving[AXES + b]
+            ) {
+                continue
+            }
+            if (moved > 0.0 && moving[AXES + axis] <= colliders[offset + axis]) {
+                moved = minOf(moved, colliders[offset + axis] - moving[AXES + axis])
+            } else if (moved < 0.0 && moving[axis] >= colliders[offset + AXES + axis]) {
+                moved = maxOf(moved, colliders[offset + AXES + axis] - moving[axis])
+            }
+        }
+        return moved
+    }
+
+    /**
      * Entity.collectCandidateStepUpHeights: the heights of the faces up to [maxStep] above [box], but for [skip].
      */
     fun stepHeights(box: AABB, maxStep: Float, skip: Float): FloatArray {

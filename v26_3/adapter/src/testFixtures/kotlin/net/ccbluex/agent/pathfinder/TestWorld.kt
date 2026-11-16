@@ -32,6 +32,7 @@ import net.ccbluex.agent.v26_3.GameBlocks
 import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.v26_3.toMinecraft
 import net.ccbluex.agent.world.LevelBlocks
+import net.ccbluex.agent.world.Mechanics
 import net.ccbluex.agent.world.block.BlockState
 import net.ccbluex.agent.world.block.Blocks
 import net.minecraft.world.level.BlockGetter
@@ -49,10 +50,13 @@ import net.minecraft.world.level.block.state.BlockState as McBlockState
  * From LiquidBounce: [TestWorld.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/test/kotlin/net/ccbluex/liquidbounce/utils/navigation/TestWorld.kt#L41-L82)
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 public class TestWorld(
     private val known: (x: Int, z: Int) -> Boolean = { _, _ -> true },
 ) : LevelBlocks, GameBlocks {
+
+    override var mechanics: Mechanics = Mechanics.MODERN
 
     private val states = HashMap<BlockPos, BlockState>()
 

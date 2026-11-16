@@ -40,6 +40,18 @@ public object Mth {
     @JvmStatic
     public fun cos(value: Double): Float = SIN[((value * SIN_SCALE + 16384.0).toLong() and 0xFFFF).toInt()]
 
+    /**
+     * 1.8's MathHelper.sin: the same table, indexed in float arithmetic.
+     */
+    @JvmStatic
+    public fun sin1_8(value: Float): Float = SIN[(value * 10430.378f).toInt() and 0xFFFF]
+
+    /**
+     * 1.8's MathHelper.cos: the same table, indexed in float arithmetic.
+     */
+    @JvmStatic
+    public fun cos1_8(value: Float): Float = SIN[(value * 10430.378f + 16384f).toInt() and 0xFFFF]
+
     @JvmStatic
     public fun sqrt(value: Float): Float = Math.sqrt(value.toDouble()).toFloat()
 

@@ -25,6 +25,7 @@ import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.fastCos
 import net.ccbluex.agent.math.fastSin
 import net.ccbluex.agent.math.toRadians
+import net.ccbluex.agent.world.Mechanics
 import net.ccbluex.agent.world.block.BlockKind
 import net.ccbluex.agent.world.entity.Entity.Companion.DEFAULT_BB_HEIGHT
 import net.ccbluex.agent.world.entity.Entity.Companion.DEFAULT_BB_WIDTH
@@ -50,7 +51,7 @@ internal const val SPRINT_FACTOR = 1.3f
 @Suppress("TooManyFunctions")
 public class PlayerMotion internal constructor(
     internal val terrain: BlockGrid,
-    private val traits: MotionTraits,
+    internal val traits: MotionTraits,
     internal val colliders: BlockColliders,
 ) {
 
@@ -58,32 +59,32 @@ public class PlayerMotion internal constructor(
         this(terrain, traits, BlockColliders(terrain))
 
     public var x: Double = 0.0
-        private set
+        internal set
     public var y: Double = 0.0
-        private set
+        internal set
     public var z: Double = 0.0
-        private set
+        internal set
     public var deltaX: Double = 0.0
-        private set
+        internal set
     public var deltaY: Double = 0.0
-        private set
+        internal set
     public var deltaZ: Double = 0.0
-        private set
+        internal set
     public var onGround: Boolean = false
-        private set
+        internal set
     public var horizontalCollision: Boolean = false
-        private set
+        internal set
     public var isSprinting: Boolean = false
-        private set
+        internal set
 
     /**
      * Fall distance of the last landing as fall damage counts it, from the highest point since leaving the ground.
      */
     public var landingFall: Double = 0.0
-        private set
+        internal set
 
-    private var peakY = 0.0
-    private var jumpDelay = 0
+    internal var peakY = 0.0
+    internal var jumpDelay = 0
     private val support = Support()
     internal val supportX: Int get() = support.x
     internal val supportY: Int get() = support.y
@@ -110,8 +111,13 @@ public class PlayerMotion internal constructor(
      */
     private var groundWithoutBlocks = false
 
-    private var crouching = false
-    private var sneaking = false
+    internal var crouching = false
+    internal var sneaking = false
+
+    // 1.8 only: the sprint flag the air speed was last set by, and the walked distance that triggers step effects
+    internal var airSprint = false
+    internal var walked = 0f
+    internal var nextStep = 0
     private val edge = EdgeBackOff()
 
     public val position: Vec3
@@ -138,6 +144,9 @@ public class PlayerMotion internal constructor(
         peakY = y
         if (onGround) findSupport(0.0, 0.0) else support.clear()
         groundWithoutBlocks = onGround && !hasSupport
+        airSprint = isSprinting
+        walked = 0f
+        nextStep = 0
     }
 
     /**
@@ -167,12 +176,19 @@ public class PlayerMotion internal constructor(
         support.copyFrom(other.support)
         groundWithoutBlocks = other.groundWithoutBlocks
         crouching = other.crouching
+        airSprint = other.airSprint
+        walked = other.walked
+        nextStep = other.nextStep
     }
 
     /**
      * One tick with the [forward] and [strafe] keys (-1, 0 or 1, strafe positive to the left) relative to [yRot].
      */
     public fun tick(yRot: Float, forward: Int, strafe: Int, jump: Boolean, sprint: Boolean, sneak: Boolean = false) {
+        if (traits.mechanics == Mechanics.V1_8) {
+            tick1_8(yRot, forward, strafe, jump, sprint, sneak)
+            return
+        }
         if (jumpDelay > 0) {
             jumpDelay--
         }
@@ -319,7 +335,7 @@ public class PlayerMotion internal constructor(
         return onGround || fallen < STEP_HEIGHT && !canFall(0.0, 0.0, STEP_HEIGHT - fallen)
     }
 
-    private fun updateSupport(movement: Vec3) {
+    internal fun updateSupport(movement: Vec3) {
         if (!onGround) {
             support.clear()
             groundWithoutBlocks = false

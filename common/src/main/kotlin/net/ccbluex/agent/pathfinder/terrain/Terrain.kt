@@ -247,7 +247,7 @@ public class Terrain(
 
     /**
      * Whether the server moves a player from [from] to [to] without hitting anything. It moves one axis after the
-     * other, so the corners it passes are checked too.
+     * other, in the order of the game's version, so the corners it passes are checked too.
      */
     public fun sweep(from: Vec3, to: Vec3): Boolean {
         val movement = to.subtract(from)
@@ -258,7 +258,7 @@ public class Terrain(
         }
 
         var moved = Vec3.ZERO
-        for (axis in Direction.axisStepOrder(movement)) {
+        for (axis in level.mechanics.axisStepOrder(movement)) {
             val axisMovement = movement.get(axis)
             if (axisMovement == 0.0) {
                 continue

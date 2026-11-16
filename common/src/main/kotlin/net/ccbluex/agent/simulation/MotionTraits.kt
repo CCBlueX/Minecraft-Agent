@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.world.Mechanics
 import net.ccbluex.agent.world.entity.Attributes
 import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_JUMP_POWER
 import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_VERTICAL_AIR_DRAG
@@ -26,13 +27,19 @@ import net.ccbluex.agent.world.entity.LivingEntity.Companion.DEFAULT_BASE_GRAVIT
 import net.ccbluex.agent.world.entity.Player
 
 /**
- * What sets how fast a player walks and how high it jumps; [walkingSpeed] is without sprinting.
+ * What sets how fast a player walks and how high it jumps; [walkingSpeed] is without sprinting. [mechanics] picks the
+ * game version's movement formula.
  *
  * From LiquidBounce: [PlayerMotion.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/entity/PlayerMotion.kt#L537-L567)
  *
  * @agent claude-opus-5-5
  */
-public class MotionTraits(public val walkingSpeed: Float, public val jumpStrength: Float, public val jumpBoostPower: Float) {
+public class MotionTraits @JvmOverloads constructor(
+    public val walkingSpeed: Float,
+    public val jumpStrength: Float,
+    public val jumpBoostPower: Float,
+    public val mechanics: Mechanics = Mechanics.MODERN,
+) {
 
     /**
      * The upward motion of a jump from flat ground.
@@ -73,6 +80,7 @@ public class MotionTraits(public val walkingSpeed: Float, public val jumpStrengt
                 walkingSpeed = if (player.isSprinting) speed / SPRINT_FACTOR else speed,
                 jumpStrength = player.getAttributeValue(Attributes.JUMP_STRENGTH).toFloat(),
                 jumpBoostPower = player.jumpBoostPower,
+                mechanics = player.level().mechanics,
             )
         }
     }
