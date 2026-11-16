@@ -43,6 +43,7 @@ internal class Heading(
     private val context: NavigationContext,
     private val follower: Follower,
     private val actions: BlockActions,
+    private val lookAhead: LookAhead,
 ) {
 
     private val body get() = context.body
@@ -79,7 +80,12 @@ internal class Heading(
             return
         }
         lastLookYRot = yRot
-        val xRot = if (target != null && follower.dive) diveXRot(target) else player.xRot
+        val xRot = when {
+            target == null -> player.xRot
+            follower.dive -> diveXRot(target)
+            // Near the horizon a few blocks ahead, so a look down at a block just worked on comes back up.
+            else -> lookAhead.xRot(follower.pointAhead(player.position(), lookAhead.distance.toDouble()) ?: target)
+        }
         body.look(ViewRotation(yRot, xRot), LookPurpose.MOVEMENT)
     }
 

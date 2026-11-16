@@ -75,7 +75,7 @@ public class Navigator @JvmOverloads constructor(
     private var viewTurned = false
     private val actions = BlockActions(context)
     private val follower = Follower(context, actions)
-    private val heading = Heading(context, follower, actions)
+    private val heading = Heading(context, follower, actions, lookAhead)
     private val planning = Planning(context, follower)
     private val travel = Travel(context, ::stopWalking, ::resetWalk)
 

@@ -90,7 +90,7 @@ internal class LookAhead(private val context: NavigationContext) {
         if (wasAimed) {
             val yRot = targetYRot(point)
             val yRotDelta = if (yRot.isNaN()) 0f else Mth.wrapDegrees(yRot - player.yRot)
-            turn(yRotDelta, targetXRot(point) - player.xRot)
+            turn(yRotDelta, xRot(point) - player.xRot)
         } else if (yRotSpeed != 0f || xRotSpeed != 0f) {
             // Navigation stopped: the turn slows down instead of ending at once.
             turn(0f, 0f)
@@ -115,7 +115,7 @@ internal class LookAhead(private val context: NavigationContext) {
     /**
      * Towards the horizon, tilted by part of the route's slope up to the point; steep up or down a ladder.
      */
-    private fun targetXRot(point: Vec3?): Float {
+    fun xRot(point: Vec3?): Float {
         val xRot = options.lookAheadXRot
         if (point == null) {
             return xRot
