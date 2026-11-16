@@ -209,6 +209,8 @@ internal class Story(
             val urged = changes.recentChat(HINT_TICKS).any(EXPLORE::containsMatchIn)
             if (urged || !changes.isTalking && now - lastLeadTick > RETRY_ALL_TICKS) {
                 lastLeadTick = now
+                val opened = changes.removed.filter { it.position.distanceTo(player.position()) < SIGN_RANGE }.map { describe(it.position) }
+                report("map nothing left to try${if (opened.isEmpty()) "" else ", opened lately: ${opened.joinToString(" ")}"}")
                 leads.retry()
                 wander(agent, player)
             }

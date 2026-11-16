@@ -31,7 +31,10 @@ import net.minecraft.world.entity.Interaction
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import net.minecraft.world.level.block.BasePressurePlateBlock
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.ButtonBlock
+import net.minecraft.world.level.block.LeverBlock
 import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -50,13 +53,21 @@ internal class LeadsTest {
             MinecraftBootstrap.ensureInitialized()
             TestInventories.bootstrap()
         }
+
+        // A test level has no chunks to read: look at every position of a thin slab around the player
+        private val SWITCHES = Switches { level, center, action ->
+            for (pos in BlockPos.betweenClosed(center.offset(-Switches.RANGE, -1, -Switches.RANGE), center.offset(Switches.RANGE, 1, Switches.RANGE))) {
+                val block = level.getBlockState(pos).block
+                if (block is ButtonBlock || block is LeverBlock || block is BasePressurePlateBlock) action(pos.immutable(), block)
+            }
+        }
     }
 
     private val world = TestWorld.flat()
     private val level = TestLevel(world)
     private val player = level.player(TestWorld.feet(0, 1, 0))
     private val changes = Changes()
-    private val leads = Leads()
+    private val leads = Leads(SWITCHES)
 
     private fun interaction(x: Double, z: Double): Interaction =
         Interaction(EntityTypes.INTERACTION, level).also {
@@ -171,13 +182,38 @@ internal class LeadsTest {
     }
 
     @Test
-    fun `told to drop with wings on, the nearest edge over a deep drop is a way on`() {
+    fun `told to drop with wings on, no edge is guessed`() {
         player.setItemSlot(EquipmentSlot.CHEST, ItemStack(Items.ELYTRA))
         player.snapTo(Vec3(39.5, 1.0, 0.5), 0f, 0f)
         changes.tick(player)
         changes.chat("Jump off the ledge and glide down")
-        val lead = assertNotNull(best())
-        assertEquals(Leads.Lead.Kind.STEP_INTO, lead.kind)
-        assertEquals(Vec3(41.5, 1.0, 0.5), lead.position)
+        assertNull(best())
+    }
+
+    @Test
+    fun `a pressure plate is stepped on, a button far off is used`() {
+        world.set(30, 1, 0, Blocks.STONE_PRESSURE_PLATE.defaultBlockState())
+        val plate = assertNotNull(best())
+        assertEquals(Leads.Lead.Kind.STEP_INTO, plate.kind)
+        assertEquals(BlockPos(30, 1, 0), plate.block)
+        leads.tried(plate, 0, worked = true)
+        world.set(-40, 1, 0, Blocks.STONE_BUTTON.defaultBlockState())
+        val button = assertNotNull(best(now = 1))
+        assertEquals(Leads.Lead.Kind.USE_BLOCK, button.kind)
+        assertEquals(BlockPos(-40, 1, 0), button.block)
+    }
+
+    @Test
+    fun `a hatch that opened behind the player is found within 32 blocks, not beyond`() {
+        world.set(-20, 0, 0, TestWorld.AIR)
+        changes.tick(player)
+        changes.blockChanged(BlockPos(-20, 0, 0), TestWorld.AIR, player.position())
+        assertEquals(BlockPos(-20, 0, 0), BlockPos.containing(assertNotNull(best()).position))
+
+        val far = Changes()
+        world.set(-40, 0, 0, TestWorld.AIR)
+        far.tick(player)
+        far.blockChanged(BlockPos(-40, 0, 0), TestWorld.AIR, player.position())
+        assertNull(Leads(SWITCHES).best(player, far, emptyList(), 0, null))
     }
 }

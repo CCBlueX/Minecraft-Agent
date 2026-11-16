@@ -115,4 +115,8 @@ and `blitz.LevelSenses(level, facts, chests)` read beds, generators, chests, pla
 host supplies only what the server says in text (`RoundFacts`) and calls `tick()` every client tick. The Bed Wars
 one also takes every packet the server sends through `received(packet)`: block updates tell which blocks players placed.
 
+Maps: `skills.maps.MapPlay` plays a world's map alone: it works out the steps from people, buttons, openings, hatches and
+pressure plates, keeps those that led on in a `KnownMaps` folder, and glides caves. A client host calls `agent(body)`,
+hands in server chat and block changes, and implements `AgentBody.interact` and `respawn`.
+
 API docs: https://ccbluex.github.io/Minecraft-Agent/api/

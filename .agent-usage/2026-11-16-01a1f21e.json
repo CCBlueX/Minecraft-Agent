@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-16",
+  "change": "fix(skills): map hatches, no guessed ledges",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 200, "cachedInput": 12428569, "cacheWrite": 173911, "output": 44779 },
+      "usd": 2.39
+    }
+  ]
+}

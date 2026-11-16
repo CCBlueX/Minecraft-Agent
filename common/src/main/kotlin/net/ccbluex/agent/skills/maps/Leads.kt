@@ -20,19 +20,15 @@
 package net.ccbluex.agent.skills.maps
 
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityTypes
-import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.Interaction
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.ButtonBlock
-import net.minecraft.world.level.block.LeverBlock
+import net.minecraft.world.level.block.BasePressurePlateBlock
 import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
@@ -44,7 +40,7 @@ import kotlin.math.abs
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
  */
-internal class Leads {
+internal class Leads(private val switches: Switches = Switches.CHUNKS) {
 
     private val tried = HashMap<Any, Tried>()
 
@@ -101,7 +97,7 @@ internal class Leads {
         }
         val hint = changes.recentChat(HINT_TICKS).joinToString(" ").lowercase()
         val talking = changes.isTalking
-        return find(player, changes, tried, now, hint)
+        return find(player, changes, tried, now)
             // What only answered is worth another go later, from another place, as a lift's button pressed outside it
             .filter { lead -> lead.key !in avoided && this.tried[lead.key]?.let { now - it.tick < if (it.worked) ANSWERED_RETRY_TICKS else RETRY_TICKS } != true }
             // A scene that talks goes on nearby, as a countdown before a drop: nothing far is tried meanwhile
@@ -112,7 +108,8 @@ internal class Leads {
     fun tried(lead: Lead, now: Int, worked: Boolean, unreachable: Boolean = false) {
         val last = tried[lead.key]
         tried[lead.key] = Tried(now, (last?.attempts ?: 0) + 1, worked || last?.worked == true, unreachable)
-        misses.merge(lead.family, 1, Int::plus)
+        // A course's plates follow one another; one stepped on says nothing of the next
+        if (lead.kind != Lead.Kind.STEP_INTO) misses.merge(lead.family, 1, Int::plus)
         lastFamily = lead.family
     }
 
@@ -142,7 +139,7 @@ internal class Leads {
         avoided += lead.key
     }
 
-    private fun find(player: Player, changes: Changes, tried: Vec3?, now: Int, hint: String): List<Lead> {
+    private fun find(player: Player, changes: Changes, tried: Vec3?, now: Int): List<Lead> {
         val level = player.level()
         val position = player.position()
         val leads = ArrayList<Lead>()
@@ -162,43 +159,16 @@ internal class Leads {
                 else -> continue
             }
         }
-        val center = player.blockPosition()
-        for (pos in BlockPos.betweenClosed(center.offset(-BLOCK_RANGE, -BLOCK_RANGE / 2, -BLOCK_RANGE), center.offset(BLOCK_RANGE, BLOCK_RANGE / 2, BLOCK_RANGE))) {
-            val block = level.getBlockState(pos).block
-            if (block is ButtonBlock || block is LeverBlock) {
-                val immutable = pos.immutable()
-                leads += Lead(Lead.Kind.USE_BLOCK, immutable, Vec3.atCenterOf(immutable), null, immutable, false, BuiltInRegistries.BLOCK.getKey(block).toString())
+        switches.forEach(level, player.blockPosition()) { pos, block ->
+            leads += if (block is BasePressurePlateBlock) {
+                // A plate is there to be stood on, as a course's start and checkpoints
+                Lead(Lead.Kind.STEP_INTO, pos, Vec3.atBottomCenterOf(pos), null, pos, false, BuiltInRegistries.BLOCK.getKey(block).toString())
+            } else {
+                Lead(Lead.Kind.USE_BLOCK, pos, Vec3.atCenterOf(pos), null, pos, false, BuiltInRegistries.BLOCK.getKey(block).toString())
             }
         }
         opening(level, changes, position)?.let { leads += it }
-        // Told to drop with wings on: the edges over a deep drop are the way on
-        if (LEAP.any(hint::contains) && player.getItemBySlot(EquipmentSlot.CHEST).has(DataComponents.GLIDER)) {
-            ledge(level, position)?.let { leads += it }
-        }
         return leads
-    }
-
-    /**
-     * The nearest edge the player can walk off into a drop at least [LEDGE_DEPTH] deep.
-     */
-    private fun ledge(level: Level, position: Vec3): Lead? {
-        fun isFree(pos: BlockPos) = level.getBlockState(pos).getCollisionShape(level, pos).isEmpty
-        val center = BlockPos.containing(position)
-        var best: BlockPos? = null
-        var bestDistance = Double.MAX_VALUE
-        for (pos in BlockPos.betweenClosed(center.offset(-LEDGE_RANGE, -LEDGE_BELOW, -LEDGE_RANGE), center.offset(LEDGE_RANGE, LEDGE_ABOVE, LEDGE_RANGE))) {
-            if (!isFree(pos) || !isFree(pos.above()) || isFree(pos.below())) continue
-            for (side in Direction.Plane.HORIZONTAL) {
-                val edge = pos.relative(side)
-                if (!isFree(edge) || !isFree(edge.above()) || !(1..LEDGE_DEPTH).all { isFree(edge.below(it)) }) continue
-                val distance = Vec3.atBottomCenterOf(edge).distanceTo(position)
-                if (distance < bestDistance) {
-                    bestDistance = distance
-                    best = edge.immutable()
-                }
-            }
-        }
-        return best?.let { Lead(Lead.Kind.STEP_INTO, "ledge@${it.x},${it.y},${it.z}", Vec3.atBottomCenterOf(it), null, null, true) }
     }
 
     /**
@@ -209,7 +179,7 @@ internal class Leads {
         fun isFree(pos: BlockPos) = level.getBlockState(pos).getCollisionShape(level, pos).isEmpty
         val feet = BlockPos.containing(position).y
         return changes.removed
-            .filter { changes.ticks - it.tick < NEW_TICKS * 3 && it.position.y <= position.y + 2 }
+            .filter { changes.ticks - it.tick < NEW_TICKS * 3 && it.position.y <= position.y + 2 && it.position.distanceTo(position) < OPENING_RANGE }
             .map { BlockPos.containing(it.position) }
             .mapNotNull { pos ->
                 when {
@@ -329,7 +299,6 @@ internal class Leads {
         }
 
         private const val RANGE = 160.0
-        private const val BLOCK_RANGE = 12
         private const val SIGN_RANGE = 5.0
         private const val CAUSE_RANGE = 16.0
         private const val TALK_RANGE = 24.0
@@ -343,10 +312,7 @@ internal class Leads {
         private const val STAND_DEPTH = 6
         private const val DROP_DEPTH = 3
         private const val DOOR_HEIGHT = 4
-        private const val LEDGE_RANGE = 32
-        private const val LEDGE_BELOW = 4
-        private const val LEDGE_ABOVE = 12
-        private const val LEDGE_DEPTH = 16
+        private const val OPENING_RANGE = 32.0
         private const val TRIED_COST = 40.0
         private const val UNREACHABLE_COST = 60.0
         private const val MISS_COST = 40.0
@@ -362,7 +328,6 @@ internal class Leads {
         private val GO = listOf("start", "play", "begin", "teleport", "enter", "go ")
         private val UP = listOf("upstairs", "up the", "above", "climb")
         private val DOWN = listOf("downstairs", "down to", "below", "descend")
-        private val LEAP = listOf("drop", "jump", "dive", "glide", "descen")
         private val INTERACT = listOf("interact", "right-click", "right click", "talk to")
     }
 }

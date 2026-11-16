@@ -192,7 +192,7 @@ internal class Changes {
         const val MAX_VISITED = 600
         const val RETURN_AGE = 200
         const val RETURN_RANGE = 6.0
-        const val NEAR = 24.0
+        const val NEAR = 48.0
         const val ENTITY_SCAN_TICKS = 5
         const val KEEP_TICKS = 20 * 60
 
