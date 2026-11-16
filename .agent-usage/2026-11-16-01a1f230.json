@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-16",
+  "change": "fix(skills): kiter holds range with weapon",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 662, "cachedInput": 89418057, "cacheWrite": 854310, "output": 265867 },
+      "usd": 15.02
+    }
+  ]
+}

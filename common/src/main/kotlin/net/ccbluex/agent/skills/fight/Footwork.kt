@@ -107,7 +107,7 @@ internal class Footwork(private val fight: BuiltInFight) {
     fun move(target: LivingEntity) {
         val here = player.position()
         val distance = Aiming.horizontal(here, target.position())
-        val keep = keep()
+        val keep = keep(target)
         if (distance > maxOf(CHASE_RANGE, keep + 2) || distance > GAP_CHECK_RANGE && gapTowards(target.position())) {
             chasing = true
             return
@@ -160,13 +160,16 @@ internal class Footwork(private val fight: BuiltInFight) {
         if (fight.style == FightingStyle.AGGRESSIVE) 1.2 else fight.swingReach() - 0.35
 
     /**
-     * The distance the style holds this tick; 0 to go in for the hit.
+     * The distance the style holds this tick from [target]; 0 to go in for the hit. A kiter holds back only for a bow
+     * or rod it carries and could use on the target from there.
      */
-    private fun keep(): Double = when (fight.style) {
+    internal fun keep(target: LivingEntity): Double = when (fight.style) {
         FightingStyle.DEFENSIVE -> if (fight.striking.charging()) KEEP_CHARGING else 0.0
         FightingStyle.KITER -> when {
-            fight.runner.readySoon(fight, Skill.BOW) && Ranged.bowLoaded(fight) -> KEEP_BOW
-            fight.runner.readySoon(fight, Skill.ROD) && fight.hands.has { it.isOf(Items.FISHING_ROD) } -> KEEP_ROD
+            fight.runner.readySoon(fight, Skill.BOW) && Ranged.bowLoaded(fight) && fight.hasLineOfSight(target) ->
+                KEEP_BOW
+            fight.runner.readySoon(fight, Skill.ROD) && fight.hands.has { it.isOf(Items.FISHING_ROD) } &&
+                fight.hasLineOfSight(target) -> KEEP_ROD
             fight.striking.charging() -> KEEP_CHARGING
             else -> 0.0
         }
