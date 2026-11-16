@@ -209,7 +209,8 @@ public class Navigator @JvmOverloads constructor(
     public fun startDestroy(pos: BlockPos, face: Direction): Boolean = tickBody.startDestroy(pos, face)
 
     /**
-     * [Body.continueDestroy], refused as [useItemOn] is.
+     * [Body.continueDestroy], checked every tick as [useItemOn] is; once refused, as when a block comes between
+     * mid-dig, the dig is let go of ([Body.stopDestroy]) and has to start again.
      *
      * @agent claude-opus-5-5
      */

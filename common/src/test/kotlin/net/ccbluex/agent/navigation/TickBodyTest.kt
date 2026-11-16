@@ -26,6 +26,8 @@ import net.ccbluex.agent.pathfinder.TestWorld
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
@@ -52,6 +54,8 @@ class TickBodyTest {
     private class Host(body: Body) : Body by body {
         var used: BlockHitResult? = null
         var dug: BlockPos? = null
+        var continued = 0
+        var stopped = false
 
         override fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean {
             used = hit
@@ -62,11 +66,20 @@ class TickBodyTest {
             dug = pos
             return true
         }
+
+        override fun continueDestroy(pos: BlockPos, face: Direction): Boolean {
+            continued++
+            return true
+        }
+
+        override fun stopDestroy() {
+            stopped = true
+        }
     }
 
-    private fun host(world: TestWorld): Host {
+    private fun host(world: TestWorld, at: Vec3 = point): Host {
         val player = TestLevel(world).player(TestWorld.feet(0, 1, 0))
-        val rotation = ViewRotation.fromVector(point.subtract(player.eyePosition))
+        val rotation = ViewRotation.fromVector(at.subtract(player.eyePosition))
         player.yRot = rotation.yRot
         player.xRot = rotation.xRot
         return Host(TestBody(player))
@@ -74,6 +87,50 @@ class TickBodyTest {
 
     private fun click(host: Host, options: Options) =
         TickBody(host) { options }.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(point, Direction.WEST, against, false))
+
+    /**
+     * Looking from the eyes at [at] on the west face of [against], with [between] in front of it: whether a place
+     * against that face and a dig of it go out. Both or neither do.
+     */
+    private fun clicksPast(between: BlockState, at: Vec3): Boolean {
+        val world = TestWorld.flat().set(3, 1, 0, TestWorld.STONE).set(2, 1, 0, between)
+        val host = host(world, at)
+        val body = TickBody(host) { Options() }
+        val placed = body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(at, Direction.WEST, against, false))
+        val dug = body.startDestroy(against, Direction.WEST)
+        assertEquals(placed, dug, "A place and a dig of the same face disagree past $between")
+        return placed
+    }
+
+    @Test
+    fun `a partial block hides the face where its outline is and shows it through its empty part`() {
+        // Bottom slab: through its lower half, or over it through the empty upper half
+        val slab = Blocks.SMOOTH_STONE_SLAB.defaultBlockState()
+        assertFalse(clicksPast(slab, Vec3(3.0, 1.2, 0.5)))
+        assertTrue(clicksPast(slab, Vec3(3.0, 1.7, 0.5)))
+        // Stairs up to the north: through the step on the north half, over the low south half
+        val stairs = Blocks.STONE_STAIRS.defaultBlockState()
+        assertFalse(clicksPast(stairs, Vec3(3.0, 1.7, 0.2)))
+        assertTrue(clicksPast(stairs, Vec3(3.0, 1.7, 0.8)))
+        // A fence and a glass pane alone are a post in the middle: through it, or past it at the side
+        for (post in listOf(Blocks.OAK_FENCE.defaultBlockState(), Blocks.GLASS_PANE.defaultBlockState())) {
+            assertFalse(clicksPast(post, Vec3(3.0, 1.5, 0.5)))
+            assertTrue(clicksPast(post, Vec3(3.0, 1.5, 0.95)))
+        }
+    }
+
+    @Test
+    fun `a dig stops once a block comes between`() {
+        val world = TestWorld.flat().set(3, 1, 0, TestWorld.STONE)
+        val host = host(world)
+        val body = TickBody(host) { Options() }
+        assertTrue(body.startDestroy(against, Direction.WEST))
+        assertTrue(body.continueDestroy(against, Direction.WEST))
+        world.set(2, 1, 0, TestWorld.STONE)
+        assertFalse(body.continueDestroy(against, Direction.WEST))
+        assertEquals(1, host.continued)
+        assertTrue(host.stopped)
+    }
 
     @Test
     fun `a face in sight is clicked where the look hits it`() {
