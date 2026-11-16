@@ -38,32 +38,49 @@ private const val EDGE_INSET = 1.0E-7
  * @agent claude-fable-5-2
  */
 internal fun PlayerMotion.collide(dx: Double, dy: Double, dz: Double): Vec3 {
-    val box = AABB(x - HALF_WIDTH, y, z - HALF_WIDTH, x + HALF_WIDTH, y + HEIGHT, z + HALF_WIDTH)
-    val movement = Vec3(dx, dy, dz)
-    val direct = if (movement.lengthSqr() == 0.0) {
-        movement
-    } else {
-        colliders.collect(box.expandTowards(movement))
-        colliders.collide(dx, dy, dz, box)
+    val minX = x - HALF_WIDTH
+    val minZ = z - HALF_WIDTH
+    val maxX = x + HALF_WIDTH
+    val maxY = y + HEIGHT
+    val maxZ = z + HALF_WIDTH
+    var directX = dx
+    var directY = dy
+    var directZ = dz
+    if (dx * dx + dy * dy + dz * dz != 0.0) {
+        // AABB.expandTowards by the movement
+        colliders.collect(
+            if (dx < 0.0) minX + dx else minX, if (dy < 0.0) y + dy else y, if (dz < 0.0) minZ + dz else minZ,
+            if (dx > 0.0) maxX + dx else maxX, if (dy > 0.0) maxY + dy else maxY, if (dz > 0.0) maxZ + dz else maxZ,
+        )
+        colliders.collide(dx, dy, dz, minX, y, minZ, maxX, maxY, maxZ)
+        directX = colliders.movedX
+        directY = colliders.movedY
+        directZ = colliders.movedZ
     }
-    val lands = dy != direct.y && dy < 0.0
-    if (!(lands || onGround) || dx == direct.x && dz == direct.z) {
-        return direct
+    val lands = dy != directY && dy < 0.0
+    if (!(lands || onGround) || dx == directX && dz == directZ) {
+        return Vec3(directX, directY, directZ)
     }
 
-    val grounded = if (lands) box.move(0.0, direct.y, 0.0) else box
+    val box = AABB(minX, y, minZ, maxX, maxY, maxZ)
+    val grounded = if (lands) box.move(0.0, directY, 0.0) else box
     var region = grounded.expandTowards(dx, STEP_HEIGHT.toDouble(), dz)
     if (!lands) {
         region = region.expandTowards(0.0, -STEP_PROBE, 0.0)
     }
-    colliders.collect(region)
-    for (height in colliders.stepHeights(grounded, STEP_HEIGHT, skip = direct.y.toFloat())) {
-        val stepped = colliders.collide(dx, height.toDouble(), dz, grounded)
-        if (stepped.horizontalDistanceSqr() > direct.horizontalDistanceSqr()) {
-            return stepped.subtract(0.0, box.minY - grounded.minY, 0.0)
+    colliders.collect(region.minX, region.minY, region.minZ, region.maxX, region.maxY, region.maxZ)
+    for (height in colliders.stepHeights(grounded, STEP_HEIGHT, skip = directY.toFloat())) {
+        colliders.collide(
+            dx, height.toDouble(), dz, grounded.minX, grounded.minY, grounded.minZ,
+            grounded.maxX, grounded.maxY, grounded.maxZ,
+        )
+        val steppedX = colliders.movedX
+        val steppedZ = colliders.movedZ
+        if (steppedX * steppedX + steppedZ * steppedZ > directX * directX + directZ * directZ) {
+            return Vec3(steppedX, colliders.movedY - (box.minY - grounded.minY), steppedZ)
         }
     }
-    return direct
+    return Vec3(directX, directY, directZ)
 }
 
 /**

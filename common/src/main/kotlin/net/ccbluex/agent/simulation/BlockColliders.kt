@@ -25,7 +25,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.Shapes.EPSILON
 import kotlin.math.abs
 
@@ -43,6 +42,13 @@ internal class BlockColliders(private val terrain: BlockGrid) {
     private var colliders = DoubleArray(BOX * INITIAL_COLLIDERS)
     private var count = 0
     private val moving = DoubleArray(BOX)
+
+    var movedX: Double = 0.0
+        private set
+    var movedY: Double = 0.0
+        private set
+    var movedZ: Double = 0.0
+        private set
 
     fun intersects(x: Int, y: Int, z: Int, box: AABB): Boolean {
         val block = boxes(x, y, z)
@@ -72,14 +78,18 @@ internal class BlockColliders(private val terrain: BlockGrid) {
     }
 
     /**
-     * Takes the blocks in [region] as the ones [collide] and [stepHeights] look at.
+     * Takes the blocks in the region from [minX] [minY] [minZ] to [maxX] [maxY] [maxZ] as the ones [collide] and
+     * [stepHeights] look at.
+     *
+     * @agent claude-opus-5-5
      */
-    fun collect(region: AABB) {
+    @Suppress("LongParameterList")
+    fun collect(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double) {
         count = 0
-        for (x in Mth.floor(region.minX - EPSILON)..Mth.floor(region.maxX + EPSILON)) {
-            for (z in Mth.floor(region.minZ - EPSILON)..Mth.floor(region.maxZ + EPSILON)) {
+        for (x in Mth.floor(minX - EPSILON)..Mth.floor(maxX + EPSILON)) {
+            for (z in Mth.floor(minZ - EPSILON)..Mth.floor(maxZ + EPSILON)) {
                 // One layer below for blocks taller than a block, like fences.
-                for (y in Mth.floor(region.minY - EPSILON) - 1..Mth.floor(region.maxY + EPSILON)) {
+                for (y in Mth.floor(minY - EPSILON) - 1..Mth.floor(maxY + EPSILON)) {
                     add(boxes(x, y, z))
                 }
             }
@@ -87,22 +97,37 @@ internal class BlockColliders(private val terrain: BlockGrid) {
     }
 
     /**
-     * Shapes.collide: how far [box] gets of the movement, axis by axis in the order of Direction.axisStepOrder.
+     * Shapes.collide: how far the box from [minX] [minY] [minZ] to [maxX] [maxY] [maxZ] gets of the movement, axis by
+     * axis in the order of Direction.axisStepOrder, into [movedX] [movedY] [movedZ].
+     *
+     * @agent claude-opus-5-5
      */
-    fun collide(dx: Double, dy: Double, dz: Double, box: AABB): Vec3 {
+    @Suppress("LongParameterList")
+    fun collide(
+        dx: Double,
+        dy: Double,
+        dz: Double,
+        minX: Double,
+        minY: Double,
+        minZ: Double,
+        maxX: Double,
+        maxY: Double,
+        maxZ: Double,
+    ) {
         if (count == 0) {
-            return Vec3(dx, dy, dz)
+            movedX = dx
+            movedY = dy
+            movedZ = dz
+            return
         }
 
-        moving[X] = box.minX
-        moving[Y] = box.minY
-        moving[Z] = box.minZ
-        moving[AXES + X] = box.maxX
-        moving[AXES + Y] = box.maxY
-        moving[AXES + Z] = box.maxZ
-        val movedY = clip(Y, dy)
-        val movedX: Double
-        val movedZ: Double
+        moving[X] = minX
+        moving[Y] = minY
+        moving[Z] = minZ
+        moving[AXES + X] = maxX
+        moving[AXES + Y] = maxY
+        moving[AXES + Z] = maxZ
+        movedY = clip(Y, dy)
         if (abs(dx) < abs(dz)) {
             movedZ = clip(Z, dz)
             movedX = clip(X, dx)
@@ -110,7 +135,6 @@ internal class BlockColliders(private val terrain: BlockGrid) {
             movedX = clip(X, dx)
             movedZ = clip(Z, dz)
         }
-        return Vec3(movedX, movedY, movedZ)
     }
 
     /**
