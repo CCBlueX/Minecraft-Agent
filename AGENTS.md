@@ -5,32 +5,32 @@ Minecraft 26.3 (Mojang names, unobfuscated), Java 25, Kotlin. Root package `net.
 | Module | Artifact (`net.ccbluex`) | Builds with | Needs |
 |---|---|---|---|
 | `common/` | `minecraft-agent-common` | `agent.neutral` | - |
-| `vanilla/` | `minecraft-agent-adapter` | `agent.shared` (Loom, server jar) | pathfinder |
-| `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.client` (Loom, client) | navigation, vanilla |
-| `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.fabric` (Loom, client) | common |
-| `v26_3/paper/` | `minecraft-agent-paper`, plugin jar (classifier `plugin`) | `agent.paper` (paperweight) | server-common, vanilla |
-| `v1_8_8/spigot/` | `minecraft-agent-spigot`, plugin jar (classifier `plugin`) | `agent.spigot` (Spigot 1.8.8 jar) | server-common |
+| `v26_3/adapter/` | `minecraft-agent-adapter` | `agent.shared` (Loom, server jar) | common |
+| `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.fabric` (Loom, client) | common, adapter |
+| `v26_3/paper/` | `minecraft-agent-paper`, plugin jar (classifier `plugin`) | `agent.paper` (paperweight) | common, adapter |
+| `v1_8_8/spigot/` | `minecraft-agent-spigot`, plugin jar (classifier `plugin`) | `agent.spigot` (Spigot 1.8.8 jar) | common |
 | `gradle/build-logic/` | - | convention plugins and checks | - |
 
-- `client/common` and `server/common` hold what every mod loader or server platform shares; `client/fabric`,
-  `server/paper` and `v1_8_8/spigot` are friends of their common part and use its internals.
-- `server/common` is the Bukkit layer (`Bots`, `Bot`, `BotBody`, `/agent`) and compiles against spigot-api 1.8.8, the
-  oldest API a supported server runs, so it links on every one. A platform implements the internal `Platform` and
-  names it in `META-INF/services/net.ccbluex.agent.bukkit.Platform`.
-- Version-neutral modules (`agent.neutral`) see only `world`'s game types (Mojang names); `checkGameClasses` fails
-  on `net.minecraft`, `com.mojang` or `org.bukkit.craftbukkit` in their main sources or classes. An adapter
-  (`vanilla` for 26.3) converts at the boundary with `toAgent()`/`toMinecraft()`; hosts call `defineGameTypes()` once
-  the registries are frozen.
-- `vanilla` compiles against the vanilla server jar only (`serverOnlyMinecraftJar()`), so its classes link on the
-  Fabric client and on Paper. `checkClientClasses` fails on `net.minecraft.client` or `com.mojang.blaze3d` there.
-- Unit tests of neutral modules build worlds with Minecraft's blocks and items through `testFixtures(":vanilla")`
-  (`MinecraftBootstrap`, `TestWorld`, `TestLevel`), which brings the game's jar onto their test classpath.
+- `common/` holds everything that runs on every game version: the `world` game types, `simulation`, `pathfinder`,
+  `navigation`, `skills` and the Bukkit layer (`net.ccbluex.agent.bukkit`: `Bots`, `Bot`, `BotBody`, `/agent`). It
+  compiles against spigot-api 1.8.8, the oldest API a supported server runs, so it links on every one. A platform
+  implements the internal `Platform` and names it in `META-INF/services/net.ccbluex.agent.bukkit.Platform`; `paper`
+  and `spigot` are friends of `common` and use its internals.
+- `common` sees only the game types of `world` (Mojang names); `checkGameClasses` fails on `net.minecraft`,
+  `com.mojang` or `org.bukkit.craftbukkit` in its main sources or classes. An adapter converts at the boundary with
+  `toAgent()`/`toMinecraft()`; hosts call `defineGameTypes()` once the registries are frozen.
+- `v26_3/adapter` compiles against the vanilla server jar only (`serverOnlyMinecraftJar()`), so its classes link on
+  the Fabric client and on Paper. `checkClientClasses` fails on `net.minecraft.client` or `com.mojang.blaze3d` there.
+- Unit tests of `common` build worlds with Minecraft's blocks and items through `testFixtures(":v26_3-adapter")`
+  (`MinecraftBootstrap`, `TestWorld`, `TestLevel`), which brings the game's jar onto their test classpath. The
+  fixtures are not published. A `TestWorld` takes another `mechanics` to test a game version's rules.
 - The Paper plugin jar bundles the library modules; Kotlin and coroutines come from `libraries` in `plugin.yml`
   (write `libraries: ${libraries}` and `version: "${version}"`, the build fills them in).
 - `v1_8_8/spigot` is its own adapter for 1.8.8 (`v1_8_R3`, Spigot's obfuscated names; decompile the server jar to
   read them). Block states are by section id (`block id << 4 | data`, not `Block.getCombinedId`); shapes come from the
   server's block code on the main thread, so `snapshot` copies them for blocks whose shape depends on neighbours.
-  Its plugin jar bundles Kotlin and coroutines (1.8 has no `libraries`).
+  Its plugin jar bundles Kotlin and coroutines (1.8 has no `libraries`), and SLF4J relocated: servers that ship
+  SLF4J 1.7 would otherwise load their own API, which never finds the bundled provider.
 - The 1.8.8 server jar is not published: pass a local one as `-PserverJar=<jar>` to `runServer`/`runSmoke`
   and never commit or name it.
 - Dependency repositories are in `agent.kotlin`, not in settings: Loom and paperweight add project repositories,

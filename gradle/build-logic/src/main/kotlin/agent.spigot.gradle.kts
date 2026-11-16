@@ -22,19 +22,22 @@ tasks.named<ProcessResources>("processResources") {
     filesMatching("plugin.yml") { expand(properties) }
 }
 
-val pluginJar = tasks.register<Jar>("pluginJar") {
+val pluginJar = tasks.register<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("pluginJar") {
     description = "The 1.8.8 plugin jar: this module with everything on its runtime classpath, Kotlin included."
     group = "build"
     archiveClassifier = "plugin"
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(sourceSets["main"].output)
-    val runtime = configurations.getByName("runtimeClasspath")
-    dependsOn(runtime)
-    from(runtime.elements.map { files -> files.map { zipTree(it.asFile) } }) {
-        // Signatures and module descriptors of the bundled jars do not hold for the merged jar
-        exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/versions/*/module-info.class",
-            "module-info.class")
+    configurations = project.configurations.named("runtimeClasspath").map { listOf(it) }
+    // Servers that ship SLF4J 1.7 would load their API, which never sees the bundled 2.x provider, and log nowhere
+    relocate("org.slf4j", "net.ccbluex.agent.v1_8_8.spigot.slf4j")
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles()
+    filesNotMatching("META-INF/services/**") {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
+    // Signatures and module descriptors of the bundled jars do not hold for the merged jar
+    exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/versions/*/module-info.class",
+        "module-info.class")
 }
 
 tasks.named("assemble") {
@@ -49,7 +52,7 @@ fun javaLauncher() = extensions.getByType<JavaToolchainService>().launcherFor {
  * A headless 1.8.8 server in build/<directory> with [plugins] (plugin jar tasks), from the jar named by
  * -PserverJar, which is not published anywhere. A [fresh] server generates its worlds anew.
  */
-fun registerServer(name: String, directory: String, description: String, plugins: List<TaskProvider<Jar>>, fresh: Boolean) =
+fun registerServer(name: String, directory: String, description: String, plugins: List<TaskProvider<out Jar>>, fresh: Boolean) =
     tasks.register<Exec>(name) {
         this.description = description
         group = "run"
@@ -95,11 +98,13 @@ tasks.named<ProcessResources>("processSmokeResources") {
     filesMatching("plugin.yml") { expand(properties) }
 }
 
-val smokeJar = tasks.register<Jar>("smokeJar") {
+val smokeJar = tasks.register<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("smokeJar") {
     description = "The smoke plugin jar, which runs next to the plugin jar."
     group = "build"
     archiveClassifier = "smoke"
     from(smoke.output)
+    configurations = provider { emptyList() }
+    relocate("org.slf4j", "net.ccbluex.agent.v1_8_8.spigot.slf4j")
 }
 
 registerServer(

@@ -37,3 +37,4 @@ dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 fabric-loom = { id = "net.fabricmc.fabric-loom", version.ref = "fabric-loom" }
 paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
+shadow = { id = "com.gradleup.shadow", version = "9.6.1" }

@@ -38,6 +38,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.player.PlayerTeleportEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import org.slf4j.LoggerFactory
+import org.slf4j.helpers.NOPLoggerFactory
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
@@ -103,6 +105,10 @@ internal class SmokePlugin : JavaPlugin(), Listener {
         val z0 = world.spawnLocation.blockZ
         val ground = world.getHighestBlockYAt(x0, z0)
         logger.info("SMOKE course at $x0 $ground $z0")
+        // The smoke jar is relocated like the plugin jar, so this is the library's SLF4J
+        val loggers = LoggerFactory.getILoggerFactory()
+        LoggerFactory.getLogger(MinecraftAgent::class.java).info("SMOKE library log through {}", loggers.javaClass.simpleName)
+        report("library logs", loggers !is NOPLoggerFactory, loggers.javaClass.name)
         buildCourse(world, x0, ground, z0)
         val bots = MinecraftAgent.bots()
         val walker = bots.spawn(Location(world, x0 + 0.5, ground.toDouble(), z0 + 0.5), "Walker")

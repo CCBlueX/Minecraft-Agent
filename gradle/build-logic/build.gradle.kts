@@ -14,4 +14,5 @@ dependencies {
     implementation(plugin(libs.plugins.fabric.loom))
     implementation(plugin(libs.plugins.paperweight.userdev))
     implementation(plugin(libs.plugins.run.paper))
+    implementation(plugin(libs.plugins.shadow))
 }
