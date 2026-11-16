@@ -22,18 +22,19 @@ package net.ccbluex.agent.build
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Keeps client-only Minecraft packages out of a shared module: neither its sources nor its compiled
- * classes (strings included) may name them.
+ * Keeps [packages] out of a module: neither its sources nor its compiled classes (strings included) may name them.
  *
  * @agent claude-opus-5-5
  */
-abstract class ClientClassCheck : DefaultTask() {
+abstract class PackageCheck : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -43,25 +44,25 @@ abstract class ClientClassCheck : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val classes: ConfigurableFileCollection
 
+    @get:Input
+    abstract val packages: ListProperty<String>
+
     @TaskAction
     fun check() {
+        val packages = packages.get()
         val problems = mutableListOf<String>()
         for (file in sources.asFileTree.files.sorted()) {
             file.readLines().forEachIndexed { index, line ->
-                clientPackages.firstOrNull { it in line }?.let { problems += "${file.path}:${index + 1}: $it" }
+                packages.firstOrNull { it in line }?.let { problems += "${file.path}:${index + 1}: $it" }
             }
         }
         for (file in classes.asFileTree.matching { include("**/*.class") }.files.sorted()) {
             val content = String(file.readBytes(), Charsets.ISO_8859_1)
-            clientPackages.firstOrNull { it in content || it.replace('.', '/') in content }
+            packages.firstOrNull { it in content || it.replace('.', '/') in content }
                 ?.let { problems += "${file.path}: $it" }
         }
         if (problems.isNotEmpty()) {
-            throw GradleException("Client-only classes in a shared module:\n" + problems.joinToString("\n"))
+            throw GradleException("$description\n" + problems.joinToString("\n"))
         }
-    }
-
-    private companion object {
-        val clientPackages = listOf("net.minecraft.client", "com.mojang.blaze3d")
     }
 }

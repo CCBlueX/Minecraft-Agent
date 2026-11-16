@@ -19,9 +19,6 @@
 
 package net.ccbluex.agent.math
 
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.phys.Vec3
 import kotlin.math.atan2
 
 /**
@@ -30,6 +27,7 @@ import kotlin.math.atan2
  * From LiquidBounce: [Rotation.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/aiming/data/Rotation.kt#L70-L71)
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 public data class ViewRotation(public val yRot: Float, public val xRot: Float) {
 
@@ -39,7 +37,16 @@ public data class ViewRotation(public val yRot: Float, public val xRot: Float) {
      * where a look grazes an edge.
      */
     public val viewVector: Vec3
-        get() = Entity.calculateViewVector(Mth.wrapDegrees(xRot), Mth.wrapDegrees(yRot))
+        get() {
+            val x = Mth.wrapDegrees(xRot) * Mth.DEG_TO_RAD
+            val y = -Mth.wrapDegrees(yRot) * Mth.DEG_TO_RAD
+            val xCos = Mth.cos(x.toDouble())
+            return Vec3(
+                (Mth.sin(y.toDouble()) * xCos).toDouble(),
+                (-Mth.sin(x.toDouble())).toDouble(),
+                (Mth.cos(y.toDouble()) * xCos).toDouble(),
+            )
+        }
 
     public companion object {
         @JvmField

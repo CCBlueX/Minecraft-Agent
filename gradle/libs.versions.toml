@@ -27,6 +27,8 @@ fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = 
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
 fabric-kotlin = { group = "net.fabricmc", name = "fabric-language-kotlin", version.ref = "fabric-kotlin" }
 gametest-harness = { group = "net.ccbluex", name = "gametest-harness", version.ref = "gametest-harness" }
+fastutil = { group = "it.unimi.dsi", name = "fastutil", version = "8.5.18" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version = "2.0.17" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

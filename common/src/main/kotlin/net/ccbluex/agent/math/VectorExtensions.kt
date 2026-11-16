@@ -20,11 +20,11 @@
 package net.ccbluex.agent.math
 
 import net.ccbluex.agent.InternalAgentApi
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.core.Vec3i
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.math.Vec3i
 import java.util.Random
 import kotlin.math.atan2
 import kotlin.math.sqrt

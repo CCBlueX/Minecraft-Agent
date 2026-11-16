@@ -1,7 +1,7 @@
-import net.ccbluex.agent.build.ClientClassCheck
+import net.ccbluex.agent.build.PackageCheck
 
-// Simulation, pathfinder, navigation and skills: compiled against the vanilla server jar in Mojang's names, so
-// the same classes link on the Fabric client and on Paper.
+// Vanilla: compiled against the vanilla server jar in Mojang's names, so the same classes link on the Fabric client
+// and on Paper.
 plugins {
     id("net.fabricmc.fabric-loom")
 }
@@ -16,10 +16,11 @@ dependencies {
     "minecraft"(libs.findLibrary("minecraft").get())
 }
 
-val checkClientClasses = tasks.register<ClientClassCheck>("checkClientClasses") {
-    description = "Fails when the sources or classes reference client-only Minecraft packages."
+val checkClientClasses = tasks.register<PackageCheck>("checkClientClasses") {
+    description = "Client-only classes in a shared module:"
     sources.from(fileTree("src") { include("**/*.kt", "**/*.java") })
     classes.from(layout.buildDirectory.dir("classes"))
+    packages = listOf("net.minecraft.client", "com.mojang.blaze3d")
     mustRunAfter(tasks.matching { it.name.startsWith("compile") })
 }
 

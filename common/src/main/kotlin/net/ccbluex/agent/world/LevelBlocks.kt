@@ -17,14 +17,12 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.pathfinder.level
+package net.ccbluex.agent.world
 
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.BlockGetter
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.material.FluidState
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.world.block.BlockEntityType
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.FluidState
 
 /**
  * The blocks a route may be planned through. Unknown blocks are never entered.
@@ -55,14 +53,16 @@ public class LiveLevel(private val level: Level) : LevelBlocks {
 
     override fun isInsideBorder(x: Double, z: Double): Boolean = level.worldBorder.isWithinBounds(x, z)
 
-    override fun getBlockEntity(pos: BlockPos): BlockEntity? = level.getBlockEntity(pos)
+    override fun getBlockEntity(pos: BlockPos): BlockEntityType? = level.getBlockEntity(pos)
 
     override fun getBlockState(pos: BlockPos): BlockState = level.getBlockState(pos)
 
     override fun getFluidState(pos: BlockPos): FluidState = level.getFluidState(pos)
 
-    override fun getHeight(): Int = level.height
+    override fun clip(context: ClipContext): BlockHitResult = level.clip(context)
 
-    override fun getMinY(): Int = level.minY
+    override val height: Int get() = level.height
+
+    override val minY: Int get() = level.minY
 
 }

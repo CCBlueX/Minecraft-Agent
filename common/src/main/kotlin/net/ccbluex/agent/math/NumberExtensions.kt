@@ -20,14 +20,15 @@
 package net.ccbluex.agent.math
 
 import net.ccbluex.agent.InternalAgentApi
-import net.minecraft.util.Mth
+import net.ccbluex.agent.math.Mth
 
 // Angle conversions go through Mth's float constants, so results match the game's own conversions bit for bit.
 
 /**
  * From LiquidBounce: [MathExtensions.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/math/MathExtensions.kt#L29-L29)
  */
-internal fun Float.toRadians(): Float = this * Mth.DEG_TO_RAD
+@InternalAgentApi
+public fun Float.toRadians(): Float = this * Mth.DEG_TO_RAD
 
 /**
  * From LiquidBounce: [MathExtensions.kt](https://github.com/CCBlueX/LiquidBounce/blob/fcbd131fe5a86aa31cb999a75abf563b4c35bf7e/src/main/kotlin/net/ccbluex/liquidbounce/utils/math/MathExtensions.kt#L31-L31)
@@ -46,7 +47,8 @@ public fun Double.toDegrees(): Double = this * Mth.RAD_TO_DEG
  *
  * @agent claude-opus-5-5
  */
-internal fun Float.fastSin(): Float = Mth.sin(toDouble())
+@InternalAgentApi
+public fun Float.fastSin(): Float = Mth.sin(toDouble())
 
 /**
  * Mth.cos, the game's lookup table cosine.
@@ -55,7 +57,8 @@ internal fun Float.fastSin(): Float = Mth.sin(toDouble())
  *
  * @agent claude-opus-5-5
  */
-internal fun Float.fastCos(): Float = Mth.cos(toDouble())
+@InternalAgentApi
+public fun Float.fastCos(): Float = Mth.cos(toDouble())
 
 /**
  * This, or [fallback] when it is NaN.
