@@ -25,7 +25,7 @@ import net.ccbluex.agent.bukkit.BotSkin
 import net.ccbluex.agent.bukkit.Bots
 import net.ccbluex.agent.bukkit.Platform
 import net.ccbluex.agent.v26_3.paper.body.BlockFeed
-import net.ccbluex.agent.v26_3.paper.body.BotEvents
+import net.ccbluex.agent.v26_3.paper.body.PaperEvents
 import net.ccbluex.agent.v26_3.paper.body.spawnBotPlayer
 import net.ccbluex.agent.v26_3.defineGameTypes
 import net.ccbluex.agent.v26_3.toAgent
@@ -50,7 +50,7 @@ internal class PaperPlatform : Platform {
         defineGameTypes()
         chunkHolds = ChunkHolds(plugin)
         val pluginManager = plugin.server.pluginManager
-        pluginManager.registerEvents(BotEvents(bots), plugin)
+        pluginManager.registerEvents(PaperEvents(bots), plugin)
         pluginManager.registerEvents(BlockFeed(bots), plugin)
     }
 

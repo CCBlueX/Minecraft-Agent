@@ -115,6 +115,7 @@ public class Bots internal constructor(private val plugin: Plugin, internal val 
 
     internal fun start() {
         platform.start(plugin, this)
+        plugin.server.pluginManager.registerEvents(BotEvents(this), plugin)
         task = plugin.server.scheduler.runTaskTimer(plugin, Runnable { tick() }, 1L, 1L)
     }
 

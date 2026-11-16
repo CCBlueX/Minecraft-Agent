@@ -17,49 +17,34 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.agent.v26_3.paper.body
+package net.ccbluex.agent.bukkit
 
-import io.papermc.paper.event.player.PlayerTrackEntityEvent
-import net.ccbluex.agent.bukkit.Bots
-import net.ccbluex.agent.v26_3.toAgent
-import org.bukkit.craftbukkit.entity.CraftEntity
-import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Entity
+import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
-import org.bukkit.event.entity.EntityDamageEvent.DamageModifier
 import org.bukkit.event.entity.EntityDeathEvent
-import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerItemDamageEvent
+import org.bukkit.event.player.PlayerPickupItemEvent
 import org.bukkit.event.player.PlayerTeleportEvent
 import org.bukkit.event.world.ChunkUnloadEvent
 import org.bukkit.event.world.WorldUnloadEvent
 
 /**
- * The server's events as they concern bot bodies: who sees them, what hurts them, their deaths, their gear, and the
- * chunks and worlds they leave with.
+ * The server's events as they concern bot bodies on every platform: what hurts them, their deaths, their gear, and
+ * the chunks and worlds they leave with.
  *
  * @agent claude-opus-5-5
  */
 internal class BotEvents(private val bots: Bots) : Listener {
 
     private var unharmed: EntityDamageEvent? = null
-    private var blocked: EntityDamageByEntityEvent? = null
-    private var blockedModifiers: Map<DamageModifier, Double> = emptyMap()
-
-    // Fires before the spawn packet; a client spawns a player only with an info entry for it. The entry stays,
-    // unlisted, as a real player's does, unless the body has none: clients take players without one for server NPCs
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    fun onTrack(event: PlayerTrackEntityEvent) {
-        val bot = (event.entity as CraftEntity).handle as? BotPlayer ?: return
-        bot.trackedBy((event.player as CraftPlayer).handle)
-    }
 
     // After the anticheats, which still see the hit; the bot still hears of it
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -68,27 +53,6 @@ internal class BotEvents(private val bots: Bots) : Listener {
         if (bot.settings.damageable) return
         event.isCancelled = true
         unharmed = event
-    }
-
-    // Intave drops a shield block unless the blocker's client reported raising it, which a bot has no client for
-    @Suppress("DEPRECATION")
-    @EventHandler(priority = EventPriority.LOWEST)
-    fun onBlockedHit(event: EntityDamageByEntityEvent) {
-        if (!event.isApplicable(DamageModifier.BLOCKING) || event.getDamage(DamageModifier.BLOCKING) >= 0) return
-        if (!bots.isBot(event.entity)) return
-        blocked = event
-        blockedModifiers = DamageModifier.entries.filter { event.isApplicable(it) }.associateWith { event.getDamage(it) }
-    }
-
-    @Suppress("DEPRECATION")
-    @EventHandler(priority = EventPriority.HIGHEST)
-    fun onBlockedHitStripped(event: EntityDamageByEntityEvent) {
-        if (event !== blocked) return
-        val modifiers = blockedModifiers
-        blocked = null
-        blockedModifiers = emptyMap()
-        if (event.getDamage(DamageModifier.BLOCKING) < 0) return
-        for ((modifier, damage) in modifiers) event.setDamage(modifier, damage)
     }
 
     // A hit that went through, or one an undamageable body ignored, with its shooter for a projectile
@@ -100,7 +64,7 @@ internal class BotEvents(private val bots: Bots) : Listener {
         val bot = bots.get(event.entity) ?: return
         val damager = (event as? EntityDamageByEntityEvent)?.damager
         val attacker = (damager as? Projectile)?.shooter as? Entity ?: damager
-        bot.damaged(attacker?.let { (it as CraftEntity).handle.toAgent() })
+        bot.damaged(attacker?.let(bots.platform::toAgent))
     }
 
     // Unless it plays by the server's rules, gear comes from whoever set the bot up and nothing repairs it
@@ -118,12 +82,11 @@ internal class BotEvents(private val bots: Bots) : Listener {
             event.drops.clear()
             event.droppedExp = 0
             if (event is PlayerDeathEvent) {
-                event.deathMessage(null)
+                event.deathMessage = null
                 event.keepInventory = true
             }
         }
-        val killer = event.entity.killer?.let { (it as CraftEntity).handle }
-        bot.agent?.listener?.died(killer?.toAgent())
+        bot.agent?.listener?.died(event.entity.killer?.let(bots.platform::toAgent))
         bots.bodyDied(bot)
     }
 
@@ -134,9 +97,10 @@ internal class BotEvents(private val bots: Bots) : Listener {
         bots.hold(bot, event.to)
     }
 
+    // Paper fires it before its EntityPickupItemEvent and keeps its cancellation
     @EventHandler(ignoreCancelled = true)
-    fun onPickup(event: EntityPickupItemEvent) {
-        val bot = bots.get(event.entity) ?: return
+    fun onPickup(event: PlayerPickupItemEvent) {
+        val bot = bots.get(event.player) ?: return
         if (!bot.settings.isPlayerLike) event.isCancelled = true
     }
 
@@ -144,7 +108,8 @@ internal class BotEvents(private val bots: Bots) : Listener {
     @EventHandler(ignoreCancelled = true)
     fun onHunger(event: FoodLevelChangeEvent) {
         val bot = bots.get(event.entity) ?: return
-        if (!bot.settings.isPlayerLike && event.foodLevel < event.entity.foodLevel) event.isCancelled = true
+        val player = event.entity as? Player ?: return
+        if (!bot.settings.isPlayerLike && event.foodLevel < player.foodLevel) event.isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

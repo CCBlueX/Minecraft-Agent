@@ -24,7 +24,6 @@ import net.ccbluex.agent.bukkit.BotBody
 import net.ccbluex.agent.bukkit.BotSkin
 import net.ccbluex.agent.bukkit.Bots
 import net.ccbluex.agent.bukkit.Platform
-import net.ccbluex.agent.v1_8_8.spigot.body.BotEvents
 import net.ccbluex.agent.v1_8_8.spigot.body.spawnBotPlayer
 import org.bukkit.Location
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity
@@ -43,7 +42,6 @@ internal class SpigotPlatform : Platform {
 
     override fun start(plugin: Plugin, bots: Bots) {
         defineGameTypes()
-        plugin.server.pluginManager.registerEvents(BotEvents(bots), plugin)
     }
 
     override fun spawn(plugin: Plugin, location: Location, name: String, skin: BotSkin?): BotBody =
