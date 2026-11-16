@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
 
 /**
  * Where the fighter's eyes were over the last second, to tell how far away a player's screen shows it. A client

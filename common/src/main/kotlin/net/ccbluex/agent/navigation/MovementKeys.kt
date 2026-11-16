@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.world.Input
 
 /**
  * The keys a walk sets over one tick, which the navigator presses at its end.
@@ -42,10 +42,10 @@ internal class MovementKeys {
  * Whether any of the four movement keys is held.
  */
 internal val Input.isMoving: Boolean
-    get() = forward() || backward() || left() || right()
+    get() = forward || backward || left || right
 
 /**
  * The four movement keys of this with [jump], [sneak] and [sprint].
  */
 internal fun Input.withKeys(jump: Boolean, sneak: Boolean, sprint: Boolean): Input =
-    Input(forward(), backward(), left(), right(), jump, sneak, sprint)
+    Input(forward, backward, left, right, jump, sneak, sprint)

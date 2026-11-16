@@ -21,14 +21,14 @@ package net.ccbluex.agent.navigation
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import it.unimi.dsi.fastutil.longs.LongSet
-import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.pathfinder.walk.BreakTimes
 import net.ccbluex.agent.pathfinder.walk.Costs
+import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.simulation.MotionTraits
-import net.minecraft.world.entity.Entity.BASE_SAFE_FALL_DISTANCE
-import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.ItemStack
+import net.ccbluex.agent.world.entity.Attributes
+import net.ccbluex.agent.world.entity.Entity.Companion.BASE_SAFE_FALL_DISTANCE
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.item.ItemStack
 import java.util.function.ToDoubleFunction
 import kotlin.math.floor
 import kotlin.math.max
@@ -59,7 +59,7 @@ internal fun NavigationContext.captureWalk(avoid: LongSet, unbreakable: LongSet)
         safeFall = safeFall(),
         waterFall = WATER_FALL,
         breakTicks = if (options.canBreak) {
-            BreakTimes.capture(hotbar().filterNot { it.isEmpty }, body.level.registryAccess())
+            BreakTimes.capture(hotbar().filterNot { it.isEmpty })
         } else {
             ToDoubleFunction { Double.POSITIVE_INFINITY }
         },

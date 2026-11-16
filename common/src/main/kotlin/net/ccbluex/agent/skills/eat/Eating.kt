@@ -25,9 +25,9 @@ import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.CARRIED_SLOTS
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.slotOf
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.ItemStack
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.ItemStack
 import java.util.EnumMap
 import java.util.concurrent.ThreadLocalRandom
 

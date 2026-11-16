@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.navigation.walk
 
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 
 /**
  * Where the server set the player back. One setback can be lag; setbacks soon after each other, each close to one of

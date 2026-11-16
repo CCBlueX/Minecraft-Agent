@@ -20,16 +20,16 @@
 package net.ccbluex.agent.skills
 
 import net.ccbluex.agent.navigation.Body
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.inventory.AbstractContainerMenu
-import net.minecraft.world.inventory.ContainerInput
+import net.ccbluex.agent.world.ContainerInput
+import net.ccbluex.agent.world.ContainerMenu
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * What abilities need besides walking. A client acts through its game mode and container clicks, a server directly
- * on the bot player. Inventory slot indices are the ones [net.minecraft.world.entity.player.Inventory] uses: 0 to 8
- * hotbar, 9 to 35 the rest, 36 to 39 armor feet to head, 40 offhand.
+ * on the bot player. Inventory slot indices are the ones the game's player inventory uses: 0 to 8 hotbar, 9 to 35 the
+ * rest, 36 to 39 armor feet to head, 40 offhand.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -104,7 +104,7 @@ public interface AgentBody : Body {
     /**
      * The open container; null while only the own inventory is open.
      */
-    public val containerMenu: AbstractContainerMenu?
+    public val containerMenu: ContainerMenu?
 
     /**
      * Moves the stack in [containerSlot], an index into the slots of [containerMenu], into the own inventory.

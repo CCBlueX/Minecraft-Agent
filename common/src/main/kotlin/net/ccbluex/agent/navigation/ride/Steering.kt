@@ -19,17 +19,17 @@
 
 package net.ccbluex.agent.navigation.ride
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.Body
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.pathfinder.ride.Vehicle
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.Entity
 import kotlin.math.abs
 
 /**

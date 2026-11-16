@@ -22,10 +22,11 @@ package net.ccbluex.agent.simulation
 import it.unimi.dsi.fastutil.floats.FloatArraySet
 import it.unimi.dsi.fastutil.floats.FloatArrays
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.shapes.Shapes.EPSILON
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.block.Shapes.EPSILON
 import kotlin.math.abs
 
 /**

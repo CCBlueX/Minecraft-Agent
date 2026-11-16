@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.pathfinder.terrain
 
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.shapes.VoxelShape
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.world.block.VoxelShape
 
 /**
  * Height the feet of a body [bodyHeight] tall rest at when standing in block [x] [y] [z], uncached; NaN when

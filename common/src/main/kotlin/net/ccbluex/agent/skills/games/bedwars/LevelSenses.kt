@@ -20,24 +20,21 @@
 package net.ccbluex.agent.skills.games.bedwars
 
 import net.ccbluex.agent.ExperimentalAgentApi
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.games.LevelRoundSenses
 import net.ccbluex.agent.skills.games.LoadedBlocks
 import net.ccbluex.agent.skills.games.RoundFacts
 import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.shop.Currency
-import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.Packet
-import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
-import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.DyeColor
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.BedBlock
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.ItemEntity
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.DyeColor
 
 /**
  * A Bed Wars round of a client: the team texts from [LevelSenses.Facts], the rest from the [level]. A team's bed is
@@ -48,7 +45,7 @@ import net.minecraft.world.phys.Vec3
  * Blocks that appear while the round plays count as placed by players, as the server's block update packets tell:
  * a block set in the level can also be the client taking back its own prediction.
  *
- * The host calls [tick] every client tick and [received] for every packet the server sends.
+ * The host calls [tick] every client tick and [blockUpdated] for every block the server's block update packets set.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -136,17 +133,10 @@ public class LevelSenses internal constructor(
     override fun isPlayerPlaced(pos: BlockPos): Boolean = pos in placed
 
     /**
-     * A packet the server sent. Block and section updates are the server's word on which blocks stand; one that appears
-     * while the round plays was placed by someone. Other packets are ignored.
+     * The server's word that [state] stands at [pos] now: block update packets and the blocks of section updates. One
+     * that appears while the round plays was placed by someone.
      */
-    public fun received(packet: Packet<*>) {
-        when (packet) {
-            is ClientboundBlockUpdatePacket -> blockChanged(packet.pos, packet.blockState)
-            is ClientboundSectionBlocksUpdatePacket -> packet.runUpdates(::blockChanged)
-        }
-    }
-
-    private fun blockChanged(pos: BlockPos, state: BlockState) {
+    public fun blockUpdated(pos: BlockPos, state: BlockState) {
         if (this.state != RoundState.PLAYING) {
             return
         }
@@ -164,8 +154,8 @@ public class LevelSenses internal constructor(
         }
         val rows = facts.teams
         ownTeamName = facts.ownTeamName ?: rows.firstOrNull { me.scoreboardName in it.memberNames }?.name ?: ownTeamName
-        val beds = blocks.find(level, me.blockPosition()) { it.block is BedBlock }.mapNotNull { pos ->
-            (level.getBlockState(pos).block as? BedBlock)?.let { it.color to pos }
+        val beds = blocks.find(level, me.blockPosition()) { it.`is`(BlockKind.BED) }.mapNotNull { pos ->
+            level.getBlockState(pos).block.color?.let { it to pos }
         }
         val colours = beds.associate { (color, pos) -> pos to color }
         val members = rows.associate { row ->

@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.Step
-import net.minecraft.core.BlockPos
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -56,7 +56,7 @@ internal class StepCheck(private val context: NavigationContext, private val act
         val block = BlockPos.containing(position)
         // In the air above its target, the landing of a jump still needs steering.
         if (step.jump != null) {
-            val support = player.mainSupportingBlockPos.orElse(null)
+            val support = player.mainSupportingBlockPos
             return player.onClimbable() && block == step.to ||
                 player.onGround() && (block == step.to || support == step.to || support == step.to.below())
         }

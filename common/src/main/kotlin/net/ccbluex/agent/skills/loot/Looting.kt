@@ -19,17 +19,16 @@
 
 package net.ccbluex.agent.skills.loot
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
-import net.minecraft.world.Container
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.block.BlockEntityType
 import kotlin.math.abs
 
 /**
@@ -89,7 +88,8 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
         }
         val body = agent.body
         if (since == NEVER) since = agent.ticks
-        if (body.level.getBlockEntity(pos) !is Container) {
+        val blockEntity = body.level.getBlockEntity(pos)
+        if (blockEntity != BlockEntityType.CHEST && blockEntity != BlockEntityType.CONTAINER) {
             giveUp(agent, pos, "no container")
             return
         }
@@ -140,7 +140,7 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
         }
         if ((agent.ticks - openedAt) % TAKE_TICKS != 0L) return
         val player = body.player
-        val slot = menu.slots.indexOfFirst { it.container !is Inventory && wanted.wants(player, it.item) }
+        val slot = menu.slots.indexOfFirst { !it.isPlayerInventory && wanted.wants(player, it.item) }
         if (slot < 0) {
             body.closeContainer()
             done(agent, pos)

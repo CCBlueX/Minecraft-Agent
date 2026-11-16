@@ -19,17 +19,19 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.pathfinder.flight.Acceleration
+import net.ccbluex.agent.simulation.PlayerSimulation
+import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulationHooks
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * The player a [Navigator] moves, and the means the host gives it: keys, looking, digging, using items. A client
@@ -113,6 +115,13 @@ public interface Body {
      */
     public val simulationHooks: SimulationHooks
         get() = SimulationHooks.VANILLA
+
+    /**
+     * A copy of [player] holding [input], facing [yRot], moved by the game's own player movement with
+     * [simulationHooks]; only where [BodyTraits.exactSimulation] is set. The first tick finishes the player's current
+     * movement tick when [BodyTraits.navigatesInMovementTick] is set.
+     */
+    public fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered
 
     /**
      * Holds hotbar [slot] (0 to 8) selected until [releaseHotbarSlot]; called every tick it is wanted.
@@ -236,7 +245,8 @@ public interface Teleporter {
     public fun send(position: Vec3, onGround: Boolean)
 
     /**
-     * Puts the player, or the vehicle it rides, at [position] with no motion left, as the route ends there.
+     * Puts the player, or the vehicle it rides, at [position] with no motion and no fall distance left, as the route
+     * ends there.
      */
     public fun land(position: Vec3)
 }

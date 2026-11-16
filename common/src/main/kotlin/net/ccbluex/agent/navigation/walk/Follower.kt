@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.FollowState
@@ -29,9 +31,7 @@ import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.Move
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.Step
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
 import kotlin.math.min
 
 /**

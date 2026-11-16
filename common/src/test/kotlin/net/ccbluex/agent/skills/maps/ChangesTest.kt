@@ -19,14 +19,16 @@
 
 package net.ccbluex.agent.skills.maps
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.Interaction
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -46,14 +48,15 @@ internal class ChangesTest {
     }
 
     private val level = TestLevel(TestWorld.flat())
-    private val player = level.player(TestWorld.feet(0, 1, 0))
+    private val handle = level.player(TestWorld.feet(0, 1, 0))
+    private val player = handle.toAgent()
     private val changes = Changes()
 
     @Test
     fun `a jump of many blocks in one tick is a teleport from where the player was`() {
         changes.tick(player)
         val mark = changes.mark()
-        player.snapTo(Vec3(30.5, 1.0, 0.5), 0f, 0f)
+        handle.snapTo(Vec3(30.5, 1.0, 0.5).toMinecraft(), 0f, 0f)
         changes.tick(player)
         val teleport = changes.since(mark).single()
         assertEquals(Changes.Kind.TELEPORT, teleport.kind)
@@ -64,7 +67,7 @@ internal class ChangesTest {
     fun `walking on is no teleport`() {
         changes.tick(player)
         val mark = changes.mark()
-        player.snapTo(Vec3(0.5, 1.0, 1.5), 0f, 0f)
+        handle.snapTo(Vec3(0.5, 1.0, 1.5).toMinecraft(), 0f, 0f)
         changes.tick(player)
         assertTrue(changes.since(mark).isEmpty())
     }
@@ -86,9 +89,9 @@ internal class ChangesTest {
         val mark = changes.mark()
         changes.tick(player)
         val here = player.position()
-        changes.blockChanged(BlockPos(2, 0, 0), Blocks.AIR.defaultBlockState(), here)
-        changes.blockChanged(BlockPos(3, 1, 0), Blocks.STONE.defaultBlockState(), here)
-        changes.blockChanged(BlockPos(300, 1, 0), Blocks.STONE.defaultBlockState(), here)
+        changes.blockChanged(BlockPos(2, 0, 0), Blocks.AIR.defaultBlockState().toAgent(), here)
+        changes.blockChanged(BlockPos(3, 1, 0), Blocks.STONE.defaultBlockState().toAgent(), here)
+        changes.blockChanged(BlockPos(300, 1, 0), Blocks.STONE.defaultBlockState().toAgent(), here)
         assertEquals(setOf(Changes.Kind.SET, Changes.Kind.REMOVED), changes.since(mark).map { it.kind }.toSet())
         assertEquals(BlockPos(2, 0, 0), BlockPos.containing(changes.removed.single().position))
     }
@@ -108,11 +111,11 @@ internal class ChangesTest {
     @Test
     fun `a player put back where it was long ago is sent back, not on`() {
         repeat(221) { changes.tick(player) }
-        player.snapTo(Vec3(30.5, 1.0, 0.5), 0f, 0f)
+        handle.snapTo(Vec3(30.5, 1.0, 0.5).toMinecraft(), 0f, 0f)
         changes.tick(player)
         assertEquals(Changes.Kind.TELEPORT, changes.since(220).single().kind)
         val mark = changes.mark()
-        player.snapTo(Vec3(0.5, 1.0, 0.5), 0f, 0f)
+        handle.snapTo(Vec3(0.5, 1.0, 0.5).toMinecraft(), 0f, 0f)
         changes.tick(player)
         assertEquals(Changes.Kind.RETURNED, changes.since(mark).single().kind)
         assertEquals(changes.ticks, changes.returnedAt)

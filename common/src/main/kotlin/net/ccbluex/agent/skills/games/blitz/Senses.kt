@@ -20,8 +20,8 @@
 package net.ccbluex.agent.skills.games.blitz
 
 import net.ccbluex.agent.ExperimentalAgentApi
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.skills.games.RoundSenses
-import net.minecraft.core.BlockPos
 
 /**
  * What a host tells a [Blitz] agent about the round. [RoundSenses.state] turns to playing when the games begin;

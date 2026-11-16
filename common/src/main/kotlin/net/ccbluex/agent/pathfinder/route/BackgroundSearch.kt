@@ -20,13 +20,12 @@
 package net.ccbluex.agent.pathfinder.route
 
 import net.ccbluex.agent.InternalAgentApi
-import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.level.BlockRegion
-import net.ccbluex.agent.pathfinder.level.SectionCache
-import net.ccbluex.agent.pathfinder.level.LevelBlocks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.LevelBlocks
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
@@ -135,7 +134,9 @@ public class BackgroundSearch<T>(
 
     private fun start(key: Any, region: BlockRegion, newSearch: (Terrain) -> Search<T>): Job<T>? {
         val level = level() ?: return null
-        val terrain = newTerrain(SectionCache.capture(level, region))
+        val terrain = newTerrain(
+            level.snapshot(region.minX, region.minY, region.minZ, region.maxX, region.maxY, region.maxZ),
+        )
         return Job(key, region, newSearch, terrain, newSearch(terrain))
     }
 

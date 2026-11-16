@@ -20,7 +20,7 @@
 package net.ccbluex.agent.skills.games
 
 import net.ccbluex.agent.skills.Agent
-import net.minecraft.world.entity.Entity
+import net.ccbluex.agent.world.entity.Entity
 
 /**
  * How an [Agent] plays one game, ticked by [Agent.tick] before the abilities.

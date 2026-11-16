@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentBody
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.cos

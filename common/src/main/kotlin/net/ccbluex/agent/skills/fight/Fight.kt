@@ -21,10 +21,10 @@ package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentBody
-import net.ccbluex.agent.skills.SkillLevel
 import net.ccbluex.agent.skills.Personality
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
+import net.ccbluex.agent.skills.SkillLevel
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity
 
 /**
  * Fights one target: aims, moves, hits and uses what the inventory holds. A game mode calls [engage] on every tick it

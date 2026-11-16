@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.skills.voidrescue
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -59,7 +59,7 @@ class VoidSafetyTest {
         motion.reset(Vec3(12.191, 100.4, 6.578), Vec3(0.174, 0.314, 0.348), onGround = false)
         repeat(40) {
             val keys = if (motion.onGround || !steers) Input.EMPTY else VoidSafety.steering(motion.position, safeGround, Y_ROT)
-            motion.tick(Y_ROT, axis(keys.forward(), keys.backward()), axis(keys.left(), keys.right()), false, false)
+            motion.tick(Y_ROT, axis(keys.forward, keys.backward), axis(keys.left, keys.right), false, false)
         }
         return motion.position
     }

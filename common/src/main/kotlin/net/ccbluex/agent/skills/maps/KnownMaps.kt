@@ -20,8 +20,8 @@
 package net.ccbluex.agent.skills.maps
 
 import com.google.gson.GsonBuilder
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.Level
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.world.Level
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption

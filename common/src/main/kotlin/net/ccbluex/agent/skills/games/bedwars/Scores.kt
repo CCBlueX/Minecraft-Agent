@@ -20,7 +20,7 @@
 package net.ccbluex.agent.skills.games.bedwars
 
 import net.ccbluex.agent.skills.shop.Currency
-import net.minecraft.world.entity.player.Player
+import net.ccbluex.agent.world.entity.Player
 import java.util.EnumMap
 import java.util.Random
 

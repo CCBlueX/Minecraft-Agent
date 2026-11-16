@@ -20,8 +20,8 @@
 package net.ccbluex.agent.skills
 
 import net.ccbluex.agent.navigation.PlaceableBlocks
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.ItemStack
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * Main inventory slots: hotbar 0 to 8, then 9 to 35.

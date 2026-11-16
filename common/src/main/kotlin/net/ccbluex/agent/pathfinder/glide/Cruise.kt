@@ -20,9 +20,9 @@
 package net.ccbluex.agent.pathfinder.glide
 
 import net.ccbluex.agent.InternalAgentApi
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.simulation.ElytraMotion
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.ceil
 import kotlin.math.max
 

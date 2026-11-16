@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.math
 
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

@@ -21,31 +21,26 @@ package net.ccbluex.agent.pathfinder.terrain
 
 import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import net.ccbluex.agent.pathfinder.level.LiveLevel
-import net.ccbluex.agent.pathfinder.level.LevelBlocks
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.simulation.BlockGrid
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity.DEFAULT_BB_HEIGHT
-import net.minecraft.world.entity.Entity.DEFAULT_BB_WIDTH
-import net.minecraft.world.entity.Entity.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_2
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.BaseFireBlock
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.DoorBlock
-import net.minecraft.world.level.block.FenceGateBlock
-import net.minecraft.world.level.block.LadderBlock
-import net.minecraft.world.level.block.TrapDoorBlock
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
-import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.shapes.BooleanOp
-import net.minecraft.world.phys.shapes.Shapes
-import net.minecraft.world.phys.shapes.VoxelShape
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.LevelBlocks
+import net.ccbluex.agent.world.LiveLevel
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.BlockStateProperties
+import net.ccbluex.agent.world.block.Blocks
+import net.ccbluex.agent.world.block.DoubleBlockHalf
+import net.ccbluex.agent.world.block.Fluids
+import net.ccbluex.agent.world.block.Shapes
+import net.ccbluex.agent.world.block.VoxelShape
+import net.ccbluex.agent.world.entity.Entity.Companion.DEFAULT_BB_HEIGHT
+import net.ccbluex.agent.world.entity.Entity.Companion.DEFAULT_BB_WIDTH
+import net.ccbluex.agent.world.entity.Entity.Companion.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_2
 import kotlin.math.abs
 
 /**
@@ -132,8 +127,8 @@ public class Terrain(
         forEachBlock(box) { x, y, z ->
             val closedShape = closedShape(x, y, z)
             if (closedShape != null && closedShape.intersects(x, y, z, box) && !closedShape.intersects(x, y, z, from)) {
-                val upper = state(x, y, z).getOptionalValue(BlockStateProperties.DOUBLE_BLOCK_HALF)
-                    .map { it == DoubleBlockHalf.UPPER }.orElse(false)
+                val half = state(x, y, z).getOptionalValue(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                val upper = half == DoubleBlockHalf.UPPER
                 val pos = BlockPos(x, if (upper) y - 1 else y, z)
                 if (pos !in opens) {
                     opens += pos
@@ -148,15 +143,16 @@ public class Terrain(
     }
 
     private fun countsOpen(state: BlockState, x: Int, y: Int, z: Int): Boolean {
-        if (!canOpenDoors || state.getOptionalValue(BlockStateProperties.OPEN).orElse(true)) {
+        if (!canOpenDoors || state.getOptionalValue(BlockStateProperties.OPEN) ?: true) {
             return false
         }
 
-        return when (val block = state.block) {
-            is DoorBlock -> block.type().canOpenByHand()
-            is FenceGateBlock -> true
-            // The block set type is private; iron is the only vanilla trapdoor a hand cannot open.
-            is TrapDoorBlock -> block !== Blocks.IRON_TRAPDOOR && !isFloor(x, y, z)
+        val block = state.block
+        return when {
+            block.`is`(BlockKind.DOOR) -> block.`is`(BlockKind.OPENS_BY_HAND)
+            block.`is`(BlockKind.FENCE_GATE) -> true
+            // Iron is the only vanilla trapdoor a hand cannot open.
+            block.`is`(BlockKind.TRAPDOOR) -> block !== Blocks.IRON_TRAPDOOR && !isFloor(x, y, z)
             else -> false
         }
     }
@@ -182,8 +178,8 @@ public class Terrain(
      */
     public fun climbSide(x: Int, y: Int, z: Int): Direction? {
         val state = state(x, y, z)
-        if (state.block is LadderBlock) {
-            return state.getValue(LadderBlock.FACING).opposite
+        if (state.block.`is`(BlockKind.LADDER)) {
+            return state.getValue(BlockStateProperties.HORIZONTAL_FACING).opposite
         }
 
         for (side in HORIZONTAL) {
@@ -294,7 +290,7 @@ public class Terrain(
         val key = pos.asLong()
         val old = states.get(key)
         if (old != null && isAlike(old, state, pos)) {
-            if (state.getOptionalValue(BlockStateProperties.OPEN).orElse(false)) {
+            if (state.getOptionalValue(BlockStateProperties.OPEN) == true) {
                 // An opened door keeps the shape it counted with, but no longer needs opening.
                 closed.remove(key)
             }
@@ -306,7 +302,7 @@ public class Terrain(
         if (canOpenDoors) {
             // Whether a trapdoor counts as open depends on the blocks below and above it, see [isFloor].
             for (dy in TRAPDOOR_NEIGHBOURS) {
-                if (states.get(BlockPos.asLong(pos.x, pos.y + dy, pos.z))?.block is TrapDoorBlock) {
+                if (states.get(BlockPos.asLong(pos.x, pos.y + dy, pos.z))?.block?.`is`(BlockKind.TRAPDOOR) == true) {
                     cached = drop(pos.x, pos.y + dy, pos.z) || cached
                 }
             }
@@ -346,7 +342,7 @@ public class Terrain(
 
         val oldShape = shapes.get(pos.asLong()) ?: old.getCollisionShape(level, pos)
         val newShape = if (isHazard(new)) FULL else new.getCollisionShape(level, pos)
-        return oldShape === newShape || !Shapes.joinIsNotEmpty(oldShape, newShape, BooleanOp.NOT_SAME)
+        return oldShape === newShape || oldShape == newShape
     }
 
     private fun colliders(region: AABB): List<VoxelShape> {
@@ -388,7 +384,7 @@ public class Terrain(
         public fun live(level: Level): Terrain = Terrain(LiveLevel(level))
 
         public fun isHazard(state: BlockState): Boolean =
-            state.fluidState.type.isSame(Fluids.LAVA) || state.block is BaseFireBlock || state.block in HAZARDS
+            state.fluidState.type.isSame(Fluids.LAVA) || state.block.`is`(BlockKind.FIRE) || state.block in HAZARDS
 
         private inline fun Long2DoubleOpenHashMap.cached(key: Long, compute: () -> Double): Double {
             if (containsKey(key)) {

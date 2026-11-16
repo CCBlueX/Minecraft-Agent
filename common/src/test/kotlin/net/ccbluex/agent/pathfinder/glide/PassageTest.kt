@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.pathfinder.glide
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld
@@ -30,9 +32,7 @@ import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.simulation.ElytraMotion
-import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.Vec3
 import kotlin.math.PI
 import kotlin.math.min
 import kotlin.math.sin
@@ -163,7 +163,8 @@ class PassageTest {
             length += deltaMovement.length()
             position = to
             val box = Passage.box(to, 0.0)
-            if (wet == null && BlockPos.betweenClosedStream(box).anyMatch { terrain.isWater(it.x, it.y, it.z) }) {
+            val corners = BlockPos.containing(box.minX, box.minY, box.minZ) to BlockPos.containing(box.maxX, box.maxY, box.maxZ)
+            if (wet == null && BlockPos.betweenClosed(corners.first, corners.second).any { terrain.isWater(it.x, it.y, it.z) }) {
                 wet = to
             }
             if (!landsAtTarget && position.distanceTo(goal) <= RADIUS && goals(tick + 1) == goal) {

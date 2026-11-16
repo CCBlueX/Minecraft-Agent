@@ -19,9 +19,10 @@
 
 package net.ccbluex.agent.v26_3.fabric.gametest
 
-import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.Options
+import net.ccbluex.agent.v26_3.fabric.ClientNavigation
+import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -76,7 +77,7 @@ internal val blockSight: GameTestScope.() -> Unit = {
     fun lookAt(point: Vec3) {
         context.onClient {
             val player = checkNotNull(it.player)
-            val rotation = ViewRotation.fromVector(point.subtract(player.eyePosition))
+            val rotation = ViewRotation.fromVector(point.subtract(player.eyePosition).toAgent())
             player.yRot = rotation.yRot
             player.xRot = rotation.xRot
         }
@@ -86,7 +87,7 @@ internal val blockSight: GameTestScope.() -> Unit = {
 
     fun click(hit: BlockHitResult): Boolean {
         lookAt(hit.location)
-        return context.fromClient { navigation.navigator.useItemOn(InteractionHand.MAIN_HAND, hit) }
+        return context.fromClient { navigation.navigator.useItemOn(InteractionHand.MAIN_HAND.toAgent(), hit.toAgent()) }
     }
 
     fun opened() = context.fromClient { checkNotNull(it.player).containerMenu is ChestMenu }
@@ -137,9 +138,9 @@ internal val blockSight: GameTestScope.() -> Unit = {
             context.onClient {
                 val navigator = navigation.navigator
                 if (started) {
-                    navigator.continueDestroy(dirt, Direction.WEST)
+                    navigator.continueDestroy(dirt.toAgent(), Direction.WEST.toAgent())
                 } else {
-                    started = navigator.startDestroy(dirt, Direction.WEST)
+                    started = navigator.startDestroy(dirt.toAgent(), Direction.WEST.toAgent())
                 }
             }
             ticks(1)
@@ -170,7 +171,8 @@ internal val blockSight: GameTestScope.() -> Unit = {
     }
     ticks(3)
     val (south, top) = context.fromClient {
-        navigation.navigator.canClick(edge, Direction.SOUTH) to navigation.navigator.canClick(edge, Direction.UP)
+        navigation.navigator.canClick(edge.toAgent(), Direction.SOUTH.toAgent()) to
+            navigation.navigator.canClick(edge.toAgent(), Direction.UP.toAgent())
     }
     check(!south && top) { "A look grazing the top edge clicks the south face" }
     run("attribute $playerName minecraft:gravity base reset")

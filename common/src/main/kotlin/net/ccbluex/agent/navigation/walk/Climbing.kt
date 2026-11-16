@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.navigation.MovementKeys
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.Step
-import net.minecraft.core.BlockPos
 
 /**
  * How far past the middle of a ladder or vine the climb pushes, into the block it hangs on.

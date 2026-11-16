@@ -19,26 +19,24 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.hotbar
 import net.ccbluex.agent.navigation.pick
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.core.registries.Registries
-import net.minecraft.util.Mth
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.enchantment.EnchantmentHelper
-import net.minecraft.world.item.enchantment.Enchantments
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.ClipContext
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.item.Enchantments
+import net.ccbluex.agent.world.item.ItemStack
 import kotlin.math.abs
 
 /**
@@ -163,13 +161,11 @@ internal class BlockTargets(private val context: NavigationContext) {
      * The hotbar slot with the tool that mines [state] fastest, if it is faster than a hand.
      */
     fun bestTool(state: BlockState): Int? {
-        val efficiency = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-            .getOrThrow(Enchantments.EFFICIENCY)
         var best: Int? = null
         var bestSpeed = 1f
         context.hotbar().forEachIndexed { slot, stack ->
             var speed = stack.getDestroySpeed(state)
-            val level = EnchantmentHelper.getItemEnchantmentLevel(efficiency, stack)
+            val level = stack.getEnchantmentLevel(Enchantments.EFFICIENCY)
             if (speed > 1f && level > 0) {
                 speed += level * level + 1f
             }
@@ -230,7 +226,7 @@ internal class BlockTargets(private val context: NavigationContext) {
      */
     private fun sees(eye: Vec3, point: Vec3, pos: BlockPos, face: Direction?): Boolean {
         val past = eye.add(point.subtract(eye).scale(1.0 + EPSILON))
-        val hit = level.clip(ClipContext(eye, past, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player))
+        val hit = level.clip(ClipContext(eye, past, ClipContext.Block.OUTLINE, player))
         return hit.type == HitResult.Type.BLOCK && hit.blockPos == pos && (face == null || hit.direction == face)
     }
 

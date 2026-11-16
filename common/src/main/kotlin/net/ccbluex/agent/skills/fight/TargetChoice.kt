@@ -20,8 +20,8 @@
 package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.skills.Agent
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity
 
 /**
  * A hit this recent turns the fighter to the attacker.

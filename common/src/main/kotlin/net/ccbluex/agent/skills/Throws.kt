@@ -19,17 +19,16 @@
 
 package net.ccbluex.agent.skills
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.BlockGetter
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.shapes.CollisionContext
+import net.ccbluex.agent.world.BlockGetter
+import net.ccbluex.agent.world.ClipContext
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
 
 /**
@@ -46,7 +45,6 @@ internal object Throws {
     private const val MAX_FLIGHT_TICKS = 200
     private const val MIN_X_ROT = -80
     private const val MAX_X_ROT = 80
-    private val NO_ENTITY: CollisionContext = CollisionContext.empty()
 
     /**
      * Turns either side of the way searched for a throw onto any ground, in degrees, and the steps of the search.
@@ -172,11 +170,11 @@ internal object Throws {
         for (tick in 1..MAX_FLIGHT_TICKS) {
             velocity = Vec3(velocity.x, velocity.y - PEARL_GRAVITY, velocity.z).scale(PEARL_DRAG)
             val next = position.add(velocity)
-            val context = ClipContext(position, next, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, NO_ENTITY)
+            val context = ClipContext(position, next, ClipContext.Block.COLLIDER, null)
             val hit = world.clip(context)
             val end = if (hit.type == HitResult.Type.MISS) next else hit.location
             val from = position
-            val struck = obstacles.any { it.clip(from, end).isPresent }
+            val struck = obstacles.any { it.clip(from, end) != null }
             if (struck || hit.type != HitResult.Type.MISS) {
                 if (!struck && hit.direction != Direction.UP) return null
                 return groundUnder(world, position)?.let { Landing(it, tick) }

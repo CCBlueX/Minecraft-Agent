@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
@@ -28,7 +29,7 @@ import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.games.playerNamed
 import net.ccbluex.agent.skills.games.scanNow
 import net.ccbluex.agent.skills.loot.Chests
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.world.level.block.Blocks
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -52,7 +53,7 @@ internal class LevelSensesTest {
     private val level = TestLevel(TestWorld.flat().set(5, 1, 5, Blocks.CHEST.defaultBlockState()))
     private val facts = FakeRoundFacts()
     private val chests = Chests()
-    private val senses = LevelSenses(level, facts, chests, BLOCKS_AROUND_ORIGIN)
+    private val senses = LevelSenses(level.toAgent(), facts, chests, BLOCKS_AROUND_ORIGIN)
 
     init {
         level.playerNamed("Me", TestWorld.feet(0, 1, 0))

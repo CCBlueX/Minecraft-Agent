@@ -20,27 +20,28 @@
 package net.ccbluex.agent.navigation
 
 import net.ccbluex.agent.InternalAgentApi
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.ClipContext
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * What a look from the eyes with [rotation] hits first within [reach], as the game's pick does: block outlines, no
  * fluids.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 @InternalAgentApi
 public fun Player.pick(rotation: ViewRotation, reach: Double): BlockHitResult {
     val eye = eyePosition
     val end = eye.add(rotation.viewVector.scale(reach))
-    return level().clip(ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, this))
+    return level().clip(ClipContext(eye, end, ClipContext.Block.OUTLINE, this))
 }
 
 /**
@@ -48,6 +49,7 @@ public fun Player.pick(rotation: ViewRotation, reach: Double): BlockHitResult {
  * first; null when another block is in the way, the look misses it or it is out of reach.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 internal fun Body.pick(pos: BlockPos, face: Direction): BlockHitResult? {
     // The server's reach for using and digging, a block over the client's pick
@@ -60,14 +62,14 @@ internal fun Body.pick(pos: BlockPos, face: Direction): BlockHitResult? {
  * when it looks past, at its point nearest to the eyes.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 internal fun Body.sees(entity: Entity): Boolean {
     val eye = player.eyePosition
     val box = entity.boundingBox.inflate(entity.pickRadius.toDouble())
-    val far = eye.add(sentRotation.viewVector.scale(eye.distanceTo(box.center) + box.size))
-    val point = box.clip(eye, far).orElseGet {
-        Vec3(eye.x.coerceIn(box.minX, box.maxX), eye.y.coerceIn(box.minY, box.maxY), eye.z.coerceIn(box.minZ, box.maxZ))
-    }
-    val hit = level.clip(ClipContext(eye, point, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player))
+    val far = eye.add(sentRotation.viewVector.scale(eye.distanceTo(box.center) + (box.xsize + box.ysize + box.zsize) / 3.0))
+    val point = box.clip(eye, far)
+        ?: Vec3(eye.x.coerceIn(box.minX, box.maxX), eye.y.coerceIn(box.minY, box.maxY), eye.z.coerceIn(box.minZ, box.maxZ))
+    val hit = level.clip(ClipContext(eye, point, ClipContext.Block.COLLIDER, player))
     return hit.type == HitResult.Type.MISS
 }

@@ -20,13 +20,13 @@
 package net.ccbluex.agent.navigation.walk
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.NavigationContext
-import net.minecraft.core.BlockPos
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.HitResult
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.block.BlockState
 
 /**
  * Mines, places and opens the blocks a walking path changes, one at a time: aims in [aim], acts in [tick] once the

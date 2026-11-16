@@ -19,14 +19,11 @@
 
 package net.ccbluex.agent.skills.maps
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.SectionPos
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.BasePressurePlateBlock
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.ButtonBlock
-import net.minecraft.world.level.block.LeverBlock
-import kotlin.math.abs
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.SectionPos
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.block.Block
+import net.ccbluex.agent.world.block.BlockKind
 
 /**
  * Where the buttons, levers and pressure plates around a place are.
@@ -46,24 +43,16 @@ internal fun interface Switches {
         const val RANGE = 48
 
         /**
-         * Reads the loaded chunks, and of these only the sections whose palette holds one.
+         * Reads the loaded chunks.
          */
         val CHUNKS = Switches { level, center, action ->
-            fun isSwitch(block: Block) = block is ButtonBlock || block is LeverBlock || block is BasePressurePlateBlock
             for (cx in SectionPos.blockToSectionCoord(center.x - RANGE)..SectionPos.blockToSectionCoord(center.x + RANGE)) {
                 for (cz in SectionPos.blockToSectionCoord(center.z - RANGE)..SectionPos.blockToSectionCoord(center.z + RANGE)) {
-                    val chunk = level.chunkSource.getChunkNow(cx, cz) ?: continue
-                    for ((index, section) in chunk.sections.withIndex()) {
-                        val sectionY = chunk.getSectionYFromSectionIndex(index)
-                        if (abs(SectionPos.sectionToBlockCoord(sectionY) + 8 - center.y) > RANGE + 8 || !section.maybeHas { isSwitch(it.block) }) {
-                            continue
-                        }
-                        for (y in 0..15) for (z in 0..15) for (x in 0..15) {
-                            val block = section.getBlockState(x, y, z).block
-                            if (!isSwitch(block)) continue
-                            val pos = BlockPos(SectionPos.sectionToBlockCoord(cx) + x, SectionPos.sectionToBlockCoord(sectionY) + y, SectionPos.sectionToBlockCoord(cz) + z)
-                            if (pos.distSqr(center) <= RANGE * RANGE) action(pos, block)
-                        }
+                    val found = level.findBlocks(cx, cz, center.y - RANGE, center.y + RANGE) {
+                        it.`is`(BlockKind.BUTTON) || it.`is`(BlockKind.LEVER) || it.`is`(BlockKind.PRESSURE_PLATE)
+                    }
+                    for (pos in found) {
+                        if (pos.distSqr(center) <= RANGE * RANGE) action(pos, level.getBlockState(pos).block)
                     }
                 }
             }

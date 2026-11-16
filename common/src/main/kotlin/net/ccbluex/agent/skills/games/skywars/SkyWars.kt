@@ -23,7 +23,7 @@ import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.games.GameMode
 import net.ccbluex.agent.skills.games.RoundSenses
-import net.minecraft.world.entity.Entity
+import net.ccbluex.agent.world.entity.Entity
 
 /**
  * Sky Wars the way players play it, solo or in teams. The agent waits in its cage and loots its island, then every

@@ -20,10 +20,10 @@
 package net.ccbluex.agent.skills.shop
 
 import net.ccbluex.agent.skills.ItemMatch
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.item.Item
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 
 /**
  * What a shop sells and for how much, from the host: the live shop configuration on a server, the known prices of

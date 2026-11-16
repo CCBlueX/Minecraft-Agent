@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.component1
 import net.ccbluex.agent.math.component2
 import net.ccbluex.agent.math.component3
@@ -27,8 +29,6 @@ import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.terrain.isOpen
 import net.ccbluex.agent.pathfinder.walk.Nodes.Companion.DX
 import net.ccbluex.agent.pathfinder.walk.Nodes.Companion.DZ
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max

@@ -19,6 +19,10 @@
 
 package net.ccbluex.agent.skills.voidrescue
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.navigation.LookPurpose
@@ -27,14 +31,10 @@ import net.ccbluex.agent.skills.AgentBody
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.isBuildingBlock
 import net.ccbluex.agent.skills.slotOf
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.ClipContext
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.world.InteractionHand
 
 /**
  * Blocks put under a fall into the void, one level below the feet: into the cells the body comes down on, clicked
@@ -192,7 +192,7 @@ internal object Clutch {
     private fun aimedFace(body: AgentBody, cells: List<BlockPos>): BlockHitResult? {
         val eyes = body.player.eyePosition
         val end = eyes.add(body.sentRotation.viewVector.scale(PLACE_REACH))
-        val context = ClipContext(eyes, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, body.player)
+        val context = ClipContext(eyes, end, ClipContext.Block.OUTLINE, body.player)
         val hit = body.level.clip(context)
         return hit.takeIf { it.type == HitResult.Type.BLOCK && it.blockPos.relative(it.direction) in cells }
     }

@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.games
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.SectionPos
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.state.BlockState
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.SectionPos
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.block.BlockState
 import java.util.function.Predicate
 
 /**
@@ -41,8 +41,7 @@ internal fun interface LoadedBlocks {
         private const val CHUNKS = 8
 
         /**
-         * The blocks in the loaded chunks within [CHUNKS] chunks of the center; whole sections are skipped by their
-         * palette before any block is read.
+         * The blocks in the loaded chunks within [CHUNKS] chunks of the center.
          */
         val IN_CHUNKS = LoadedBlocks { level, center, test ->
             val found = ArrayList<BlockPos>()
@@ -50,7 +49,7 @@ internal fun interface LoadedBlocks {
             val chunkZ = SectionPos.blockToSectionCoord(center.z)
             for (x in chunkX - CHUNKS..chunkX + CHUNKS) {
                 for (z in chunkZ - CHUNKS..chunkZ + CHUNKS) {
-                    level.chunkSource.getChunkNow(x, z)?.findBlocks(test) { pos, _ -> found += pos.immutable() }
+                    found += level.findBlocks(x, z, level.minY, level.maxY, test::test)
                 }
             }
             found

@@ -19,10 +19,12 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.level.BlockGetter
-import net.minecraft.world.level.block.AbstractBedBlock
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.world.BlockGetter
+import net.ccbluex.agent.world.block.BedPart
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.block.BlockStateProperties
 import java.util.Random
 import kotlin.math.abs
 
@@ -100,14 +102,16 @@ internal fun defenceSpots(halves: List<BlockPos>, shape: Shape, canPlace: (Block
  */
 internal fun bedHalves(level: BlockGetter, pos: BlockPos): List<BlockPos> {
     val state = level.getBlockState(pos)
-    if (state.block !is AbstractBedBlock) return listOf(pos)
-    return listOf(pos, pos.relative(AbstractBedBlock.getConnectedDirection(state)))
+    if (!state.block.`is`(BlockKind.BED)) return listOf(pos)
+    val facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING)
+    val toOther = if (state.getValue(BlockStateProperties.BED_PART) == BedPart.FOOT) facing else facing.opposite
+    return listOf(pos, pos.relative(toOther))
 }
 
 /**
  * @agent claude-opus-5-5
  */
-internal fun isBed(level: BlockGetter, pos: BlockPos): Boolean = level.getBlockState(pos).block is AbstractBedBlock
+internal fun isBed(level: BlockGetter, pos: BlockPos): Boolean = level.getBlockState(pos).block.`is`(BlockKind.BED)
 
 /**
  * Whether a block collides; what Bukkit calls solid for the blocks a defence or a bridge is built of.

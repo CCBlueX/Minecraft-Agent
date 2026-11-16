@@ -19,14 +19,14 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.walk.AssistedJump.Landing
 import net.ccbluex.agent.pathfinder.walk.JumpTargets
 import net.ccbluex.agent.pathfinder.walk.Jumps
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
 /**

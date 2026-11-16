@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentBody
 import net.ccbluex.agent.skills.games.RoundSenses
 import net.ccbluex.agent.skills.gear.GearScore
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.acos
 import kotlin.math.max
 import kotlin.math.sqrt

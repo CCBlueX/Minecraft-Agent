@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.world.Input
 
 /**
  * The movement keys as a person presses them: every press and every release lasts a least number of ticks. Exact
@@ -41,7 +41,7 @@ internal class Keystrokes {
      */
     fun press(input: Input, exact: Boolean, minPress: Int, minRelease: Int): Input {
         val wanted = booleanArrayOf(
-            input.forward(), input.backward(), input.left(), input.right(), input.shift(), input.jump(),
+            input.forward, input.backward, input.left, input.right, input.shift, input.jump,
         )
         val keys = if (exact || minPress <= 0 && minRelease <= 0) wanted else shape(wanted, minPress, minRelease)
         for (key in 0 until KEYS) {
@@ -55,7 +55,7 @@ internal class Keystrokes {
         return if (keys.contentEquals(wanted)) {
             input
         } else {
-            Input(keys[FORWARD], keys[BACKWARD], keys[LEFT], keys[RIGHT], keys[JUMP], keys[SNEAK], input.sprint())
+            Input(keys[FORWARD], keys[BACKWARD], keys[LEFT], keys[RIGHT], keys[JUMP], keys[SNEAK], input.sprint)
         }
     }
 

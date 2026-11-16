@@ -8,4 +8,5 @@ description = "The local player as a body, for Fabric mods"
 
 dependencies {
     api(project(":common"))
+    api(project(":v26_3-adapter"))
 }

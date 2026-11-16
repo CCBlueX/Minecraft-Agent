@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.loot
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.SectionPos
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.entity.ChestBlockEntity
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.SectionPos
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.block.BlockEntityType
 
 /**
  * The chests of a round and which of them the agent opened or gave up on since the last refill. Hosts add the chests
@@ -71,10 +71,7 @@ public class Chests {
         val chunkZ = SectionPos.blockToSectionCoord(center.z)
         for (x in chunkX - chunkRadius..chunkX + chunkRadius) {
             for (z in chunkZ - chunkRadius..chunkZ + chunkRadius) {
-                val chunk = level.chunkSource.getChunkNow(x, z) ?: continue
-                for ((pos, blockEntity) in chunk.blockEntities) {
-                    if (blockEntity is ChestBlockEntity) add(pos)
-                }
+                level.blockEntities(x, z, BlockEntityType.CHEST).forEach(::add)
             }
         }
     }

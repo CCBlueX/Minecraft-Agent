@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.skills.maps
 
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
 
 /**
  * What the bot learnt about a map by playing it, stored as `<id>.json`: how to tell it again

@@ -19,20 +19,20 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.fastCos
 import net.ccbluex.agent.math.fastSin
 import net.ccbluex.agent.math.toRadians
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity.DEFAULT_BB_HEIGHT
-import net.minecraft.world.entity.Entity.DEFAULT_BB_WIDTH
-import net.minecraft.world.entity.LivingEntity.BASE_HORIZONTAL_AIR_DRAG
-import net.minecraft.world.entity.LivingEntity.BASE_VERTICAL_AIR_DRAG
-import net.minecraft.world.entity.LivingEntity.DEFAULT_BASE_GRAVITY
-import net.minecraft.world.entity.LivingEntity.MIN_MOVEMENT_DISTANCE
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.block.SlimeBlock
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.entity.Entity.Companion.DEFAULT_BB_HEIGHT
+import net.ccbluex.agent.world.entity.Entity.Companion.DEFAULT_BB_WIDTH
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_HORIZONTAL_AIR_DRAG
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_VERTICAL_AIR_DRAG
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.DEFAULT_BASE_GRAVITY
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.MIN_MOVEMENT_DISTANCE
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -144,10 +144,9 @@ public class PlayerMotion internal constructor(
      * Call on the game thread.
      */
     public fun reset(player: Player) {
-        val jumpDelay = EntityFields.noJumpDelay(player)
-        reset(player.position(), player.deltaMovement, player.onGround(), player.isSprinting, jumpDelay)
+        reset(player.position(), player.deltaMovement, player.onGround(), player.isSprinting, player.noJumpDelay)
         crouching = player.isCrouching
-        player.mainSupportingBlockPos.ifPresent { support.set(it.x, it.y, it.z) }
+        player.mainSupportingBlockPos?.let { support.set(it.x, it.y, it.z) }
     }
 
     public fun copy(): PlayerMotion = PlayerMotion(terrain, traits, colliders).also { it.copyFrom(this) }
@@ -358,7 +357,7 @@ public class PlayerMotion internal constructor(
      * SlimeBlock.stepOn, which Entity.applyEffectsFromBlocks runs after the whole move.
      */
     private fun stepOn() {
-        if (!sneaking && onPosLegacy() is SlimeBlock && abs(deltaY) < SLIME_STEP_MOTION) {
+        if (!sneaking && onPosLegacy().`is`(BlockKind.SLIME) && abs(deltaY) < SLIME_STEP_MOTION) {
             val scale = SLIME_STEP_BASE + abs(deltaY) * SLIME_STEP_FACTOR
             deltaX *= scale
             deltaZ *= scale

@@ -20,16 +20,15 @@
 package net.ccbluex.agent.skills.games.skywars
 
 import net.ccbluex.agent.ExperimentalAgentApi
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.games.LevelRoundSenses
 import net.ccbluex.agent.skills.games.LoadedBlocks
 import net.ccbluex.agent.skills.games.RoundFacts
 import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.loot.Chests
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.ChestBlock
-import net.minecraft.world.level.border.BorderStatus
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.block.BlockKind
 
 /**
  * A Sky Wars round of a client. The chests are those of the loaded chunks, added to [known]; the host shares that
@@ -75,7 +74,7 @@ public class LevelSenses internal constructor(
 
     override fun scan() {
         val me = self ?: return
-        blocks.find(level, me.blockPosition()) { it.block is ChestBlock }.forEach(known::add)
-        isDoom = isDoom || state == RoundState.PLAYING && level.worldBorder.status == BorderStatus.SHRINKING
+        blocks.find(level, me.blockPosition()) { it.`is`(BlockKind.CHEST) }.forEach(known::add)
+        isDoom = isDoom || state == RoundState.PLAYING && level.worldBorder.isShrinking
     }
 }

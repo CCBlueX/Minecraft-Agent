@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.math.BlockPos
 
 /**
  * From LiquidBounce: [Moves.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/walk/Moves.kt#L39-L49)

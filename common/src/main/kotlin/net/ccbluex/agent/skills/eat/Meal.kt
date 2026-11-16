@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.skills.eat
 
-import net.minecraft.core.component.DataComponents
-import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+
+import net.ccbluex.agent.world.entity.MobEffects
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 
 /**
  * One way to eat or heal, tried by priority like the fight's skills: the highest one that is due and ready
@@ -93,9 +93,9 @@ internal enum class Meal(val priority: Int, val cooldown: Int, val use: Use) {
         fun isGoldenApple(stack: ItemStack) = stack.`is`(Items.GOLDEN_APPLE) || stack.`is`(Items.ENCHANTED_GOLDEN_APPLE)
 
         fun isPlainFood(stack: ItemStack): Boolean =
-            stack.get(DataComponents.FOOD) != null && !isGoldenApple(stack) && stack.item !in BAD_FOOD
+            stack.food != null && !isGoldenApple(stack) && stack.item !in BAD_FOOD
 
-        fun nutrition(stack: ItemStack): Int = stack.get(DataComponents.FOOD)?.nutrition() ?: 0
+        fun nutrition(stack: ItemStack): Int = stack.food?.nutrition ?: 0
 
         /**
          * Whether a golden apple's effects still run.
@@ -103,8 +103,7 @@ internal enum class Meal(val priority: Int, val cooldown: Int, val use: Use) {
         fun stillBuffed(player: Player) = player.hasEffect(MobEffects.REGENERATION) || player.absorptionAmount > 0f
 
         private fun heals(stack: ItemStack): Boolean =
-            stack.get(DataComponents.POTION_CONTENTS)?.allEffects
-                ?.any { it.effect.value() == MobEffects.INSTANT_HEALTH.value() } == true
+            stack.potionEffects?.any { it.effect == MobEffects.INSTANT_HEALTH } == true
 
         /**
          * Food that hurts or teleports.

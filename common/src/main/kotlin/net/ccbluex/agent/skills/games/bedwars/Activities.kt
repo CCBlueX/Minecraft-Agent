@@ -21,6 +21,8 @@ package net.ccbluex.agent.skills.games.bedwars
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.LookPurpose
@@ -32,11 +34,9 @@ import net.ccbluex.agent.skills.shop.Currency
 import net.ccbluex.agent.skills.shop.Wishes
 import net.ccbluex.agent.tick.TickScope
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 import org.slf4j.LoggerFactory
 import java.util.EnumMap
 import java.util.Random

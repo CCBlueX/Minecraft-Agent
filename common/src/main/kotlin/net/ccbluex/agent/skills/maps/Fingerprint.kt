@@ -19,13 +19,9 @@
 
 package net.ccbluex.agent.skills.maps
 
-import net.minecraft.ChatFormatting
-import net.minecraft.core.BlockPos
-import net.minecraft.core.SectionPos
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.entity.SignBlockEntity
-import net.minecraft.world.level.block.entity.SignTextSlot
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.SectionPos
+import net.ccbluex.agent.world.Level
 
 /**
  * Tells a map by its blocks: blocks sampled around a place, compared with what the level holds there now. Only
@@ -59,7 +55,7 @@ internal object Fingerprint {
         if (y < level.minY || y > level.maxY || !level.hasChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z))) {
             return null
         }
-        return BuiltInRegistries.BLOCK.getKey(level.getBlockState(BlockPos(x, y, z)).block).toString()
+        return level.getBlockState(BlockPos(x, y, z)).block.id
     }
 
     /**
@@ -86,14 +82,11 @@ internal object Fingerprint {
         val from = SectionPos.blockToSectionCoord(center.x - radius)..SectionPos.blockToSectionCoord(center.x + radius)
         val to = SectionPos.blockToSectionCoord(center.z - radius)..SectionPos.blockToSectionCoord(center.z + radius)
         for (cx in from) for (cz in to) {
-            val chunk = level.chunkSource.getChunkNow(cx, cz) ?: continue
-            for (entity in chunk.blockEntities.values) {
-                val sign = entity as? SignBlockEntity ?: continue
-                if (!sign.blockPos.closerThan(center, radius.toDouble())) continue
-                val text = SignTextSlot.entries.flatMap { sign.getText(it).getMessages(false) }
-                    .joinToString(" ") { (ChatFormatting.stripFormatting(it.string) ?: "").trim() }.trim().replace(SPACES, " ")
+            for ((pos, lines) in level.signs(cx, cz)) {
+                if (pos.distSqr(center) >= radius.toDouble() * radius) continue
+                val text = lines.joinToString(" ") { stripFormatting(it).trim() }.trim().replace(SPACES, " ")
                 if (text.isNotEmpty()) {
-                    signs += KnownMap.Sign(sign.blockPos.x, sign.blockPos.y, sign.blockPos.z, text)
+                    signs += KnownMap.Sign(pos.x, pos.y, pos.z, text)
                 }
             }
         }
@@ -104,3 +97,12 @@ internal object Fingerprint {
     private const val SAMPLES = 96
     private val SPACES = Regex("""\s+""")
 }
+
+/**
+ * [text] without the colour and style codes (a section sign and one character) the game puts into text.
+ *
+ * @agent claude-sonnet-5-5
+ */
+internal fun stripFormatting(text: String): String = text.replace(FORMATTING, "")
+
+private val FORMATTING = Regex("\u00a7[0-9a-fk-orA-FK-OR]")

@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.isStraightWalkable
-import net.minecraft.world.phys.Vec3
 import kotlin.math.min
 
 private const val SHORTCUT_STOP = 0.25

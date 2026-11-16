@@ -19,6 +19,9 @@
 
 package net.ccbluex.agent.navigation.teleport;
 
+import net.ccbluex.agent.math.AABB;
+import net.ccbluex.agent.math.BlockPos;
+import net.ccbluex.agent.math.Vec3;
 import net.ccbluex.agent.navigation.Teleporter;
 import net.ccbluex.agent.navigation.TestBody;
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap;
@@ -28,10 +31,8 @@ import net.ccbluex.agent.pathfinder.route.Outcome;
 import net.ccbluex.agent.pathfinder.teleport.Route;
 import net.ccbluex.agent.pathfinder.terrain.ReachKt;
 import net.ccbluex.agent.pathfinder.terrain.Terrain;
-import net.minecraft.core.BlockPos;
+import net.ccbluex.agent.v26_3.Conversions;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -114,7 +115,7 @@ final class TeleportFromJavaTest {
     void routesAreSentAndTheServerIsSyncedBack() {
         Recorder recorder = new Recorder();
         Player player = new TestLevel(flat()).player(START);
-        Teleports teleports = new Teleports(new TestBody(player, null, recorder));
+        Teleports teleports = new Teleports(new TestBody(player, false, recorder));
         Owner owner = () -> true;
         Route route = Route.Companion.plan(flat().terrain(false), List.of(START, TestWorld.Companion.feet(15, 1, 0)), 5.0);
         assertNotNull(route);
@@ -127,7 +128,7 @@ final class TeleportFromJavaTest {
 
         teleports.tick();
         teleports.syncPosition();
-        assertEquals(player.position(), recorder.sent.get(recorder.sent.size() - 1));
+        assertEquals(Conversions.toAgent(player.position()), recorder.sent.get(recorder.sent.size() - 1));
         assertNull(teleports.getServerPosition());
     }
 
@@ -135,7 +136,7 @@ final class TeleportFromJavaTest {
     void aTripDispatchesRoutesAndPollsWithoutASearch() {
         Recorder recorder = new Recorder();
         Player player = new TestLevel(flat()).player(START);
-        TestBody body = new TestBody(player, null, recorder);
+        TestBody body = new TestBody(player, false, recorder);
         Trip trip = new Trip(() -> true, body, new Teleports(body));
         Route route = Route.Companion.plan(flat().terrain(false), List.of(START, TestWorld.Companion.feet(8, 1, 0)), 5.0);
         assertNotNull(route);

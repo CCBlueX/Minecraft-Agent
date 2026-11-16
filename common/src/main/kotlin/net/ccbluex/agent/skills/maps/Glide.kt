@@ -22,11 +22,12 @@ package net.ccbluex.agent.skills.maps
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.ClipContext
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.math.Vec3
 import kotlin.math.abs
 
 /**
@@ -128,7 +129,7 @@ internal class Glide(private val changes: Changes) {
         var bestScore = Double.NEGATIVE_INFINITY
         for (dYaw in -180 until 180 step YAW_STEP) for (xRot in 0..MAX_X_ROT step X_ROT_STEP) {
             val direction = ViewRotation(yaw + dYaw, xRot.toFloat()).viewVector
-            val hit = player.level().clip(ClipContext(eye, eye.add(direction.scale(SIGHT)), ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, player))
+            val hit = player.level().clip(ClipContext(eye, eye.add(direction.scale(SIGHT)), ClipContext.Block.COLLIDER, player, ClipContext.Fluid.ANY))
             val free = if (hit.type == HitResult.Type.MISS) SIGHT else hit.location.distanceTo(eye)
             val score = free - abs(dYaw) * TURN_COST
             if (score > bestScore) {
@@ -152,7 +153,7 @@ internal class Glide(private val changes: Changes) {
             for (dy in 0..DROP.toInt()) {
                 val feet = BlockPos.containing(column.x, from.y - dy, column.z)
                 if (!level.getBlockState(feet.below()).isAir && level.getBlockState(feet).isAir && level.getBlockState(feet.above()).isAir &&
-                    level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), net.minecraft.core.Direction.UP)
+                    level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), Direction.UP)
                 ) {
                     return Vec3.atBottomCenterOf(feet)
                 }

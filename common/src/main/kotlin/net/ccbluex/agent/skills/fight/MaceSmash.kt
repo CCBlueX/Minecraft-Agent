@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.resources.ResourceKey
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
-import net.minecraft.world.item.enchantment.Enchantment
-import net.minecraft.world.item.enchantment.Enchantments
+
+import net.ccbluex.agent.world.item.Enchantment
+import net.ccbluex.agent.world.item.Enchantments
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 
 /**
  * A wind charge at its own feet, up, and down onto the target with the mace that fits the fall: density for a high
@@ -44,7 +44,7 @@ internal class MaceSmash(private val min: Double, private val max: Double) : Tec
     /**
      * The enchantment of the mace for the next hit; null for any mace.
      */
-    private var chosen: ResourceKey<Enchantment>? = null
+    private var chosen: Enchantment? = null
 
     /**
      * Ticks spent looking down before the jump: none on hard.
@@ -58,10 +58,10 @@ internal class MaceSmash(private val min: Double, private val max: Double) : Tec
             fight.hands.has { it.isOf(Items.WIND_CHARGE) } && fight.hands.has { it.isOf(Items.MACE) }
     }
 
-    private fun mace(enchantment: ResourceKey<Enchantment>?): (ItemStack) -> Boolean =
+    private fun mace(enchantment: Enchantment?): (ItemStack) -> Boolean =
         { it.isOf(Items.MACE) && (enchantment == null || it.enchantLevel(enchantment) > 0) }
 
-    private fun pick(fight: BuiltInFight, fall: Float): ResourceKey<Enchantment>? {
+    private fun pick(fight: BuiltInFight, fall: Float): Enchantment? {
         val burst = fight.hands.has(mace(Enchantments.WIND_BURST))
         val density = fight.hands.has(mace(Enchantments.DENSITY))
         val breach = fight.hands.has(mace(Enchantments.BREACH))

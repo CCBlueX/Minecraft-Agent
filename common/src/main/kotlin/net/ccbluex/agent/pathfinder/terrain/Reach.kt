@@ -19,14 +19,13 @@
 
 package net.ccbluex.agent.pathfinder.terrain
 
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Avatar
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.shapes.CollisionContext
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.ClipContext
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.ceil
 
 private const val MAX_REACH_POSITIONS = 8
@@ -56,7 +55,7 @@ public fun Terrain.reachPositions(
     reach: Double,
     from: Vec3,
     block: BlockPos? = null,
-    eyeHeight: Double = Avatar.DEFAULT_EYE_HEIGHT.toDouble(),
+    eyeHeight: Double = Player.DEFAULT_EYE_HEIGHT.toDouble(),
     requiresSupport: Boolean = true,
 ): List<BlockPos> {
     val center = BlockPos.containing(box.center)
@@ -117,7 +116,7 @@ internal fun Terrain.sees(eyes: Vec3, box: AABB, reach: Double, block: BlockPos?
                     continue
                 }
 
-                val hit = level.clip(ClipContext(eyes, point, shapes, ClipContext.Fluid.NONE, CollisionContext.empty()))
+                val hit = level.clip(ClipContext(eyes, point, shapes, null))
                 val visible = if (block != null) {
                     hit.type == HitResult.Type.BLOCK && hit.blockPos == block
                 } else {

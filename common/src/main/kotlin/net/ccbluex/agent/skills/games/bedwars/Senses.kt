@@ -20,11 +20,11 @@
 package net.ccbluex.agent.skills.games.bedwars
 
 import net.ccbluex.agent.ExperimentalAgentApi
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.games.RoundSenses
 import net.ccbluex.agent.skills.shop.Currency
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * What a Bed Wars round looks like to the agent, supplied by the host: a server from the minigame plugin, a client

@@ -20,9 +20,9 @@
 package net.ccbluex.agent.pathfinder.teleport
 
 import it.unimi.dsi.fastutil.ints.IntArrayList
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.copy
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.world.phys.Vec3
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min

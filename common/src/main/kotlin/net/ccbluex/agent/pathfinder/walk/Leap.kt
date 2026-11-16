@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceToSqr
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
 
 /**

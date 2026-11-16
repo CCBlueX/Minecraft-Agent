@@ -19,14 +19,14 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.LivingEntity.BASE_HORIZONTAL_AIR_DRAG
-import net.minecraft.world.entity.LivingEntity.BASE_VERTICAL_AIR_DRAG
-import net.minecraft.world.entity.LivingEntity.DEFAULT_BASE_GRAVITY
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_HORIZONTAL_AIR_DRAG
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_VERTICAL_AIR_DRAG
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.DEFAULT_BASE_GRAVITY
 
 /**
  * The jump [Jumps] works out now, from the start to the target block: where it runs, where it aims and what the

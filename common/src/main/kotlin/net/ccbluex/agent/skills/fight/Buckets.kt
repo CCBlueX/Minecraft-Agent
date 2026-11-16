@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.core.BlockPos
-import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.item.Items
-import net.minecraft.world.level.block.Blocks
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.world.block.Blocks
+import net.ccbluex.agent.world.entity.MobEffects
+import net.ccbluex.agent.world.item.Items
 
 /**
  * The target stands on the ground close by: lava poured at its feet and scooped up again the next tick, which hurts

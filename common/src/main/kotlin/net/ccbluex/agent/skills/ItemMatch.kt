@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills
 
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.tags.TagKey
-import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStack
+
+import net.ccbluex.agent.world.TagKey
+import net.ccbluex.agent.world.item.Item
+import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * Which item stacks count, such as the swords that make a wish come true.
@@ -59,4 +59,4 @@ public fun interface ItemMatch {
  * The path of the item's id, such as `iron_sword`.
  */
 internal val ItemStack.itemId: String
-    get() = BuiltInRegistries.ITEM.getKey(item).path
+    get() = item.id.substringAfter(":")

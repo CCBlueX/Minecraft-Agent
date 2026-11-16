@@ -19,15 +19,14 @@
 
 package net.ccbluex.agent.skills.games.blitz
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.skills.fight.OutnumberedPlan
 import net.ccbluex.agent.skills.games.WayCost
 import net.ccbluex.agent.skills.gear.GearScore
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.ItemEntity
+import net.ccbluex.agent.world.entity.Player
 
 private const val FIGHT_RANGE = 6.0
 private const val FIGHT_MARGIN = 2.0
@@ -267,7 +266,7 @@ internal fun Round.pickUpGear(): Boolean {
  *
  * @agent claude-opus-5-5
  */
-private fun itemLabel(item: ItemEntity) = "item ${BuiltInRegistries.ITEM.getKey(item.item.item).path}#${item.id}"
+private fun itemLabel(item: ItemEntity) = "item ${item.item.item.id.substringAfter(":")}#${item.id}"
 
 /**
  * From LiquidBounce: [GameBotSkyWars.kt](https://github.com/CCBlueX/LiquidBounce/blob/e603d93ac11c603588968fa504b27a5393341104/src/main/kotlin/net/ccbluex/liquidbounce/features/module/modules/player/gamebot/games/GameBotSkyWars.kt#L918-L918)

@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.pathfinder.route
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.distSqr
-import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.level.BlockRegion
-import net.ccbluex.agent.pathfinder.level.LevelBlocks
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.world.LevelBlocks
 import kotlin.math.sqrt
 
 /**

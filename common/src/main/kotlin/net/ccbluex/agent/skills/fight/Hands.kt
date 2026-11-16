@@ -21,9 +21,9 @@ package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.skills.AgentBody
 import net.ccbluex.agent.skills.gear.GearScore
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.ItemStack
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * What the fight holds, over the body's real inventory: an item from the hotbar is selected, one from the rest of

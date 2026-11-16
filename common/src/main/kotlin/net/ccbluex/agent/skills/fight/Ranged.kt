@@ -20,10 +20,10 @@
 package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.skills.Throws
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
-import net.minecraft.world.item.enchantment.Enchantments
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.item.Enchantments
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 
 /**
  * Bow, rod, throwables and pearls: everything the fighter shoots or throws at its target.
@@ -224,7 +224,7 @@ internal class Pearl : Technique(Skill.PEARL, 20, 200) {
         val target = fight.target ?: return false
         return fight.horizontalDistance() in MIN_RANGE..MAX_RANGE && fight.player.onGround() &&
             fight.hands.has { it.isOf(Items.ENDER_PEARL) } &&
-            !fight.player.cooldowns.isOnCooldown(ItemStack(Items.ENDER_PEARL)) &&
+            !fight.player.cooldowns.isOnCooldown(Items.ENDER_PEARL) &&
             fight.hasLineOfSight(target)
     }
 

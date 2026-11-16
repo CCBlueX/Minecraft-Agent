@@ -19,11 +19,14 @@
 
 package net.ccbluex.agent.v26_3.fabric.gametest
 
-import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Options
 import net.ccbluex.agent.pathfinder.glide.Passage
 import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.v26_3.fabric.ClientNavigation
+import net.ccbluex.agent.v26_3.live
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.TestWorld
@@ -33,6 +36,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos as AgentBlockPos
+import net.ccbluex.agent.math.Direction as AgentDirection
 
 private const val CLEARANCE = 1.0
 private const val FLIGHT_TICKS = 1600
@@ -89,9 +94,9 @@ internal val tunnelGlide: GameTestScope.() -> Unit = {
 
     val touches = ArrayList<BlockPos>()
     val listener = object : Listener {
-        override fun touched(pos: BlockPos, direction: Direction) {
-            if (Vec3.atCenterOf(pos).distanceTo(GOAL) > LANDING_REACH + 1.0) {
-                touches += pos
+        override fun touched(pos: AgentBlockPos, direction: AgentDirection) {
+            if (Vec3.atCenterOf(pos.toMinecraft()).distanceTo(GOAL) > LANDING_REACH + 1.0) {
+                touches += pos.toMinecraft()
             }
         }
     }
@@ -101,7 +106,7 @@ internal val tunnelGlide: GameTestScope.() -> Unit = {
         awaitClient("the fall") { !checkNotNull(it.player).onGround() }
         context.onClient {
             navigation = ClientNavigation(options = Options(glideClearance = CLEARANCE), listener = listener).also {
-                it.navigator.moveTo(GOAL, ARRIVAL)
+                it.navigator.moveTo(GOAL.toAgent(), ARRIVAL)
             }
         }
         flyCavern { navigation?.navigator?.isInProgress == false }
@@ -204,7 +209,7 @@ private fun GameTestScope.flyCavern(hasEnded: () -> Boolean) {
  */
 private fun room(terrain: Terrain, feet: Vec3): Double {
     var margin = 0.0
-    while (margin < MAX_ROOM && terrain.isClear(Passage.box(feet, margin + ROOM_STEP))) {
+    while (margin < MAX_ROOM && terrain.isClear(Passage.box(feet.toAgent(), margin + ROOM_STEP))) {
         margin += ROOM_STEP
     }
     return margin

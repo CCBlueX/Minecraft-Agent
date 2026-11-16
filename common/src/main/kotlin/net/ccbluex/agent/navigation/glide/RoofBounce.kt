@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.glide
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.math.horizontalDistanceTo
@@ -28,9 +30,7 @@ import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.TargetProgress
 import net.ccbluex.agent.pathfinder.glide.GlideAbilities
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -72,7 +72,7 @@ internal class RoofBounce(private val context: NavigationContext) {
         // Opening the elytra takes a fresh jump press in the air; after that the recast reopens it on every bounce.
         val jump = player.isFallFlying || player.onGround() || bounce.ticks % 2 == 0
         context.body.press(
-            Input(direction.forward(), direction.backward(), direction.left(), direction.right(), jump, false, false),
+            Input(direction.forward, direction.backward, direction.left, direction.right, jump, false, false),
             true,
         )
 

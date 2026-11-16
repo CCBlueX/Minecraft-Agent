@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.navigation.flight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ifNaN
-import net.ccbluex.agent.pathfinder.flight.FlyAbilities
 import net.ccbluex.agent.pathfinder.flight.Acceleration
-import net.minecraft.world.entity.LivingEntity.FLYING_AIR_DRAG
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.pathfinder.flight.FlyAbilities
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.FLYING_AIR_DRAG
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
 
 /**
@@ -157,7 +157,7 @@ internal class Handling {
     }
 
     private fun measureLevel(move: Vec3, before: Vec3, pressed: Input, sprint: Boolean) {
-        val pushes = pressed.forward() || pressed.backward() || pressed.left() || pressed.right()
+        val pushes = pressed.forward || pressed.backward || pressed.left || pressed.right
         if (pushes) {
             val drag = drag
             val added = Vec3(move.x - before.x * drag, 0.0, move.z - before.z * drag).horizontalDistance()
@@ -177,7 +177,7 @@ internal class Handling {
     }
 
     private fun measureVertical(move: Double, before: Double, pressed: Input) {
-        if (pressed.jump() != pressed.shift()) {
+        if (pressed.jump != pressed.shift) {
             measuredVerticalThrust = blend(measuredVerticalThrust, abs(move - before * verticalDrag))
         } else if (abs(before) > MIN_MOVE) {
             // Falling faster or turning around without keys is gravity or the fly mode's own push, not drag

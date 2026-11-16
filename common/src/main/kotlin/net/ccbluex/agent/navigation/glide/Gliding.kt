@@ -19,6 +19,9 @@
 
 package net.ccbluex.agent.navigation.glide
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.math.horizontalDistanceTo
@@ -27,25 +30,21 @@ import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.TargetProgress
 import net.ccbluex.agent.navigation.safeFall
-import net.ccbluex.agent.pathfinder.glide.GlideAbilities
 import net.ccbluex.agent.pathfinder.glide.ColumnHeights
 import net.ccbluex.agent.pathfinder.glide.Cruise
+import net.ccbluex.agent.pathfinder.glide.GlideAbilities
 import net.ccbluex.agent.pathfinder.glide.Landing
 import net.ccbluex.agent.pathfinder.glide.Passage
+import net.ccbluex.agent.pathfinder.glide.Rockets
 import net.ccbluex.agent.pathfinder.glide.Route
 import net.ccbluex.agent.pathfinder.glide.RouteSearch
-import net.ccbluex.agent.pathfinder.glide.Rockets
 import net.ccbluex.agent.pathfinder.glide.Steering
 import net.ccbluex.agent.pathfinder.route.BackgroundSearch
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.item.Items
-import net.minecraft.world.level.levelgen.Heightmap
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.item.Items
 
 /**
  * Glides to goals for a walking navigator while an elytra is worn: plans a glide to goals far enough away and below,
@@ -157,7 +156,7 @@ internal class Gliding(private val context: NavigationContext) {
      * A rocket cruise to a [goal] too far for one glide or not loaded, under an open sky, if the rockets reach.
      */
     private fun cruise(goal: Vec3, abilities: GlideAbilities, direct: Boolean): Glide? {
-        if (direct || ticks < retryAt || !player.onGround() || level.dimensionType().hasCeiling()) {
+        if (direct || ticks < retryAt || !player.onGround() || level.hasCeiling()) {
             return null
         }
 
@@ -247,7 +246,7 @@ internal class Gliding(private val context: NavigationContext) {
             getDirectionalInputTowards(glide.goal.subtract(player.position()), frameYRot)
         }
         context.body.press(
-            Input(direction.forward(), direction.backward(), direction.left(), direction.right(), jump, false, false),
+            Input(direction.forward, direction.backward, direction.left, direction.right, jump, false, false),
             true,
         )
         sprint = !glide.hasOpened
@@ -309,7 +308,7 @@ internal class Gliding(private val context: NavigationContext) {
     }
 
     private val liveHeights = ColumnHeights { x, z ->
-        if (level.hasChunkAt(x, z)) level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) else null
+        if (level.hasChunkAt(x, z)) level.getHeight(x, z) else null
     }
 
     /**

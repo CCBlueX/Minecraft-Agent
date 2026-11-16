@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.LivingEntity.DEFAULT_BASE_GRAVITY
-import net.minecraft.world.entity.LivingEntity.ELYTRA_HORIZONTAL_AIR_DRAG
-import net.minecraft.world.entity.LivingEntity.ELYTRA_VERTICAL_AIR_DRAG
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.DEFAULT_BASE_GRAVITY
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.ELYTRA_HORIZONTAL_AIR_DRAG
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.ELYTRA_VERTICAL_AIR_DRAG
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin

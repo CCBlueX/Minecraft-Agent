@@ -27,8 +27,8 @@ import net.ccbluex.agent.pathfinder.teleport.DirectSearch
 import net.ccbluex.agent.pathfinder.teleport.Route
 import net.ccbluex.agent.pathfinder.teleport.WaypointSearch
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 
 /**
  * How many packets of a route go out in one tick.

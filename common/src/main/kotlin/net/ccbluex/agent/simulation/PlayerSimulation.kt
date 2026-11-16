@@ -19,7 +19,8 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * A prediction of where a player goes, advanced one game tick per [tick].
@@ -44,5 +45,23 @@ public interface PlayerSimulation {
         override fun tick() {
             // Stays where it is
         }
+    }
+
+    /**
+     * A copy of a player that holds [input] for its ticks, as the game moves the player; what a body predicts its own
+     * next ticks with. [player] shows the copy as it is after the ticks run so far.
+     *
+     * @agent claude-opus-5-5
+     */
+    public interface Steered : PlayerSimulation {
+
+        public var input: SimulatedInput
+
+        public val player: Player
+
+        /**
+         * Sneaking or safe walk would have held the player back at a ledge in the last tick.
+         */
+        public val hasBackedOffEdge: Boolean
     }
 }

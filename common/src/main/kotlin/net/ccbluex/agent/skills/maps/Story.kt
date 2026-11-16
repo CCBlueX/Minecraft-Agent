@@ -25,13 +25,14 @@ import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.tick.tickUntil
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.math.Vec3
+import kotlin.random.Random
 
 /**
  * The steps that move a map's story on: follows the ones [map] knows, else tries what the map offers and keeps what
@@ -329,7 +330,7 @@ internal class Story(
      */
     private suspend fun wander(agent: Agent, player: Player) {
         val position = player.position()
-        val offset = player.random.nextDouble() * Math.PI
+        val offset = Random.nextDouble() * Math.PI
         val goal = (0 until WANDER_DIRECTIONS).flatMap { index ->
             val angle = offset + index * Math.PI * 2 / WANDER_DIRECTIONS
             listOf(WANDER_MIN, WANDER_MIN * 2).map { position.add(Math.cos(angle) * it, 0.0, Math.sin(angle) * it) }

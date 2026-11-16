@@ -19,14 +19,14 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.block.Fluids
+import net.ccbluex.agent.world.entity.Entity
 import kotlin.math.abs
 
 /**

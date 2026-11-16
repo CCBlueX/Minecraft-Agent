@@ -19,21 +19,20 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.AgentBody
-import net.ccbluex.agent.skills.SkillLevel
 import net.ccbluex.agent.skills.FightingStyle
 import net.ccbluex.agent.skills.Personality
-import net.minecraft.core.BlockPos
-import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.skills.SkillLevel
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.Items
 import java.util.Random
 import kotlin.math.atan2
 import kotlin.math.max
@@ -380,8 +379,10 @@ internal class BuiltInFight(
      * How late [entity]'s screen shows the fighter; 0 for anything without a player at a client.
      */
     private fun viewLag(entity: Entity): Long = when (entity) {
-        is ServerPlayer -> entity.connection?.latency()?.takeIf { it > 0 }?.let(EyeTrail::viewLag) ?: 0L
-        is Player -> EyeTrail.viewLag(body.latencyMillis)
+        is Player -> when (val latency = entity.latency) {
+            null -> EyeTrail.viewLag(body.latencyMillis)
+            else -> latency.takeIf { it > 0 }?.let(EyeTrail::viewLag) ?: 0L
+        }
         else -> 0L
     }
 

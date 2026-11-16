@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
 
 /**
  * Where a mover is on its route and the corners still ahead, sampled by a renderer every frame.

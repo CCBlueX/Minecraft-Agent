@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.MovementKeys
 import net.ccbluex.agent.navigation.NavigationContext
@@ -29,15 +31,13 @@ import net.ccbluex.agent.pathfinder.walk.Step
 import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.simulation.SimulatedInput
-import net.ccbluex.agent.simulation.SimulatedPlayer
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.BlockGetter
-import net.minecraft.world.level.block.StairBlock
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.Half
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockGetter
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.BlockStateProperties
+import net.ccbluex.agent.world.block.Half
+import net.ccbluex.agent.world.entity.Player
 
 private const val RISE_MARGIN = 0.01
 private const val JUMP_REACH = 1.5
@@ -68,7 +68,7 @@ internal fun leadsOntoStairs(step: Step, level: BlockGetter): Boolean {
  * @agent claude-opus-5-5
  */
 internal fun isWalkableStair(state: BlockState): Boolean =
-    state.block is StairBlock && state.getValue(StairBlock.HALF) == Half.BOTTOM
+    state.block.`is`(BlockKind.STAIRS) && state.getValue(BlockStateProperties.HALF) == Half.BOTTOM
 
 /**
  * Whether a mover at [position], [stable] or [inWater], jumps on [step].
@@ -126,21 +126,18 @@ private fun NavigationContext.simulatesAhead(
     closer: Double,
 ): Boolean {
     val sprint = movement.sprint
-    val simulated = SimulatedPlayer.fromPlayer(
-        body.player,
+    val simulated = body.simulate(
         SimulatedInput(keys.toInput(sprint), forceStayOnGroundSurface = movement.safeWalk),
-        continuesTick = body.traits.navigatesInMovementTick,
-        hooks = body.simulationHooks,
+        frameYRot,
     )
-    simulated.yRot = frameYRot
 
     repeat(PREDICT_TICKS) {
         simulated.tick()
-        val position = simulated.position()
+        val position = simulated.pos
         if (position.distanceTo(aim) < closer) {
             return true
         }
-        val next = centerInput(position, aim, frameYRot).withKeys(wantsJump(step, simulated), keys.sneak, sprint)
+        val next = centerInput(position, aim, frameYRot).withKeys(wantsJump(step, simulated.player), keys.sneak, sprint)
         simulated.input = SimulatedInput(next, forceStayOnGroundSurface = movement.safeWalk)
     }
     return false
@@ -164,7 +161,7 @@ private fun NavigationContext.movesAhead(
     var input = keys.toInput(sprint)
 
     repeat(PREDICT_TICKS) {
-        state.tick(frameYRot, input.forwardImpulse, input.strafeImpulse, input.jump(), sprint, keys.sneak)
+        state.tick(frameYRot, input.forwardImpulse, input.strafeImpulse, input.jump, sprint, keys.sneak)
         val position = state.position
         if (position.distanceTo(aim) < closer) {
             return true
@@ -176,7 +173,7 @@ private fun NavigationContext.movesAhead(
 }
 
 private val Input.forwardImpulse: Int
-    get() = (if (forward()) 1 else 0) - (if (backward()) 1 else 0)
+    get() = (if (forward) 1 else 0) - (if (backward) 1 else 0)
 
 private val Input.strafeImpulse: Int
-    get() = (if (left()) 1 else 0) - (if (right()) 1 else 0)
+    get() = (if (left) 1 else 0) - (if (right) 1 else 0)

@@ -19,15 +19,14 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.skills.gear.GearScore
-import net.minecraft.core.component.DataComponents
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 import kotlin.math.abs
 
 /**
@@ -69,7 +68,7 @@ internal class Rocket : Technique(Skill.ROCKET, 50, 80) {
         val offHand = fight.hands.offHand.isOf(Items.FIREWORK_ROCKET)
         if (!offHand && !fight.hands.hold { it.isOf(Items.FIREWORK_ROCKET) }) return false
         val hand = if (offHand) InteractionHand.OFF_HAND else InteractionHand.MAIN_HAND
-        val flight = fight.player.getItemInHand(hand).get(DataComponents.FIREWORKS)?.flightDuration() ?: 0
+        val flight = fight.player.getItemInHand(hand).fireworkFlightDuration ?: 0
         if (!fight.body.useItem(hand)) return false
         boostUntil = fight.tick + BOOST_TICKS * (1 + flight)
         return true

@@ -20,9 +20,10 @@
 package net.ccbluex.agent.pathfinder.walk
 
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.world.entity.LivingEntity.BASE_HORIZONTAL_AIR_DRAG
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.SlimeBlock
+import net.ccbluex.agent.world.block.Block
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_HORIZONTAL_AIR_DRAG
+
 
 /**
  * Durations in ticks, after Baritone's action costs.
@@ -78,12 +79,12 @@ public object Costs {
      * How many times longer walking over [block] takes than over plain ground. Ice gets as fast, so it is plain.
      */
     public fun floorFactor(block: Block): Double {
-        val slowdown = block.speedFactor * if (block is SlimeBlock) SLIME_SLOWDOWN else 1.0
+        val slowdown = block.speedFactor * if (block.`is`(BlockKind.SLIME)) SLIME_SLOWDOWN else 1.0
         return if (slowdown < 1.0) plainSpeed / groundSpeed(block.friction, slowdown) else 1.0
     }
 
     public fun bounce(block: Block, blocks: Int): Double =
-        if (block is SlimeBlock) 2 * SLIME_BOUNCES * fall(blocks) else 0.0
+        if (block.`is`(BlockKind.SLIME)) 2 * SLIME_BOUNCES * fall(blocks) else 0.0
 
     /**
      * Top ground speed, relative to the movement speed, on a floor that scales the speed by [slowdown] every tick.

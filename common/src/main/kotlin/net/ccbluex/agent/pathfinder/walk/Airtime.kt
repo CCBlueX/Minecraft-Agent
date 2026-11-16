@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.walk.Course.Companion.HALF_BLOCK
 import net.ccbluex.agent.pathfinder.walk.Course.Companion.MAX_AIR_TICKS
 import net.ccbluex.agent.pathfinder.walk.Course.Companion.MAX_BELOW
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.min

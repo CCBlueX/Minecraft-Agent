@@ -22,8 +22,8 @@ package net.ccbluex.agent.pathfinder.terrain
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.feet
 import net.ccbluex.agent.pathfinder.TestWorld.Companion.flat
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Vec3
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

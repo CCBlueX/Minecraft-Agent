@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.ride
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.distanceToSegment
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.yRot
@@ -35,9 +37,7 @@ import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.route.Replanner
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Entity
 import kotlin.math.abs
 import kotlin.math.min
 

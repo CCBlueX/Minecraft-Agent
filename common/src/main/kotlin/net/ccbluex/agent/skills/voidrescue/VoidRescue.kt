@@ -20,7 +20,7 @@
 package net.ccbluex.agent.skills.voidrescue
 
 import net.ccbluex.agent.skills.Agent
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.world.Input
 
 /**
  * Keeps the agent out of the void: holds back walks off an edge, and catches falls that happen anyway.

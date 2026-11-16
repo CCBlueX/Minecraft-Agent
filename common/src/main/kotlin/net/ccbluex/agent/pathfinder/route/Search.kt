@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.pathfinder.route
 
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
 
 /**
  * A search that is advanced in slices until it has a result.

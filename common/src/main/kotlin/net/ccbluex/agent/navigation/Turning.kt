@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.ViewRotation
-import net.minecraft.util.Mth
 import kotlin.math.abs
 
 /**

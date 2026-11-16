@@ -23,7 +23,7 @@ import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.games.GameMode
 import net.ccbluex.agent.skills.games.RoundSenses
-import net.minecraft.world.entity.Entity
+import net.ccbluex.agent.world.entity.Entity
 
 /**
  * Blitz Survival Games on one large map: the agent runs from its pedestal to the center and loots its chests first,

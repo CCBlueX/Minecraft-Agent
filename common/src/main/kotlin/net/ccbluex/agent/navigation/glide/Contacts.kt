@@ -20,10 +20,10 @@
 package net.ccbluex.agent.navigation.glide
 
 import net.ccbluex.agent.navigation.NavigationContext
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.AABB
 
 /**
  * Tells the listener the blocks the fall-flying body touched in its last move, each once while it keeps touching it.

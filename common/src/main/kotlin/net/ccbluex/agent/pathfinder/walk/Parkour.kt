@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 
 /**
  * From LiquidBounce: [Moves.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/walk/Moves.kt#L52-L54)

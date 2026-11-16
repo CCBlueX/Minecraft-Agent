@@ -19,9 +19,10 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.block.FallingBlock
+import net.ccbluex.agent.world.block.BlockKind
+
 
 /**
  * The blocks one move out of [from] breaks and places, and the ticks the breaking takes. The lists are reused for
@@ -76,7 +77,7 @@ internal class Changes(private val terrain: Terrain, private val nodes: Nodes, p
         }
 
         val state = terrain.state(x, y, z)
-        if (state.isAir || terrain.state(x, y + 1, z).block is FallingBlock) {
+        if (state.isAir || terrain.state(x, y + 1, z).block.`is`(BlockKind.FALLING)) {
             return Double.NaN
         }
         val ticks = abilities.breakTicks.applyAsDouble(state)

@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.math.Vec2
 import net.ccbluex.agent.math.copy
 import net.ccbluex.agent.math.getDirectionalInputTowards
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec2
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * The keys a [SimulatedPlayer] holds, as the client's keyboard input turns them into movement.

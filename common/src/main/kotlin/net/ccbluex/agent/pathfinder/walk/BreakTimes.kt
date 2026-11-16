@@ -19,14 +19,11 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.HolderLookup
-import net.minecraft.core.registries.Registries
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.enchantment.EnchantmentHelper
-import net.minecraft.world.item.enchantment.Enchantments
-import net.minecraft.world.level.EmptyBlockGetter
-import net.minecraft.world.level.block.state.BlockState
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.world.EmptyBlockGetter
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.item.Enchantments
+import net.ccbluex.agent.world.item.ItemStack
 import java.util.function.ToDoubleFunction
 import kotlin.math.ceil
 
@@ -43,7 +40,7 @@ public class BreakTimes private constructor(private val tools: List<Tool>) : ToD
     private class Tool(val stack: ItemStack, val efficiency: Int)
 
     override fun applyAsDouble(state: BlockState): Double {
-        val hardness = state.getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+        val hardness = state.getDestroySpeed(EmptyBlockGetter, BlockPos.ZERO)
         return when {
             hardness < 0f -> Double.POSITIVE_INFINITY
             hardness == 0f -> 1.0
@@ -77,16 +74,14 @@ public class BreakTimes private constructor(private val tools: List<Tool>) : ToD
         private val EMPTY_HAND = Tool(ItemStack.EMPTY, 0)
 
         /**
-         * Copies the tools in [hotbar], with their Efficiency level looked up in [registries]. Call on the game thread.
+         * Copies the tools in [hotbar], with their Efficiency level. Call on the game thread.
          *
          * @agent claude-fable-5-2
          * @agent claude-opus-5-5
          */
-        public fun capture(hotbar: List<ItemStack>, registries: HolderLookup.Provider): BreakTimes {
-            val efficiency = registries.lookupOrThrow(Registries.ENCHANTMENT).get(Enchantments.EFFICIENCY)
+        public fun capture(hotbar: List<ItemStack>): BreakTimes {
             val tools = hotbar.filterNot { it.isEmpty }.map { stack ->
-                val level = efficiency.map { EnchantmentHelper.getItemEnchantmentLevel(it, stack) }.orElse(0)
-                Tool(stack.copy(), level)
+                Tool(stack.copy(), stack.getEnchantmentLevel(Enchantments.EFFICIENCY))
             }
             return BreakTimes(tools + EMPTY_HAND)
         }

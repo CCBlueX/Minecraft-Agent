@@ -19,19 +19,10 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.BlockItem
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.EmptyBlockGetter
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.EntityBlock
-import net.minecraft.world.level.block.FallingBlock
-import net.minecraft.world.level.block.state.BlockBehaviour
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.BlockHitResult
-import java.util.concurrent.ConcurrentHashMap
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.world.EmptyBlockGetter
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * Which item stacks the walk places as blocks, and which of them it only takes when nothing else is at hand.
@@ -55,39 +46,19 @@ public fun interface PlaceableBlocks {
         @JvmStatic
         public val DEFAULT: PlaceableBlocks = object : PlaceableBlocks {
             override fun isPlaceable(stack: ItemStack): Boolean {
-                val block = (stack.item as? BlockItem)?.block ?: return false
+                val block = stack.item.block ?: return false
                 val state = block.defaultBlockState()
-                return block !is EntityBlock && block !is FallingBlock && !isInteractive(block) &&
-                    state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+                return !block.`is`(BlockKind.ENTITY_BLOCK) && !block.`is`(BlockKind.FALLING) &&
+                    !block.`is`(BlockKind.INTERACTIVE) &&
+                    state.isCollisionShapeFullBlock(EmptyBlockGetter, BlockPos.ZERO)
             }
 
             override fun isUnfavourable(stack: ItemStack): Boolean {
-                val block = (stack.item as? BlockItem)?.block ?: return false
+                val block = stack.item.block ?: return false
                 return block.friction != VANILLA_FRICTION || block.speedFactor != 1f || block.jumpFactor != 1f
             }
         }
 
         private const val VANILLA_FRICTION = 0.6f
-
-        private val interactive = ConcurrentHashMap<Class<*>, Boolean>()
-
-        /**
-         * Whether the block class has a use of its own, which a click on it to place against would trigger.
-         */
-        private fun isInteractive(block: Block): Boolean = interactive.computeIfAbsent(block.javaClass) { type ->
-            generateSequence<Class<*>>(type) { it.superclass }
-                .takeWhile { it != BlockBehaviour::class.java }
-                .any { declares(it, "useWithoutItem") }
-        }
-
-        private fun declares(type: Class<*>, name: String) = try {
-            type.getDeclaredMethod(
-                name, BlockState::class.java, Level::class.java, BlockPos::class.java, Player::class.java,
-                BlockHitResult::class.java,
-            )
-            true
-        } catch (_: NoSuchMethodException) {
-            false
-        }
     }
 }

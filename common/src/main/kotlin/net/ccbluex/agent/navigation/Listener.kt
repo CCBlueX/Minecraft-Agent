@@ -19,11 +19,12 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.walk.PlacedBlock
 import net.ccbluex.agent.pathfinder.walk.Route
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.phys.Vec3
+
 
 /**
  * What a [Navigator] or a [net.ccbluex.agent.navigation.teleport.Trip] reports while it moves; every method is

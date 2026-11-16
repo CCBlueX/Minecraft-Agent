@@ -19,7 +19,9 @@
 
 package net.ccbluex.agent.skills.voidrescue
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.getDirectionalInputTowards
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.ItemMatch
@@ -27,11 +29,9 @@ import net.ccbluex.agent.skills.Throws
 import net.ccbluex.agent.skills.games.FlightSwitch
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.slotOf
-import net.minecraft.core.BlockPos
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.item.Items
 
 /**
  * The built-in [VoidRescue]. On the ground it holds back moves that would drop the agent into the void, as little as
@@ -96,7 +96,7 @@ internal class VoidSafety : VoidRescue {
         return when (hold) {
             EdgeHold.NONE, EdgeHold.SAFE_WALK -> input
             EdgeHold.NO_JUMP -> with(EdgeHold) { input.withoutJump() }
-            EdgeHold.STOP -> Input(false, false, false, false, false, input.shift(), false)
+            EdgeHold.STOP -> Input(false, false, false, false, false, input.shift, false)
         }
     }
 

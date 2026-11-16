@@ -19,16 +19,14 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.level.BlockGetter
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.level.EntityGetter
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.EntityHitResult
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.shapes.CollisionContext
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.BlockGetter
+import net.ccbluex.agent.world.ClipContext
+import net.ccbluex.agent.world.EntityHitResult
+import net.ccbluex.agent.world.HitResult
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.entity.Entity
 
 /**
  * An arrow flying from [pos] at [deltaMovement] as AbstractArrow moves it, until it hits a block of [blocks] or one of
@@ -40,7 +38,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
  */
 public class SimulatedArrow(
     private val blocks: BlockGetter,
-    private val entities: EntityGetter?,
+    private val entities: Level?,
     pos: Vec3,
     deltaMovement: Vec3,
 ) {
@@ -88,7 +86,7 @@ public class SimulatedArrow(
     }
 
     private fun hitBetween(from: Vec3, to: Vec3): HitResult? {
-        val block = blocks.clip(ClipContext(from, to, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, NO_ENTITY))
+        val block = blocks.clip(ClipContext(from, to, ClipContext.Block.COLLIDER, null))
             .takeIf { it.type != HitResult.Type.MISS }
         return entities?.let { entityHit(it, from, block?.location ?: to) } ?: block
     }
@@ -96,12 +94,12 @@ public class SimulatedArrow(
     /**
      * ProjectileUtil.getEntityHitResult for an arrow in its first tick: the nearest box crossed, without margin.
      */
-    private fun entityHit(entities: EntityGetter, from: Vec3, to: Vec3): EntityHitResult? {
+    private fun entityHit(entities: Level, from: Vec3, to: Vec3): EntityHitResult? {
         val area = AABB(from, from).inflate(SEARCH_SIZE).expandTowards(to.subtract(from)).inflate(1.0)
         var nearest = Double.MAX_VALUE
         var hit: EntityHitResult? = null
-        for (entity in entities.getEntities(null as Entity?, area, ::canHit)) {
-            val at = entity.boundingBox.clip(from, to).orElse(null) ?: continue
+        for (entity in entities.getEntities(null, area, ::canHit)) {
+            val at = entity.boundingBox.clip(from, to) ?: continue
             val distance = from.distanceToSqr(at)
             if (distance < nearest) {
                 nearest = distance
@@ -117,6 +115,5 @@ public class SimulatedArrow(
         const val DRAG = 0.99
         const val GRAVITY = 0.05000000074505806
         const val SEARCH_SIZE = 0.45
-        val NO_ENTITY: CollisionContext = CollisionContext.empty()
     }
 }

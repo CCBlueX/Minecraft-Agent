@@ -23,6 +23,9 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.ChunkPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.fight.Outnumbered
 import net.ccbluex.agent.skills.fight.Targets
@@ -30,10 +33,7 @@ import net.ccbluex.agent.skills.games.Progress
 import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.gear.WeaponMemory
 import net.ccbluex.agent.tick.TickScope
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.ChunkPos
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * One round of [Blitz] for one agent. The round itself is suspend code on [scope], read top to bottom in [play]; the
@@ -159,7 +159,8 @@ internal class Round(val agent: Agent, val senses: Senses) {
         if (ticks % SYNC_TICKS == 0L) syncChests()
         targets.tick(agent)
         outnumbered.tick(agent)
-        visitedChunks.add(ChunkPos.pack(player.blockX shr CHUNK_SHIFT, player.blockZ shr CHUNK_SHIFT))
+        val block = player.blockPosition()
+        visitedChunks.add(ChunkPos.pack(block.x shr CHUNK_SHIFT, block.z shr CHUNK_SHIFT))
         for (other in targets.around()) {
             weapons.remember(other)
             lastSeen[other.scoreboardName] = Sighting(other.scoreboardName, other.position(), ticks)

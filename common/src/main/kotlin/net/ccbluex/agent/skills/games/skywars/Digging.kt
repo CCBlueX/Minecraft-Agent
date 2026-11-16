@@ -19,19 +19,18 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.HOTBAR_SLOTS
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.isBuildingBlock
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.tags.BlockTags
-import net.minecraft.util.Mth
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.BlockTags
 import kotlin.math.hypot
 
 private const val DUG_MAX = 40
@@ -100,7 +99,7 @@ private fun Round.nearChest(pos: BlockPos): Boolean =
  */
 private fun Round.givesBlock(state: BlockState): Boolean {
     if (state.hasBlockEntity() || state.`is`(BlockTags.LEAVES) || state.`is`(BlockTags.IMPERMEABLE)) return false
-    if (!isBuildingBlock(ItemStack(state.block.asItem()))) return false
+    if (!isBuildingBlock(state.block.asItem().getDefaultInstance())) return false
     return !state.requiresCorrectToolForDrops() || toolSlot(state)?.let {
         player.inventory.getItem(it).isCorrectToolForDrops(state)
     } == true

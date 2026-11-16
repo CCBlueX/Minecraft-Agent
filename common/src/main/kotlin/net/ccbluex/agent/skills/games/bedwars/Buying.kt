@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.games.WayCost
@@ -31,10 +33,8 @@ import net.ccbluex.agent.skills.shop.cheapest
 import net.ccbluex.agent.skills.shop.money
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.tags.ItemTags
-import net.minecraft.util.Mth
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.item.ItemTags
+import net.ccbluex.agent.world.item.Items
 import kotlin.math.abs
 
 private const val SHOP_REACH = 3.0

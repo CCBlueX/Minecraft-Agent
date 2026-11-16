@@ -19,16 +19,16 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ifNaN
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.terrain.hasRoom
 import net.ccbluex.agent.pathfinder.terrain.isOpen
 import net.ccbluex.agent.pathfinder.walk.Course.Companion.HALF_BLOCK
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_5
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.Block
+import net.ccbluex.agent.world.entity.Entity.Companion.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_5
 import kotlin.math.max
 
 /**

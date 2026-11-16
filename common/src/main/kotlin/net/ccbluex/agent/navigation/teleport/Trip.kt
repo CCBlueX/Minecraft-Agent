@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.teleport
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.Body
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.pathfinder.route.BackgroundSearch
@@ -27,8 +29,6 @@ import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.teleport.Route
 import net.ccbluex.agent.tick.tickUntil
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 import java.util.function.Consumer
 
 /**

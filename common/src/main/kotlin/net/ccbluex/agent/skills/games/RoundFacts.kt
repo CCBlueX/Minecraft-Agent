@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.skills.games
 
-import net.minecraft.world.entity.player.Player
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * What a client learns about a round from text: the sidebar, chat, titles and the tab list. A [LevelRoundSenses] reads

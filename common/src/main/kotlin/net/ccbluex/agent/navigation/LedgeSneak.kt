@@ -21,8 +21,7 @@ package net.ccbluex.agent.navigation
 
 import net.ccbluex.agent.InternalAgentApi
 import net.ccbluex.agent.simulation.SimulatedInput
-import net.ccbluex.agent.simulation.SimulatedPlayer
-import net.minecraft.world.entity.player.Input
+import net.ccbluex.agent.world.Input
 
 /**
  * [Body.safeWalk] as a player holds at a ledge: sneaking, without sprint, from the tick a step without sneaking
@@ -43,7 +42,7 @@ public class LedgeSneak {
 
     internal fun keys(input: Input, atLedge: Boolean): Input {
         ticks = if (atLedge) HOLD_TICKS else maxOf(0, ticks - 1)
-        return if (ticks > 0) input.withKeys(input.jump(), sneak = true, sprint = false) else input
+        return if (ticks > 0) input.withKeys(input.jump, sneak = true, sprint = false) else input
     }
 
     /**
@@ -60,16 +59,10 @@ public class LedgeSneak {
      */
     private fun reachesLedge(body: Body, input: Input): Boolean {
         val player = body.player
-        if (!player.onGround() || input.jump() || input.shift()) {
+        if (!player.onGround() || input.jump || input.shift) {
             return false
         }
-        val simulated = SimulatedPlayer.fromPlayer(
-            player,
-            SimulatedInput(input),
-            continuesTick = body.traits.navigatesInMovementTick,
-            hooks = body.simulationHooks,
-        )
-        simulated.yRot = body.inputYRot
+        val simulated = body.simulate(SimulatedInput(input), body.inputYRot)
         simulated.tick()
         return simulated.hasBackedOffEdge
     }

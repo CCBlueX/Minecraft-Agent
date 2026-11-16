@@ -19,11 +19,10 @@
 
 package net.ccbluex.agent.pathfinder.glide
 
-import net.minecraft.core.component.DataComponents
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+import net.ccbluex.agent.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 import kotlin.math.min
 
 /**
@@ -55,7 +54,7 @@ public class GlideAbilities(
          * hotbar); null when [elytra] cannot glide.
          */
         public fun of(elytra: ItemStack, stacks: Iterable<ItemStack>, useRockets: Boolean): GlideAbilities? {
-            if (!LivingEntity.canGlideUsing(elytra, EquipmentSlot.CHEST)) {
+            if (!elytra.canGlideUsing(EquipmentSlot.CHEST)) {
                 return null
             }
 
@@ -71,7 +70,7 @@ public class GlideAbilities(
                 for (stack in stacks) {
                     if (stack.`is`(Items.FIREWORK_ROCKET)) {
                         rockets += stack.count
-                        flight = min(flight, stack.get(DataComponents.FIREWORKS)?.flightDuration ?: 1)
+                        flight = min(flight, stack.fireworkFlightDuration ?: 1)
                     }
                 }
             }

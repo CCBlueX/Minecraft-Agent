@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.skills.TestInventories
@@ -28,29 +30,17 @@ import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.games.playerNamed
 import net.ccbluex.agent.skills.games.scanNow
 import net.ccbluex.agent.skills.shop.Currency
-import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Holder
-import net.minecraft.core.SectionPos
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.item.DyeColor
 import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ClientboundBlockDestructionPacket
-import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
-import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.item.DyeColor
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.GameType
-import net.minecraft.world.level.biome.Biome
-import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.chunk.LevelChunkSection
-import net.minecraft.world.level.chunk.PalettedContainer
-import net.minecraft.world.level.chunk.PalettedContainerRO
-import net.minecraft.world.level.chunk.Strategy
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -80,9 +70,9 @@ internal class LevelSensesTest {
         override var ownTeamName: String? = "Red"
         override var teams = listOf(RED, BLUE)
 
-        override fun isShopkeeper(entity: Entity): Boolean = entity.customName?.string == "ITEM SHOP"
+        override fun isShopkeeper(entity: Entity): Boolean = entity.customName == "ITEM SHOP"
 
-        override fun isUpgrader(entity: Entity): Boolean = entity.customName?.string == "TEAM UPGRADES"
+        override fun isUpgrader(entity: Entity): Boolean = entity.customName == "TEAM UPGRADES"
     }
 
     private class Round {
@@ -94,7 +84,7 @@ internal class LevelSensesTest {
         val ally = level.playerNamed("Ally", TestWorld.feet(12, 1, 3))
         val foe = level.playerNamed("Foe", TestWorld.feet(-10, 1, 3))
         val facts = FakeFacts()
-        val senses = LevelSenses(level, facts, BLOCKS_AROUND_ORIGIN)
+        val senses = LevelSenses(level.toAgent(), facts, BLOCKS_AROUND_ORIGIN)
     }
 
     @Test
@@ -107,8 +97,8 @@ internal class LevelSensesTest {
         assertEquals(BlockPos(10, 1, 0), senses.teams[0].bed)
         assertEquals(BlockPos(-10, 1, 0), senses.teams[1].bed)
         assertTrue(senses.teams.all { it.isBedAlive })
-        assertEquals(listOf(round.me, round.ally), senses.teams[0].members)
-        assertSame(senses.teams[1], senses.teamOf(round.foe))
+        assertEquals(listOf(round.me.toAgent(), round.ally.toAgent()), senses.teams[0].members)
+        assertSame(senses.teams[1], senses.teamOf(round.foe.toAgent()))
     }
 
     @Test
@@ -148,10 +138,10 @@ internal class LevelSensesTest {
 
         round.facts.state = RoundState.PLAYING
         round.senses.tick()
-        val start = round.me.position()
+        val start = round.me.position().toAgent()
         assertEquals(start, round.senses.ownSpawn)
 
-        round.me.snapTo(TestWorld.feet(0, 1, 0), 0f, 0f)
+        round.me.snapTo(TestWorld.feet(0, 1, 0).toMinecraft(), 0f, 0f)
         round.senses.scanNow()
         assertEquals(start, round.senses.ownSpawn)
         assertEquals(start, round.senses.ownTeam?.spawn)
@@ -161,13 +151,13 @@ internal class LevelSensesTest {
     fun spawnIsTheIslandWhenTheServerTeleportsAfterTheStart() {
         val round = Round()
         val lobby = TestWorld.feet(60, 1, 3)
-        val island = round.me.position()
-        round.me.snapTo(lobby, 0f, 0f)
+        val island = round.me.position().toAgent()
+        round.me.snapTo(lobby.toMinecraft(), 0f, 0f)
         round.facts.state = RoundState.PLAYING
         round.senses.tick()
         assertEquals(lobby, round.senses.ownSpawn)
 
-        round.me.snapTo(island, 0f, 0f)
+        round.me.snapTo(island.toMinecraft(), 0f, 0f)
         round.senses.scanNow()
         assertEquals(island, round.senses.ownSpawn)
         assertEquals(island, round.senses.ownTeam?.spawn)
@@ -188,39 +178,15 @@ internal class LevelSensesTest {
         val round = Round()
         val pos = BlockPos(3, 1, 3)
         round.facts.state = RoundState.COUNTDOWN
-        round.senses.received(ClientboundBlockUpdatePacket(pos, TestWorld.STONE))
+        round.senses.blockUpdated(pos, TestWorld.STONE)
         assertFalse(round.senses.isPlayerPlaced(pos))
 
         round.facts.state = RoundState.PLAYING
-        round.senses.received(ClientboundBlockUpdatePacket(BlockPos.MutableBlockPos(3, 1, 3), TestWorld.STONE))
+        round.senses.blockUpdated(BlockPos.MutableBlockPos(3, 1, 3), TestWorld.STONE)
         assertTrue(round.senses.isPlayerPlaced(pos))
 
-        round.senses.received(ClientboundBlockUpdatePacket(pos, TestWorld.AIR))
+        round.senses.blockUpdated(pos, TestWorld.AIR)
         assertFalse(round.senses.isPlayerPlaced(pos))
-    }
-
-    @Test
-    fun sectionUpdatesAreServerWordToo() {
-        val round = Round()
-        round.facts.state = RoundState.PLAYING
-        val pos = BlockPos(3, 1, 3)
-        val states = PalettedContainer(Blocks.AIR.defaultBlockState(), Strategy.createForBlockStates(Block.BLOCK_STATE_REGISTRY))
-        // The packet reads no biomes
-        @Suppress("UNCHECKED_CAST")
-        val section = LevelChunkSection(states, states as PalettedContainerRO<Holder<Biome>>)
-        section.setBlockState(3, 1, 3, TestWorld.STONE)
-        val changed = ShortOpenHashSet().apply { add(SectionPos.sectionRelativePos(pos)) }
-        round.senses.received(ClientboundSectionBlocksUpdatePacket(SectionPos.of(pos), changed, section))
-        assertTrue(round.senses.isPlayerPlaced(pos))
-        assertFalse(round.senses.isPlayerPlaced(pos.above()))
-    }
-
-    @Test
-    fun otherPacketsPlaceNothing() {
-        val round = Round()
-        round.facts.state = RoundState.PLAYING
-        round.senses.received(ClientboundBlockDestructionPacket(1, BlockPos(3, 1, 3), 5))
-        assertFalse(round.senses.isPlayerPlaced(BlockPos(3, 1, 3)))
     }
 
     @Test
@@ -234,14 +200,14 @@ internal class LevelSensesTest {
         round.senses.tick()
         val senses = round.senses
 
-        assertTrue(senses.isOpponent(round.foe))
-        assertFalse(senses.isOpponent(round.ally))
-        assertFalse(senses.isOpponent(round.me))
-        assertFalse(senses.isOpponent(ghost))
-        assertFalse(senses.isOpponent(pal))
-        assertFalse(senses.isOpponent(npc))
-        assertTrue(senses.isTeammate(round.ally))
-        assertFalse(senses.isTeammate(round.foe))
+        assertTrue(senses.isOpponent(round.foe.toAgent()))
+        assertFalse(senses.isOpponent(round.ally.toAgent()))
+        assertFalse(senses.isOpponent(round.me.toAgent()))
+        assertFalse(senses.isOpponent(ghost.toAgent()))
+        assertFalse(senses.isOpponent(pal.toAgent()))
+        assertFalse(senses.isOpponent(npc.toAgent()))
+        assertTrue(senses.isTeammate(round.ally.toAgent()))
+        assertFalse(senses.isTeammate(round.foe.toAgent()))
         assertFalse(senses.isSpectator)
     }
 
@@ -249,7 +215,7 @@ internal class LevelSensesTest {
     fun spectatorIsOutOfTheLevelOrInSpectatorMode() {
         val level = TestLevel(TestWorld.flat())
         val facts = FakeFacts()
-        val senses = LevelSenses(level, facts, BLOCKS_AROUND_ORIGIN)
+        val senses = LevelSenses(level.toAgent(), facts, BLOCKS_AROUND_ORIGIN)
         assertTrue(senses.isSpectator)
 
         level.playerNamed("Me", TestWorld.feet(0, 1, 0), GameType.SPECTATOR)
@@ -266,15 +232,15 @@ internal class LevelSensesTest {
         round.senses.tick()
         assertEquals(
             listOf(
-                Generator(Currency.IRON, iron.position(), "Red"),
-                Generator(Currency.DIAMOND, diamond.position(), null),
+                Generator(Currency.IRON, iron.position().toAgent(), "Red"),
+                Generator(Currency.DIAMOND, diamond.position().toAgent(), null),
             ),
             round.senses.generators,
         )
 
         iron.discard()
         round.senses.scanNow()
-        assertTrue(Generator(Currency.IRON, iron.position(), "Red") in round.senses.generators)
+        assertTrue(Generator(Currency.IRON, iron.position().toAgent(), "Red") in round.senses.generators)
     }
 
     @Test
@@ -287,11 +253,11 @@ internal class LevelSensesTest {
         val gold = ItemEntity(round.level, 25.5, 1.0, 0.5, ItemStack(Items.GOLD_INGOT))
         round.level.add(gold)
         round.senses.scanNow()
-        assertEquals(listOf(Generator(Currency.IRON, gold.position(), "Red")), round.senses.generators)
+        assertEquals(listOf(Generator(Currency.IRON, gold.position().toAgent(), "Red")), round.senses.generators)
 
         gold.discard()
         round.senses.scanNow()
-        assertEquals(listOf(Generator(Currency.IRON, gold.position(), "Red")), round.senses.generators)
+        assertEquals(listOf(Generator(Currency.IRON, gold.position().toAgent(), "Red")), round.senses.generators)
     }
 
     @Test
@@ -304,8 +270,8 @@ internal class LevelSensesTest {
         round.level.add(shop).add(upgrades)
         round.senses.tick()
         val red = round.senses.teams[0]
-        assertEquals(shop.position(), red.shopkeeper)
-        assertEquals(upgrades.position(), red.upgrader)
+        assertEquals(shop.position().toAgent(), red.shopkeeper)
+        assertEquals(upgrades.position().toAgent(), red.upgrader)
         assertNull(round.senses.teams[1].shopkeeper)
         assertNull(round.senses.teams[1].upgrader)
     }

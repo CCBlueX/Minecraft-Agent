@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.maps
 
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Vec3
 
 /**
  * The entities in the box [range] blocks around [pos], as a client lists those it renders.

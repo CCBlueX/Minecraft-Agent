@@ -19,14 +19,14 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.games.FlightSwitch
 import net.ccbluex.agent.skills.games.WayCost
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.min

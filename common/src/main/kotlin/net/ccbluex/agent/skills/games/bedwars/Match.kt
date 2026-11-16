@@ -20,9 +20,9 @@
 package net.ccbluex.agent.skills.games.bedwars
 
 import net.ccbluex.agent.ExperimentalAgentApi
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.BlockGetter
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.world.BlockGetter
+import net.ccbluex.agent.world.entity.Player
 import java.util.Random
 
 /**

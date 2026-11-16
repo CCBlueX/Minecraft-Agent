@@ -19,17 +19,18 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -79,7 +80,7 @@ class TickBodyTest {
 
     private fun host(world: TestWorld, at: Vec3 = point): Host {
         val player = TestLevel(world).player(TestWorld.feet(0, 1, 0))
-        val rotation = ViewRotation.fromVector(at.subtract(player.eyePosition))
+        val rotation = ViewRotation.fromVector(at.subtract(player.eyePosition.toAgent()))
         player.yRot = rotation.yRot
         player.xRot = rotation.xRot
         return Host(TestBody(player))
@@ -180,9 +181,9 @@ class TickBodyTest {
         val level = TestLevel(TestWorld.flat().fill(2, 1, -3, 2, 5, 3))
         val player = level.player(TestWorld.feet(0, 1, 0), -90f)
         val other = level.player(TestWorld.feet(3, 1, 0))
-        assertFalse(TestBody(player).sees(other))
+        assertFalse(TestBody(player).sees(other.toAgent()))
 
         val open = TestLevel(TestWorld.flat())
-        assertTrue(TestBody(open.player(TestWorld.feet(0, 1, 0), -90f)).sees(open.player(TestWorld.feet(3, 1, 0))))
+        assertTrue(TestBody(open.player(TestWorld.feet(0, 1, 0), -90f)).sees(open.player(TestWorld.feet(3, 1, 0)).toAgent()))
     }
 }

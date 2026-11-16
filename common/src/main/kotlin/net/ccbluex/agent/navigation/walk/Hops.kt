@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.util.Mth
-import net.minecraft.world.level.block.FarmlandBlock
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockKind
 import kotlin.math.abs
 
 /**
@@ -87,7 +87,7 @@ internal class Hops(private val context: NavigationContext, private val stride: 
             val z = position.z + dz * travelled
             // The landing would trample farmland.
             val floor = terrain.state(Mth.floor(x), Mth.floor(position.y - FLOOR_PROBE), Mth.floor(z))
-            if (!terrain.isClear(terrain.box(x, position.y + HOP_HEIGHT, z)) || floor.block is FarmlandBlock) {
+            if (!terrain.isClear(terrain.box(x, position.y + HOP_HEIGHT, z)) || floor.block.`is`(BlockKind.FARMLAND)) {
                 return false
             }
             travelled += HOP_SAMPLE

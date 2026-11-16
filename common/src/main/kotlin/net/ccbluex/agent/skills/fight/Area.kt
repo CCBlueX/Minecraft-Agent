@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 
 /**
  * Where a fighter may fight and build: it only picks opponents inside and only places blocks, crystals, anchors and

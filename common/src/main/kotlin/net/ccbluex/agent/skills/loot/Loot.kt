@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.skills.loot
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.skills.Agent
-import net.minecraft.core.BlockPos
 
 /**
  * Opens chests and takes what the agent wants from them.

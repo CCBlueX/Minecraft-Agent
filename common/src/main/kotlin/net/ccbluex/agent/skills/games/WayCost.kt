@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.skills.games
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max

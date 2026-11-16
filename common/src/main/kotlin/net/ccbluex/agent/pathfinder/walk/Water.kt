@@ -21,8 +21,8 @@ package net.ccbluex.agent.pathfinder.walk
 
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.terrain.hasRoom
-import net.minecraft.world.entity.Avatar.SWIMMING_BB_HEIGHT
-import net.minecraft.world.entity.Entity.TOTAL_AIR_SUPPLY
+import net.ccbluex.agent.world.entity.Entity.Companion.SWIMMING_BB_HEIGHT
+import net.ccbluex.agent.world.entity.Entity.Companion.TOTAL_AIR_SUPPLY
 
 /**
  * Where a swimmer fits in water: upright, or submerged in the swimming pose, which needs sprinting.

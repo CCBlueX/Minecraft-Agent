@@ -21,15 +21,13 @@ package net.ccbluex.agent.skills.gear
 
 import net.ccbluex.agent.skills.CARRIED_SLOTS
 import net.ccbluex.agent.skills.itemId
-import net.minecraft.core.component.DataComponents
-import net.minecraft.resources.ResourceKey
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.enchantment.Enchantment
-import net.minecraft.world.item.enchantment.Enchantments
+import net.ccbluex.agent.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.Enchantment
+import net.ccbluex.agent.world.item.Enchantments
+import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * How well someone is equipped, as far as it can be seen from outside: armor points and weapon damage by tier and
@@ -139,7 +137,7 @@ internal class GearScore(val armor: Double, val weapon: Double, val health: Doub
          */
         fun armorSlot(stack: ItemStack): EquipmentSlot? {
             if (stack.isEmpty) return null
-            val slot = stack.get(DataComponents.EQUIPPABLE)?.slot() ?: return null
+            val slot = stack.equipmentSlot ?: return null
             return slot.takeIf { it in ARMOR_SLOTS && name(stack).let(::isArmorName) }
         }
 
@@ -193,7 +191,6 @@ internal class GearScore(val armor: Double, val weapon: Double, val health: Doub
             else -> wood
         }
 
-        private fun level(stack: ItemStack, enchantment: ResourceKey<Enchantment>): Int =
-            stack.enchantments.entrySet().firstOrNull { it.key.`is`(enchantment) }?.intValue ?: 0
+        private fun level(stack: ItemStack, enchantment: Enchantment): Int = stack.getEnchantmentLevel(enchantment)
     }
 }

@@ -19,17 +19,15 @@
 
 package net.ccbluex.agent.skills.maps
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityTypes
-import net.minecraft.world.entity.Interaction
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.BasePressurePlateBlock
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.block.Block
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.entity.ArmorStand
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
 
 /**
@@ -160,11 +158,11 @@ internal class Leads(private val switches: Switches = Switches.CHUNKS) {
             }
         }
         switches.forEach(level, player.blockPosition()) { pos, block ->
-            leads += if (block is BasePressurePlateBlock) {
+            leads += if (block.`is`(BlockKind.PRESSURE_PLATE)) {
                 // A plate is there to be stood on, as a course's start and checkpoints
-                Lead(Lead.Kind.STEP_INTO, pos, Vec3.atBottomCenterOf(pos), null, pos, false, BuiltInRegistries.BLOCK.getKey(block).toString())
+                Lead(Lead.Kind.STEP_INTO, pos, Vec3.atBottomCenterOf(pos), null, pos, false, block.id)
             } else {
-                Lead(Lead.Kind.USE_BLOCK, pos, Vec3.atCenterOf(pos), null, pos, false, BuiltInRegistries.BLOCK.getKey(block).toString())
+                Lead(Lead.Kind.USE_BLOCK, pos, Vec3.atCenterOf(pos), null, pos, false, block.id)
             }
         }
         opening(level, changes, position)?.let { leads += it }
@@ -198,8 +196,8 @@ internal class Leads(private val switches: Switches = Switches.CHUNKS) {
      * walking about animates a figure; one seen only for a moment is not judged yet.
      */
     private fun isButton(entity: Entity, now: Int): Boolean {
-        if (entity is Interaction) return true
-        if (entity.type != EntityTypes.VILLAGER && entity.type != EntityTypes.WANDERING_TRADER) return false
+        if (entity.typeId == "minecraft:interaction") return true
+        if (entity.typeId != "minecraft:villager" && entity.typeId != "minecraft:wandering_trader") return false
         val seen = seen[entity.id] ?: return false
         return !seen.moved && now - seen.tick >= SETTLE_TICKS
     }
@@ -207,7 +205,7 @@ internal class Leads(private val switches: Switches = Switches.CHUNKS) {
     /**
      * Something to walk up to: someone with a name over the head, or a figure on show such as a suit on a stand.
      */
-    private fun isFigure(entity: Entity) = entity.isCustomNameVisible && entity.hasCustomName() ||
+    private fun isFigure(entity: Entity) = entity.isCustomNameVisible && entity.customName != null ||
         entity is ArmorStand && !entity.isMarker && !entity.isInvisible
 
     private fun score(lead: Lead, position: Vec3, signs: List<KnownMap.Sign>, hint: String): Double {
@@ -243,7 +241,7 @@ internal class Leads(private val switches: Switches = Switches.CHUNKS) {
     ) {
 
         val isNamed: Boolean
-            get() = entity?.isCustomNameVisible == true && entity.hasCustomName()
+            get() = entity?.isCustomNameVisible == true && entity.customName != null
 
         /**
          * The kind of thing this is, as a stone button or an invisible villager: alike things tend to do alike.
@@ -257,7 +255,7 @@ internal class Leads(private val switches: Switches = Switches.CHUNKS) {
 
         fun describe(): String =
             "${kind.label} ${entity?.let(::typeOf) ?: "block"}" +
-                (entity?.customName?.string?.takeIf { isNamed }?.let { " \"$it\"" } ?: "") +
+                (entity?.customName?.takeIf { isNamed }?.let { " \"$it\"" } ?: "") +
                 " at ${position.x.toInt()},${position.y.toInt()},${position.z.toInt()}"
 
         /**
@@ -279,7 +277,7 @@ internal class Leads(private val switches: Switches = Switches.CHUNKS) {
 
     companion object {
 
-        fun typeOf(entity: Entity): String = BuiltInRegistries.ENTITY_TYPE.getKey(entity.type).toString()
+        fun typeOf(entity: Entity): String = entity.typeId
 
         /**
          * Where a player stands at [pos]: the first free place with a floor at or below it, as under a name tag.

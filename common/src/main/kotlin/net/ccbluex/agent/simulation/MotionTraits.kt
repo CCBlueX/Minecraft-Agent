@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.world.entity.LivingEntity.BASE_JUMP_POWER
-import net.minecraft.world.entity.LivingEntity.BASE_VERTICAL_AIR_DRAG
-import net.minecraft.world.entity.LivingEntity.DEFAULT_BASE_GRAVITY
-import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.player.Player
+import net.ccbluex.agent.world.entity.Attributes
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_JUMP_POWER
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_VERTICAL_AIR_DRAG
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.DEFAULT_BASE_GRAVITY
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * What sets how fast a player walks and how high it jumps; [walkingSpeed] is without sprinting.

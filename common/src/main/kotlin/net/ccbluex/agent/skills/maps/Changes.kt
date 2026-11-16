@@ -19,14 +19,12 @@
 
 package net.ccbluex.agent.skills.maps
 
-import net.minecraft.ChatFormatting
-import net.minecraft.core.BlockPos
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * What the map did around the player, tick by tick: teleports, chat, armour and effects, blocks set and taken
@@ -110,14 +108,14 @@ internal class Changes {
         }
         if (player.isFallFlying && !wasFallFlying) add(Kind.GLIDE, position, "took off")
         wasFallFlying = player.isFallFlying
-        val armour = EquipmentSlot.entries.filter { it.isArmor }.map { BuiltInRegistries.ITEM.getKey(player.getItemBySlot(it).item).toString() }
+        val armour = EquipmentSlot.entries.filter { it.isArmor }.map { player.getItemBySlot(it).item.id }
         if (armour != lastArmour && ticks > 1) {
             add(Kind.ARMOUR, position, armour.joinToString())
         }
         lastArmour = armour
         // Maps hand out the same effects over and over; only one never had before tells something happened
         for (effect in player.activeEffects) {
-            val name = effect.effect.registeredName
+            val name = effect.effect.id
             if (seenEffects.add(name) && ticks > 1) add(Kind.EFFECT, position, name)
         }
         if (ticks % ENTITY_SCAN_TICKS == 0) {
@@ -126,7 +124,7 @@ internal class Changes {
             val ids = near.mapTo(HashSet()) { it.id }
             if (lastEntities.isNotEmpty()) {
                 near.filter { it.id !in lastEntities }.forEach {
-                    add(Kind.APPEARED, it.position(), BuiltInRegistries.ENTITY_TYPE.getKey(it.type).toString(), it.id)
+                    add(Kind.APPEARED, it.position(), it.typeId, it.id)
                 }
             }
             lastEntities = ids
@@ -136,13 +134,13 @@ internal class Changes {
 
     fun chat(line: String) {
         lastChatTick = ticks
-        add(Kind.CHAT, lastPosition ?: Vec3.ZERO, ChatFormatting.stripFormatting(line) ?: "")
+        add(Kind.CHAT, lastPosition ?: Vec3.ZERO, stripFormatting(line))
     }
 
     fun blockChanged(pos: BlockPos, state: BlockState, near: Vec3) {
         val center = Vec3.atCenterOf(pos)
         if (center.distanceTo(near) > NEAR) return
-        add(if (state.isAir) Kind.REMOVED else Kind.SET, center, BuiltInRegistries.BLOCK.getKey(state.block).toString())
+        add(if (state.isAir) Kind.REMOVED else Kind.SET, center, state.block.id)
     }
 
     /**

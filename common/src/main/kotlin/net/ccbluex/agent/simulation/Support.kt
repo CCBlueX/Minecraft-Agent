@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.simulation.PlayerMotion.Companion.HALF_WIDTH
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
 
 private const val SUPPORT_EPSILON = 1.0E-6
 

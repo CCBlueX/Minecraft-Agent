@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.pathfinder.ride
 
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity.BASE_VERTICAL_AIR_DRAG
-import net.minecraft.world.entity.LivingEntity.DEFAULT_BASE_GRAVITY
-import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.animal.camel.Camel
-import net.minecraft.world.entity.animal.equine.AbstractHorse
-import net.minecraft.world.entity.vehicle.boat.AbstractBoat
+import net.ccbluex.agent.world.entity.AbstractBoat
+import net.ccbluex.agent.world.entity.AbstractHorse
+import net.ccbluex.agent.world.entity.Attributes
+import net.ccbluex.agent.world.entity.Camel
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.BASE_VERTICAL_AIR_DRAG
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.DEFAULT_BASE_GRAVITY
 import kotlin.math.max
 
 /**

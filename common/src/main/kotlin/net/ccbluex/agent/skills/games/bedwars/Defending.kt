@@ -19,15 +19,15 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.skills.games.WayCost
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.hypot
 
 private const val PLACE_REACH = 4.5

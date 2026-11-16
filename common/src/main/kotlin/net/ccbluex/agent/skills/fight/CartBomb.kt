@@ -19,15 +19,15 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.tags.BlockTags
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.vehicle.minecart.MinecartTNT
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
-import net.minecraft.world.item.enchantment.Enchantments
-import net.minecraft.world.phys.AABB
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.block.BlockTags
+import net.ccbluex.agent.world.entity.MinecartTNT
+import net.ccbluex.agent.world.item.Enchantments
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 
 /**
  * TNT minecart PvP: a rail beside the target, a TNT minecart on it, then a Flame arrow into the cart from at least

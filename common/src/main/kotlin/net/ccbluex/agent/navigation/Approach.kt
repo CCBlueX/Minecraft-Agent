@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.fma
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.isStraightWalkable
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 import kotlin.math.min
 
 private const val HEADWAY = 2.0

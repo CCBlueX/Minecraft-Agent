@@ -21,7 +21,7 @@ package net.ccbluex.agent.navigation.glide
 
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.glide.GlideAbilities
-import net.minecraft.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.entity.EquipmentSlot
 
 private const val HOTBAR_SIZE = 9
 

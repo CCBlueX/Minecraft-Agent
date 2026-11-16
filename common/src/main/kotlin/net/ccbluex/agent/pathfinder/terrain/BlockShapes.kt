@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.pathfinder.terrain
 
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.shapes.Shapes
-import net.minecraft.world.phys.shapes.VoxelShape
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.world.block.Shapes
+import net.ccbluex.agent.world.block.VoxelShape
 
 internal const val EPSILON = 1.0E-7
 

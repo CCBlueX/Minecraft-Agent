@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.walk.Step
-import net.minecraft.world.phys.Vec3
 import kotlin.math.max
 
 /**

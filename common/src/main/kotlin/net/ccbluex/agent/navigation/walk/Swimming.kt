@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.navigation.MovementKeys
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.walk.Step
-import net.minecraft.core.BlockPos
-import net.minecraft.tags.FluidTags
+
 
 /**
  * Steps under water and coming up for air on the way.
@@ -52,7 +52,7 @@ internal class Swimming(private val context: NavigationContext) {
         return Movement(target, sprint = true, dive = true)
     }
 
-    fun isShortOfAir() = !player.isEyeInFluid(FluidTags.WATER) && player.airSupply < player.maxAirSupply
+    fun isShortOfAir() = !player.isEyeInWater() && player.airSupply < player.maxAirSupply
 
     /**
      * Whether to come up for air and stay until it is full, which a long swim close under the surface needs.
@@ -68,12 +68,12 @@ internal class Swimming(private val context: NavigationContext) {
 
     private fun isAirAbove(): Boolean {
         val head = BlockPos.containing(player.eyePosition)
-        val chunk = context.body.level.getChunk(head)
+        val level = context.body.level
         for (dy in 0..AIR_SEARCH) {
             val pos = head.above(dy)
-            val state = chunk.getBlockState(pos)
+            val state = level.getBlockState(pos)
             if (state.fluidState.isEmpty) {
-                return state.getCollisionShape(chunk, pos).isEmpty
+                return state.getCollisionShape(level, pos).isEmpty
             }
         }
         return false

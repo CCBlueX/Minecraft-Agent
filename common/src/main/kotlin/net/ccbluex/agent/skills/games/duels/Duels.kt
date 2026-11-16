@@ -31,7 +31,7 @@ import net.ccbluex.agent.skills.gear.GearScore
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.tick.TickScope
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.world.entity.LivingEntity
+import net.ccbluex.agent.world.entity.LivingEntity
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.BlockHitResult
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
 import org.slf4j.Logger
 
 /**

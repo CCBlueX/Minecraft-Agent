@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.walk.WalkAbilities
 import net.ccbluex.agent.simulation.MotionTraits
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Attributes
+import net.ccbluex.agent.world.entity.Player
 import kotlin.math.abs
 
 /**

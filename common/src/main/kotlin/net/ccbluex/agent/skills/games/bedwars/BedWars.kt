@@ -22,9 +22,9 @@ package net.ccbluex.agent.skills.games.bedwars
 import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.games.GameMode
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.entity.player.Player
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.ItemEntity
+import net.ccbluex.agent.world.entity.Player
 import java.util.Random
 
 /**

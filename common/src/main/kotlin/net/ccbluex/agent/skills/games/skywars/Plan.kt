@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 
 /**
  * What a [SkyWars] agent can work on between fights.

@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
-import net.minecraft.world.phys.Vec3
 
 /**
  * A jump between two feet blocks: sprint from [runUp] towards [aim], jump [takeoff] ticks later, steer in the air.

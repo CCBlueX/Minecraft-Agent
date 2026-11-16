@@ -21,6 +21,9 @@ package net.ccbluex.agent.navigation.walk
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import it.unimi.dsi.fastutil.longs.LongSet
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.captureWalk
@@ -31,9 +34,6 @@ import net.ccbluex.agent.pathfinder.route.Replanner
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.RouteSearch
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.min

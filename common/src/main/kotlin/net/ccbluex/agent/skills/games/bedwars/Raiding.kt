@@ -19,18 +19,18 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.gear.GearScore
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.shop.Wishes
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.tags.BlockTags
-import net.minecraft.tags.ItemTags
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockTags
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.ItemTags
+import net.ccbluex.agent.world.item.Items
 
 private const val BED_REACH = 4.0
 private const val DIG_REACH = 4.5

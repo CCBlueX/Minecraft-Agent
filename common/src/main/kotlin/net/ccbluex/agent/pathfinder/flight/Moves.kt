@@ -20,12 +20,12 @@
 package net.ccbluex.agent.pathfinder.flight
 
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.route.Destination
 import net.ccbluex.agent.pathfinder.route.WeightedEdge
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.max
 

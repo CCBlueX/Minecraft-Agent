@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.buildingBlocks
@@ -26,11 +28,9 @@ import net.ccbluex.agent.skills.count
 import net.ccbluex.agent.skills.games.WayCost
 import net.ccbluex.agent.skills.gear.GearScore
 import net.ccbluex.agent.skills.loot.Wanted
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.AABB
+import net.ccbluex.agent.world.entity.ItemEntity
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.Items
 
 private const val TEAMMATE_NEAR = 8.0
 private const val BUSY_RANGE = 4.5

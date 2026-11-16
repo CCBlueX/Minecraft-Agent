@@ -22,8 +22,8 @@ package net.ccbluex.agent.skills.shop
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.Personality
 import net.ccbluex.agent.skills.itemId
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.Items
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.item.Items
 import java.util.Random
 
 /**

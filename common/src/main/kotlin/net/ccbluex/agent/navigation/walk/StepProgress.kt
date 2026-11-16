@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.ProgressWatch
 import net.ccbluex.agent.pathfinder.walk.Leap
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 
 /**
  * Least distance a tick has to gain on a step to count as progress.

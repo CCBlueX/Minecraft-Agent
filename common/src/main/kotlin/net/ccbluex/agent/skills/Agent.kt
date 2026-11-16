@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.skills
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.skills.games.GameMode
 import net.ccbluex.agent.skills.games.RoundSenses
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

@@ -20,12 +20,12 @@
 package net.ccbluex.agent.pathfinder.route
 
 import net.ccbluex.agent.InternalAgentApi
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.ccbluex.agent.pathfinder.level.LiveLevel
-import net.ccbluex.agent.pathfinder.level.LevelBlocks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.LevelBlocks
+import net.ccbluex.agent.world.LiveLevel
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
 

@@ -19,18 +19,18 @@
 
 package net.ccbluex.agent.navigation.flight
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.distanceToSegment
 import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.navigation.FollowState
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.Progress
 import net.ccbluex.agent.navigation.ProgressWatch
-import net.ccbluex.agent.pathfinder.flight.FlyAbilities
 import net.ccbluex.agent.pathfinder.flight.Acceleration
+import net.ccbluex.agent.pathfinder.flight.FlyAbilities
 import net.ccbluex.agent.pathfinder.flight.Route
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
 
 /**
  * Flies a [Route] with movement input: the keys towards a point ahead on the route, jump to rise and sneak to
@@ -153,7 +153,7 @@ internal class Follower(private val context: NavigationContext, private val hand
         val leaves = player.onGround() && error.y < -1.0
         val sneak = error.y < -sinkTolerance && !jump && !leaves
         val input =
-            Input(direction.forward(), direction.backward(), direction.left(), direction.right(), jump, sneak, false)
+            Input(direction.forward, direction.backward, direction.left, direction.right, jump, sneak, false)
         context.body.press(input, true)
         pressed = input
         sprint = moves && error.horizontalDistance() > SPRINT_DISTANCE

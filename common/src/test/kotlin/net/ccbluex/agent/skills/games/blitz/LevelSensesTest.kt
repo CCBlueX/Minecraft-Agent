@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.skills.games.blitz
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.skills.TestInventories
@@ -27,7 +28,7 @@ import net.ccbluex.agent.skills.games.FakeRoundFacts
 import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.games.playerNamed
 import net.ccbluex.agent.skills.loot.Chests
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
@@ -57,7 +58,7 @@ internal class LevelSensesTest {
     private val level = TestLevel(TestWorld.flat().set(5, 1, 5, Blocks.CHEST.defaultBlockState()))
     private val facts = FakeFacts()
     private val chests = Chests()
-    private val senses = LevelSenses(level, facts, chests, BLOCKS_AROUND_ORIGIN)
+    private val senses = LevelSenses(level.toAgent(), facts, chests, BLOCKS_AROUND_ORIGIN)
     private val me = level.playerNamed("Me", TestWorld.feet(0, 1, 0))
 
     @Test
@@ -83,6 +84,6 @@ internal class LevelSensesTest {
     fun compassTargetIsTheSpawnOfARoundAlreadyUnderway() {
         me.inventory.add(ItemStack(Items.COMPASS))
         senses.tick()
-        assertEquals(level.respawnData.pos(), senses.compassTarget)
+        assertEquals(level.respawnData.pos().toAgent(), senses.compassTarget)
     }
 }

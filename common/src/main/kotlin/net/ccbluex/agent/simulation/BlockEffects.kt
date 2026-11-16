@@ -19,14 +19,11 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_2
-import net.minecraft.world.entity.Entity.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_5
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.FenceBlock
-import net.minecraft.world.level.block.FenceGateBlock
-import net.minecraft.world.level.block.SlimeBlock
-import net.minecraft.world.level.block.WallBlock
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.world.block.Block
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.entity.Entity.Companion.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_2
+import net.ccbluex.agent.world.entity.Entity.Companion.DELTA_AFFECTED_BY_BLOCKS_BELOW_0_5
 
 // The blocks around the feet of a PlayerMotion that change how it moves.
 
@@ -39,7 +36,7 @@ import net.minecraft.world.level.block.WallBlock
  */
 internal fun PlayerMotion.fallScale(): Double {
     val block = onPosLegacy()
-    return if (block is SlimeBlock) 0.0 else 1.0 - block.fallDistanceReduction
+    return if (block.`is`(BlockKind.SLIME)) 0.0 else 1.0 - block.fallDistanceReduction
 }
 
 /**
@@ -56,7 +53,7 @@ internal fun PlayerMotion.onPosLegacy(): Block {
     }
 
     val support = terrain.state(supportX, supportY, supportZ).block
-    if (support is FenceBlock || support is WallBlock || support is FenceGateBlock) {
+    if (support.`is`(BlockKind.FENCE) || support.`is`(BlockKind.WALL) || support.`is`(BlockKind.FENCE_GATE)) {
         return support
     }
     return terrain.state(supportX, below, supportZ).block
@@ -76,7 +73,7 @@ internal fun PlayerMotion.movementBlock(): Block {
     }
 
     val support = terrain.state(supportX, supportY, supportZ).block
-    if (support is WallBlock || support is FenceGateBlock) {
+    if (support.`is`(BlockKind.WALL) || support.`is`(BlockKind.FENCE_GATE)) {
         return support
     }
     return terrain.state(supportX, below, supportZ).block

@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.games
 
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.Level
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.math.Vec3
 
 /**
  * The round facts every game needs, read from a [level] and the [RoundFacts] a client takes from text. One instance

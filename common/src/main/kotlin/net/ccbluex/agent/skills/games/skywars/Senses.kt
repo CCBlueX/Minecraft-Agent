@@ -20,9 +20,9 @@
 package net.ccbluex.agent.skills.games.skywars
 
 import net.ccbluex.agent.ExperimentalAgentApi
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.games.RoundSenses
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 
 /**
  * What a host tells a [SkyWars] agent about the round. [RoundSenses.ownSpawn] is the own cage; without it the agent

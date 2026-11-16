@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.horizontalDistanceToSqr
 import net.ccbluex.agent.math.toDegrees
 import net.ccbluex.agent.math.yRot
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.max

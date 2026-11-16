@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.walk.Course.Companion.LANDING_PROBE
 import net.ccbluex.agent.pathfinder.walk.Course.Companion.MAX_AIR_TICKS
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
 /**

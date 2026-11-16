@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.distanceToSegment
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.horizontalDistanceToSqr
@@ -26,8 +28,6 @@ import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.pathfinder.walk.Move
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.Step
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

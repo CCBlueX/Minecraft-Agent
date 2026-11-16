@@ -24,7 +24,7 @@ import net.ccbluex.agent.skills.HOTBAR_SLOTS
 import net.ccbluex.agent.skills.INVENTORY_SLOTS
 import net.ccbluex.agent.skills.SCRATCH_SLOT
 import net.ccbluex.agent.skills.bestSlot
-import net.minecraft.world.entity.player.Inventory
+import net.ccbluex.agent.world.entity.Inventory
 
 /**
  * The built-in [Gear]: every [CHECK_TICKS] it puts on the best piece the inventory has where it beats the worn one,

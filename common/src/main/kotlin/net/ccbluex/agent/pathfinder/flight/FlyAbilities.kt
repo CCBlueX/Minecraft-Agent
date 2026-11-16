@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.pathfinder.flight
 
-import net.minecraft.world.entity.LivingEntity.FLYING_AIR_DRAG
-import net.minecraft.world.entity.player.Abilities as PlayerAbilities
+import net.ccbluex.agent.world.entity.LivingEntity.Companion.FLYING_AIR_DRAG
+import net.ccbluex.agent.world.entity.Abilities as PlayerAbilities
 
 /**
  * Whether the keys build up speed that fades, as in creative flight, or set it right away, as Fly's Vanilla mode.

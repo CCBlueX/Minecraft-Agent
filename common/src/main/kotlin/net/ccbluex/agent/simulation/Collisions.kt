@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.simulation.PlayerMotion.Companion.HALF_WIDTH
 import net.ccbluex.agent.simulation.PlayerMotion.Companion.HEIGHT
 import net.ccbluex.agent.simulation.PlayerMotion.Companion.STEP_HEIGHT
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
 
 private const val STEP_PROBE = 1.0E-5
 private const val EDGE_INSET = 1.0E-7

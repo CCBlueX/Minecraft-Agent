@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 
 /**
  * The first spot with open air at the feet and a solid block below, looking down the column of [x], [z] from [y] at

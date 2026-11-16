@@ -19,17 +19,16 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.skills.shop.Currency
 import net.ccbluex.agent.skills.shop.Wishes
 import net.ccbluex.agent.tick.tickConditional
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.Direction
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.inventory.ContainerInput
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.ContainerInput
+import net.ccbluex.agent.world.InteractionHand
 import kotlin.math.abs
 
 /**
@@ -227,7 +226,7 @@ internal suspend fun Activities.spare(): Boolean {
         var left = amount
         for (slot in menu.slots) {
             val stack = slot.item
-            if (slot.container !is Inventory || !stack.`is`(currency.item) || stack.count > left) continue
+            if (!slot.isPlayerInventory || !stack.`is`(currency.item) || stack.count > left) continue
             left -= stack.count
             moved += stack.count
             body.clickContainer(slot.index, 0, ContainerInput.QUICK_MOVE)

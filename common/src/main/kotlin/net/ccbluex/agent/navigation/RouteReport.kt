@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.navigation
 
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 
 /**
  * The route events for [listener], each passed on only when it changes what a renderer shows.

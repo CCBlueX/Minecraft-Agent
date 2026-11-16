@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ifNaN
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.pathfinder.walk.Jump
@@ -29,8 +31,6 @@ import net.ccbluex.agent.pathfinder.walk.LeapInput
 import net.ccbluex.agent.pathfinder.walk.Move
 import net.ccbluex.agent.pathfinder.walk.Step
 import net.ccbluex.agent.simulation.PlayerMotion
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
 /**

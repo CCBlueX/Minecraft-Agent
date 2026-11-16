@@ -19,11 +19,11 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.block.entity.ChestBlockEntity
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockEntityType
 import kotlin.math.abs
 
 internal const val OWN_CHEST_RANGE = 7.0
@@ -65,7 +65,7 @@ internal fun Round.lootable(chests: List<BlockPos>, leftovers: Boolean): List<Bl
     val level = agent.body.level
     return chests.filter { pos ->
         if (pos in unreachable || loot.chests.isOpened(pos) || isAvoided(pos)) return@filter false
-        if (level.isLoaded(pos) && level.getBlockEntity(pos) !is ChestBlockEntity) return@filter false
+        if (level.isLoaded(pos) && level.getBlockEntity(pos) != BlockEntityType.CHEST) return@filter false
         if (!leftovers && (senses.isChestInUse(pos) || senses.ticksSinceChestClosed(pos) != null)) return@filter false
         val freeAt = freeAt(pos)
         if (freeAt > ticks) {

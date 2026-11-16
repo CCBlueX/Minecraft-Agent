@@ -19,15 +19,14 @@
 
 package net.ccbluex.agent.skills.voidrescue
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.simulation.SimulatedInput
-import net.ccbluex.agent.simulation.SimulatedPlayer
 import net.ccbluex.agent.skills.AgentBody
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * How a tick's keys are held back at a void edge, from the least to the most.
@@ -58,7 +57,7 @@ internal enum class EdgeHold {
             else -> STOP
         }
 
-        fun Input.withoutJump() = Input(forward(), backward(), left(), right(), false, shift(), sprint())
+        fun Input.withoutJump() = Input(forward, backward, left, right, false, shift, sprint)
 
         /**
          * Whether moving on with [input] drops the player more than [DROP] into the void. The game's own movement on
@@ -74,8 +73,8 @@ internal enum class EdgeHold {
         ): Boolean {
             val player = body.player
             // Sprint is decided after the keys; assuming it overestimates the way, which is the safe side
-            val sprint = player.isSprinting || !input.shift() && input.forward()
-            val keys = Input(input.forward(), input.backward(), input.left(), input.right(), input.jump(), input.shift(), sprint)
+            val sprint = player.isSprinting || !input.shift && input.forward
+            val keys = Input(input.forward, input.backward, input.left, input.right, input.jump, input.shift, sprint)
             if (body.traits.exactSimulation) {
                 return simulateExactly(body, keys, safeWalk, untilLanding)
             }
@@ -86,17 +85,12 @@ internal enum class EdgeHold {
 
         private fun simulateExactly(body: AgentBody, keys: Input, safeWalk: Boolean, untilLanding: Boolean): Boolean {
             val drop = body.player.y - DROP
-            val simulated = SimulatedPlayer.fromPlayer(
-                body.player,
-                SimulatedInput(keys, forceStayOnGroundSurface = safeWalk),
-                continuesTick = body.traits.navigatesInMovementTick,
-                hooks = body.simulationHooks,
-            )
-            simulated.yRot = body.inputYRot
+            val simulated = body.simulate(SimulatedInput(keys, forceStayOnGroundSurface = safeWalk), body.inputYRot)
             repeat(SIM_TICKS) {
                 simulated.tick()
-                if (untilLanding && simulated.onGround()) return false
-                if (simulated.y < drop && !simulated.onGround() && isOverVoid(body.player, simulated.position())) {
+                val copy = simulated.player
+                if (untilLanding && copy.onGround()) return false
+                if (copy.y < drop && !copy.onGround() && isOverVoid(body.player, copy.position())) {
                     return true
                 }
             }
@@ -116,10 +110,10 @@ internal enum class EdgeHold {
             isOverVoid: (Vec3) -> Boolean,
         ): Boolean {
             val drop = motion.y - DROP
-            val forward = axis(keys.forward(), keys.backward())
-            val strafe = axis(keys.left(), keys.right())
+            val forward = axis(keys.forward, keys.backward)
+            val strafe = axis(keys.left, keys.right)
             repeat(SIM_TICKS) {
-                motion.tick(yRot, forward, strafe, keys.jump(), keys.sprint(), keys.shift() || safeWalk)
+                motion.tick(yRot, forward, strafe, keys.jump, keys.sprint, keys.shift || safeWalk)
                 if (untilLanding && motion.onGround) return false
                 if (motion.y < drop && !motion.onGround && isOverVoid(motion.position)) return true
             }

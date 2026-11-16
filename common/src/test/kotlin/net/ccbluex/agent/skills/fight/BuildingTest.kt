@@ -19,6 +19,9 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.pathfinder.TestLevel
@@ -27,11 +30,10 @@ import net.ccbluex.agent.skills.AgentBody
 import net.ccbluex.agent.skills.Personality
 import net.ccbluex.agent.skills.SkillLevel
 import net.ccbluex.agent.skills.TestInventories
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.BlockHitResult
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
 import java.lang.reflect.Proxy
 import java.util.Random
 import kotlin.test.Test
@@ -55,14 +57,14 @@ class BuildingTest {
     fun `a wall block waits for the server's rotation and then goes on the top it looks at`() {
         val level = TestLevel(TestWorld.flat())
         val player = level.player(TestWorld.feet(0, 1, 0))
-        player.inventory.setItem(0, TestInventories.stack(Items.STONE, 16))
+        player.inventory.setItem(0, ItemStack(Items.STONE, 16))
         player.inventory.selectedSlot = 0
         var sent = ViewRotation(90f, 0f)
         val clicks = ArrayList<BlockHitResult>()
         val body = Proxy.newProxyInstance(AgentBody::class.java.classLoader, arrayOf(AgentBody::class.java)) { _, method, args ->
             when (method.name) {
-                "getPlayer" -> player
-                "getLevel" -> level
+                "getPlayer" -> player.toAgent()
+                "getLevel" -> level.toAgent()
                 "getSentRotation" -> sent
                 "useItemOn" -> clicks.add(args[1] as BlockHitResult)
                 else -> when (method.returnType) {
@@ -82,7 +84,7 @@ class BuildingTest {
         assertNull(Building.wall(fight, east, 0))
         assertTrue(clicks.isEmpty())
 
-        sent = ViewRotation.fromVector(Building.top(BlockPos(1, 0, 0)).subtract(player.eyePosition))
+        sent = ViewRotation.fromVector(Building.top(BlockPos(1, 0, 0)).subtract(player.eyePosition.toAgent()))
         assertEquals(true, Building.wall(fight, east, 0))
         val click = clicks.single()
         assertEquals(BlockPos(1, 0, 0), click.blockPos)

@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.skills.gear
 
-import net.minecraft.world.entity.LivingEntity
+import net.ccbluex.agent.world.entity.LivingEntity
 import java.util.UUID
 
 /**

@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.skills.games
 
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * Facts about the round every game needs, supplied by the host for its place: a client from what the server shows,

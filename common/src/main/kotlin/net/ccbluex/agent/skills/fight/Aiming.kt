@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.entity.Entity
 import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.atan2

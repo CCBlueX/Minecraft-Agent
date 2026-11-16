@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.navigation.walk
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.math.horizontalDistanceTo
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.BlockStateProperties
+import net.ccbluex.agent.world.entity.Player
 
 private const val CENTER_TOLERANCE = 0.1
 
@@ -60,4 +60,4 @@ internal val Player.isStable: Boolean
  * @agent claude-opus-5-5
  */
 internal val BlockState.isOpenOrGone: Boolean
-    get() = getOptionalValue(BlockStateProperties.OPEN).orElse(true)
+    get() = getOptionalValue(BlockStateProperties.OPEN) ?: true

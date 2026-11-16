@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.pathfinder.walk
 
+import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.ifNaN
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.terrain.hasRoom
 import net.ccbluex.agent.pathfinder.terrain.isOpen
 import net.ccbluex.agent.simulation.MotionTraits
-import net.minecraft.util.Mth
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max

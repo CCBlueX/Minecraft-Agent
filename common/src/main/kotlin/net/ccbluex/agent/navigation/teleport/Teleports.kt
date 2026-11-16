@@ -19,12 +19,12 @@
 
 package net.ccbluex.agent.navigation.teleport
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.Body
 import net.ccbluex.agent.pathfinder.teleport.Route
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockState
 
 /**
  * Sends teleport routes for [body] through its [Body.teleporter], one batch of steps per tick, and tells the host
@@ -253,7 +253,6 @@ public class Teleports(private val body: Body) {
 
     private fun land(position: Vec3) {
         body.teleporter?.land(position)
-        body.player.resetFallDistance()
         release()
     }
 

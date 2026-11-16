@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.core.Holder
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.effect.MobEffect
-import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.entity.MobEffect
+import net.ccbluex.agent.world.entity.MobEffects
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 
 /**
  * Eats a golden apple when low, backing off; walls itself in first when it carries blocks and the target is close. A
@@ -104,11 +104,11 @@ internal class Gapple : Technique(Skill.GAPPLE, 70, 60) {
  */
 internal abstract class Splash(kind: Skill, priority: Int, cooldown: Int) : Technique(kind, priority, cooldown) {
 
-    private var effect: Holder<MobEffect>? = null
+    private var effect: MobEffect? = null
     private var xRot = 85f
     private var since = 0L
 
-    abstract fun potion(fight: BuiltInFight): Holder<MobEffect>?
+    abstract fun potion(fight: BuiltInFight): MobEffect?
 
     override fun begin(fight: BuiltInFight) {
         if (fight.body.isUsingItem) fight.body.releaseUsingItem()
@@ -163,7 +163,7 @@ internal class PotHeal : Splash(Skill.POT_HEAL, 75, 10) {
     override val heals: Boolean
         get() = true
 
-    override fun potion(fight: BuiltInFight): Holder<MobEffect>? =
+    override fun potion(fight: BuiltInFight): MobEffect? =
         MobEffects.INSTANT_HEALTH.takeIf { effect -> fight.hands.has { it.splashes(effect) } }
 
     override fun can(fight: BuiltInFight): Boolean = !fight.eatWanted && fight.low(LOW) && potion(fight) != null
@@ -202,7 +202,7 @@ internal class PotHeal : Splash(Skill.POT_HEAL, 75, 10) {
  */
 internal class PotBuff : Splash(Skill.POT_BUFF, 60, 10) {
 
-    override fun potion(fight: BuiltInFight): Holder<MobEffect>? =
+    override fun potion(fight: BuiltInFight): MobEffect? =
         listOf(MobEffects.STRENGTH, MobEffects.SPEED).firstOrNull { effect ->
             (fight.player.getEffect(effect)?.duration ?: 0) < RENEW_TICKS && fight.hands.has { it.splashes(effect) }
         }

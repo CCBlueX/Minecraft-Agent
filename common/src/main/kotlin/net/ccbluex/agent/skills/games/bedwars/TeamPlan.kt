@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
-import net.minecraft.core.BlockPos
-import net.minecraft.world.level.BlockGetter
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.BlockGetter
 import java.util.Random
 
 /**

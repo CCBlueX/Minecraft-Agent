@@ -20,6 +20,9 @@
 package net.ccbluex.agent.navigation
 
 import net.ccbluex.agent.InternalAgentApi
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.walk.BlockActions
 import net.ccbluex.agent.navigation.walk.Follower
@@ -27,15 +30,11 @@ import net.ccbluex.agent.navigation.walk.PlacedBlock
 import net.ccbluex.agent.navigation.walk.Planning
 import net.ccbluex.agent.navigation.walk.Setbacks
 import net.ccbluex.agent.tick.tickUntil
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.entity.Entity
 import org.slf4j.LoggerFactory
 import java.util.function.Consumer
 
@@ -192,7 +191,7 @@ public class Navigator @JvmOverloads constructor(
         val input = pressed ?: keys.toInput(sprint = false)
         val sprint = heading.sprint && input.isMoving
         finishTick(
-            if (sprint) input.withKeys(input.jump(), input.shift(), sprint = true) else input,
+            if (sprint) input.withKeys(input.jump, input.shift, sprint = true) else input,
             exact = !plainWalk || pressed != null && tickBody.pressedExact,
         )
         return plainWalk

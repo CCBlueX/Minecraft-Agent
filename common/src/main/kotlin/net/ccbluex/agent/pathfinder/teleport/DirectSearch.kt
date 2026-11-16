@@ -24,8 +24,8 @@ import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.route.Search
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 
 /**
  * A teleport route of a single step from [start] to the closest of [goals], the blocks the feet end in. It fails

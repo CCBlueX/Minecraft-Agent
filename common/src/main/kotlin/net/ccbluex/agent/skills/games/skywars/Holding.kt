@@ -19,6 +19,10 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.math.horizontalDistanceTo
@@ -29,12 +33,8 @@ import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.isBuildingBlock
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.InteractionHand
 import kotlin.math.hypot
 
 private const val HOLD_STRETCH = 200

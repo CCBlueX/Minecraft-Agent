@@ -19,11 +19,16 @@
 
 package net.ccbluex.agent.skills.maps
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
 import net.ccbluex.agent.skills.TestInventories
-import net.minecraft.core.BlockPos
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.entity.Entity
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.EquipmentSlot
@@ -31,11 +36,7 @@ import net.minecraft.world.entity.Interaction
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.level.block.BasePressurePlateBlock
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.ButtonBlock
-import net.minecraft.world.level.block.LeverBlock
-import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -57,23 +58,26 @@ internal class LeadsTest {
         // A test level has no chunks to read: look at every position of a thin slab around the player
         private val SWITCHES = Switches { level, center, action ->
             for (pos in BlockPos.betweenClosed(center.offset(-Switches.RANGE, -1, -Switches.RANGE), center.offset(Switches.RANGE, 1, Switches.RANGE))) {
-                val block = level.getBlockState(pos).block
-                if (block is ButtonBlock || block is LeverBlock || block is BasePressurePlateBlock) action(pos.immutable(), block)
+                val state = level.getBlockState(pos)
+                if (state.`is`(BlockKind.BUTTON) || state.`is`(BlockKind.LEVER) || state.`is`(BlockKind.PRESSURE_PLATE)) {
+                    action(pos.immutable(), state.block)
+                }
             }
         }
     }
 
     private val world = TestWorld.flat()
     private val level = TestLevel(world)
-    private val player = level.player(TestWorld.feet(0, 1, 0))
+    private val handle = level.player(TestWorld.feet(0, 1, 0))
+    private val player = handle.toAgent()
     private val changes = Changes()
     private val leads = Leads(SWITCHES)
 
-    private fun interaction(x: Double, z: Double): Interaction =
+    private fun interaction(x: Double, z: Double): Entity =
         Interaction(EntityTypes.INTERACTION, level).also {
             it.setPos(x, 1.0, z)
             level.add(it)
-        }
+        }.toAgent()
 
     private fun best(now: Int = 0) = leads.best(player, changes.also { it.tick(player) }, emptyList(), now, null)
 
@@ -99,7 +103,7 @@ internal class LeadsTest {
         stand.setInvisible(false)
         val lead = assertNotNull(best())
         assertEquals(Leads.Lead.Kind.WALK_UP, lead.kind)
-        assertEquals(stand, lead.entity)
+        assertEquals(stand.toAgent(), lead.entity)
     }
 
     @Test
@@ -155,7 +159,7 @@ internal class LeadsTest {
         }
         val lead = assertNotNull(best())
         assertEquals(Leads.Lead.Kind.WALK_UP, lead.kind)
-        assertEquals(guide, lead.entity)
+        assertEquals(guide.toAgent(), lead.entity)
         assertEquals(Vec3(4.5, 1.0, 0.5), lead.position)
     }
 
@@ -183,8 +187,8 @@ internal class LeadsTest {
 
     @Test
     fun `told to drop with wings on, no edge is guessed`() {
-        player.setItemSlot(EquipmentSlot.CHEST, ItemStack(Items.ELYTRA))
-        player.snapTo(Vec3(39.5, 1.0, 0.5), 0f, 0f)
+        handle.setItemSlot(EquipmentSlot.CHEST, ItemStack(Items.ELYTRA))
+        handle.snapTo(Vec3(39.5, 1.0, 0.5).toMinecraft(), 0f, 0f)
         changes.tick(player)
         changes.chat("Jump off the ledge and glide down")
         assertNull(best())

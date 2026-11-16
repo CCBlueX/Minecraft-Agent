@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.item.enchantment.Enchantments
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.item.Enchantments
 
 /**
  * The spear's rhythm. Far: a jump and a Lunge stab mid-air towards the target, then the charge held out at a sprint,

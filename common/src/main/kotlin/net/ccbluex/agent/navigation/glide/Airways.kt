@@ -27,8 +27,8 @@ import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.route.Replanner
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import java.util.concurrent.TimeUnit
 
 /**

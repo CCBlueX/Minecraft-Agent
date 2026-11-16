@@ -20,15 +20,15 @@
 package net.ccbluex.agent.skills.games.blitz
 
 import net.ccbluex.agent.ExperimentalAgentApi
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.skills.games.LevelRoundSenses
 import net.ccbluex.agent.skills.games.LoadedBlocks
 import net.ccbluex.agent.skills.games.RoundFacts
 import net.ccbluex.agent.skills.games.RoundState
 import net.ccbluex.agent.skills.loot.Chests
-import net.minecraft.core.BlockPos
-import net.minecraft.world.item.Items
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.ChestBlock
+import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.item.Items
 
 /**
  * A Blitz round of a client: the timers from [LevelSenses.Facts], the chests of the loaded chunks added to [known]
@@ -102,13 +102,13 @@ public class LevelSenses internal constructor(
 
     override fun scan() {
         val me = self ?: return
-        blocks.find(level, me.blockPosition()) { it.block is ChestBlock }.forEach(known::add)
-        val spawn = level.respawnData.pos()
+        blocks.find(level, me.blockPosition()) { it.`is`(BlockKind.CHEST) }.forEach(known::add)
+        val spawn = level.respawnPos
         if (state != RoundState.PLAYING) {
             roundSpawn = spawn
             return
         }
-        val carried = me.inventory.contains { it.`is`(Items.COMPASS) }
+        val carried = (0 until me.inventory.containerSize).any { me.inventory.getItem(it).`is`(Items.COMPASS) }
         compassTarget = spawn.takeIf { carried && it != roundSpawn }
     }
 }

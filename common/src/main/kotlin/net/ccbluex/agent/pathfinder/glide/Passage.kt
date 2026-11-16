@@ -24,9 +24,9 @@ import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.pathfinder.flight.Route
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.simulation.ElytraMotion
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.Vec3
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sqrt

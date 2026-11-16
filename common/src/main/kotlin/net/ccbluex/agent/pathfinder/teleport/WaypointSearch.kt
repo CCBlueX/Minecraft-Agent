@@ -19,15 +19,15 @@
 
 package net.ccbluex.agent.pathfinder.teleport
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.route.AStarSearch
 import net.ccbluex.agent.pathfinder.route.Failure
 import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.route.WeightedEdge
 import net.ccbluex.agent.pathfinder.terrain.Terrain
-import net.minecraft.core.BlockPos
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

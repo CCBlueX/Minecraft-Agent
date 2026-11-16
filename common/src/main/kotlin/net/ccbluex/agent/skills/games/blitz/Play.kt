@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.skills.games.blitz
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.world.phys.Vec3
 
 private const val CENTER_TICKS = 45 * Round.TICKS_PER_SECOND
 private const val CENTER_RADIUS = 14.0

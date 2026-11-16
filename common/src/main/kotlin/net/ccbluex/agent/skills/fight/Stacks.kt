@@ -19,23 +19,19 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Holder
-import net.minecraft.core.component.DataComponents
-import net.minecraft.resources.ResourceKey
-import net.minecraft.world.effect.MobEffect
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.item.BlockItem
-import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
-import net.minecraft.world.item.component.ItemAttributeModifiers
-import net.minecraft.world.item.enchantment.Enchantment
-import net.minecraft.world.item.enchantment.Enchantments
-import net.minecraft.world.level.EmptyBlockGetter
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.FallingBlock
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.world.EmptyBlockGetter
+import net.ccbluex.agent.world.block.BlockKind
+import net.ccbluex.agent.world.block.Blocks
+import net.ccbluex.agent.world.entity.Attributes
+import net.ccbluex.agent.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.entity.MobEffect
+import net.ccbluex.agent.world.item.Enchantment
+import net.ccbluex.agent.world.item.Enchantments
+import net.ccbluex.agent.world.item.Item
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
+
 
 // What the fight tells items apart by. Item sets instead of tags: tags are bound only once a world loads.
 
@@ -72,23 +68,21 @@ internal val ItemStack.isGoldenApple: Boolean get() = `is`(Items.GOLDEN_APPLE) |
  */
 internal val ItemStack.isBuildingBlock: Boolean
     get() {
-        val block = (item as? BlockItem)?.block ?: return false
-        if (block is FallingBlock || block in NOT_FOR_BUILDING) return false
-        return block.defaultBlockState().isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+        val block = item.block ?: return false
+        if (block.`is`(BlockKind.FALLING) || block in NOT_FOR_BUILDING) return false
+        return block.defaultBlockState().isCollisionShapeFullBlock(EmptyBlockGetter, BlockPos.ZERO)
     }
 
 internal fun ItemStack.isOf(item: Item): Boolean = !isEmpty && `is`(item)
 
-internal fun ItemStack.enchantLevel(key: ResourceKey<Enchantment>): Int =
-    enchantments.entrySet().firstOrNull { it.key.`is`(key) }?.intValue ?: 0
+internal fun ItemStack.enchantLevel(enchantment: Enchantment): Int = getEnchantmentLevel(enchantment)
 
 /**
  * Whether the splash potion carries [effect].
  */
-internal fun ItemStack.splashes(effect: Holder<MobEffect>): Boolean {
+internal fun ItemStack.splashes(effect: MobEffect): Boolean {
     if (!`is`(Items.SPLASH_POTION)) return false
-    val contents = get(DataComponents.POTION_CONTENTS) ?: return false
-    return contents.allEffects.any { it.effect == effect }
+    return potionEffects?.any { it.effect == effect } == true
 }
 
 /**
@@ -112,11 +106,10 @@ internal val ItemStack.weaponRank: Int
  */
 internal val ItemStack.damagePerSecond: Double
     get() {
-        val modifiers = getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY)
         val sharpness = enchantLevel(Enchantments.SHARPNESS)
-        val damage = modifiers.compute(Attributes.ATTACK_DAMAGE, BASE_ATTACK_DAMAGE, EquipmentSlot.MAINHAND) +
+        val damage = computeAttribute(Attributes.ATTACK_DAMAGE, BASE_ATTACK_DAMAGE, EquipmentSlot.MAINHAND) +
             if (sharpness > 0) 0.5 + 0.5 * sharpness else 0.0
-        return damage * modifiers.compute(Attributes.ATTACK_SPEED, BASE_ATTACK_SPEED, EquipmentSlot.MAINHAND)
+        return damage * computeAttribute(Attributes.ATTACK_SPEED, BASE_ATTACK_SPEED, EquipmentSlot.MAINHAND)
     }
 
 private const val BASE_ATTACK_DAMAGE = 1.0

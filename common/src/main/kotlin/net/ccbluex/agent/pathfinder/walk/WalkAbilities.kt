@@ -22,7 +22,7 @@ package net.ccbluex.agent.pathfinder.walk
 import it.unimi.dsi.fastutil.longs.LongSet
 import it.unimi.dsi.fastutil.longs.LongSets
 import net.ccbluex.agent.simulation.MotionTraits
-import net.minecraft.world.level.block.state.BlockState
+import net.ccbluex.agent.world.block.BlockState
 import java.util.function.ToDoubleFunction
 
 /**

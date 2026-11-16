@@ -20,10 +20,10 @@
 package net.ccbluex.agent.skills.games.duels
 
 import net.ccbluex.agent.ExperimentalAgentApi
+import net.ccbluex.agent.math.AABB
 import net.ccbluex.agent.skills.games.RoundSenses
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.phys.AABB
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity
 
 /**
  * What a one-on-one duel looks like to the agent, supplied by the host that runs it. [matchSeconds] counts the

@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.skills.Agent
-import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
 /**

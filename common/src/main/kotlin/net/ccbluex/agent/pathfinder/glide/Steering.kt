@@ -19,7 +19,7 @@
 
 package net.ccbluex.agent.pathfinder.glide
 
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec3
 
 /**
  * Where to look while gliding, whether to fire a rocket now and whether a rocket pushes this tick.

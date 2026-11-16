@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.math.getInputYRot
@@ -26,9 +28,7 @@ import net.ccbluex.agent.math.horizontalDistanceToSqr
 import net.ccbluex.agent.math.yRot
 import net.ccbluex.agent.navigation.walk.BlockActions
 import net.ccbluex.agent.navigation.walk.Follower
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
 import kotlin.math.abs
 
 /**

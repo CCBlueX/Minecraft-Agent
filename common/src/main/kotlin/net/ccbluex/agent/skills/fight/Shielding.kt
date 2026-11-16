@@ -20,10 +20,9 @@
 package net.ccbluex.agent.skills.fight
 
 import net.ccbluex.agent.skills.SkillLevel
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.item.Items
 import kotlin.math.acos
 
 /**
@@ -42,8 +41,7 @@ internal object Shielding {
         fight.hands.offHand.isOf(Items.SHIELD) || fight.hands.has { it.isOf(Items.SHIELD) }
 
     fun shieldReady(fight: BuiltInFight): Boolean {
-        val shield = if (fight.hands.offHand.isOf(Items.SHIELD)) fight.hands.offHand else ItemStack(Items.SHIELD)
-        return !fight.player.cooldowns.isOnCooldown(shield)
+        return !fight.player.cooldowns.isOnCooldown(Items.SHIELD)
     }
 
     /**

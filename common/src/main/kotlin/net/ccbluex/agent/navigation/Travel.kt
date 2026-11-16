@@ -19,14 +19,14 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.flight.Flying
 import net.ccbluex.agent.navigation.flight.captureFlight
 import net.ccbluex.agent.navigation.glide.Gliding
 import net.ccbluex.agent.navigation.glide.RoofBounce
 import net.ccbluex.agent.navigation.glide.captureGlide
 import net.ccbluex.agent.navigation.ride.Riding
-import net.minecraft.core.BlockPos
-import net.minecraft.world.phys.Vec3
 
 /**
  * The ways of a [Navigator] besides walking: riding a vehicle, flying, gliding and bouncing along a roof. Taking one

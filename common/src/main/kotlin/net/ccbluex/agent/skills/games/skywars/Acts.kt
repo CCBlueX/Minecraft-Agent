@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.ItemMatch
@@ -26,12 +28,10 @@ import net.ccbluex.agent.skills.Throws
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.tick.waitTicks
-import net.minecraft.core.BlockPos
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.ItemEntity
+import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.item.Items
 import kotlin.math.abs
 
 /**
@@ -131,7 +131,7 @@ private suspend fun Round.hunt(plan: Plan): Any? {
     while (true) {
         val enemy = agent.body.level.getEntity(id) as? LivingEntity
         if (enemy == null || !enemy.isAlive || !senses.isOpponent(enemy)) return null
-        val name = enemy.name.string
+        val name = enemy.name
         if (plan.pearl) {
             return if (ticks >= pearlAt && enemy.onGround() && throwPearl(enemy.position())) {
                 goal = "Pearling to $name"
@@ -211,7 +211,7 @@ private suspend fun Round.regroup(plan: Plan): Any? {
     while (true) {
         val teammate = agent.body.level.getEntity(id) as? LivingEntity
         if (teammate == null || !teammate.isAlive || !senses.isTeammate(teammate)) return null
-        val name = teammate.name.string
+        val name = teammate.name
         when (step(teammate.position(), REGROUP_WITHIN, id, name)) {
             Step.ARRIVED -> goal = "With $name"
             Step.MOVING -> Unit

@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl
-import net.minecraft.world.item.Items
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.world.entity.ThrownEnderpearl
+import net.ccbluex.agent.world.item.Items
 
 /**
  * Low and pressed: pillars three blocks up out of reach.

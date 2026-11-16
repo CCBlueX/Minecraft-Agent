@@ -19,14 +19,13 @@
 
 package net.ccbluex.agent.skills.games.blitz
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.ChunkPos
+import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.horizontalDistanceToSqr
-import net.minecraft.core.BlockPos
-import net.minecraft.tags.BlockTags
-import net.minecraft.util.Mth
-import net.minecraft.world.level.ChunkPos
-import net.minecraft.world.level.levelgen.Heightmap
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.block.BlockTags
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -227,7 +226,7 @@ private fun Round.groundAt(x: Double, z: Double): Vec3? {
     val blockX = Mth.floor(x)
     val blockZ = Mth.floor(z)
     if (!level.hasChunk(blockX shr Round.CHUNK_SHIFT, blockZ shr Round.CHUNK_SHIFT)) return null
-    var y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, blockX, blockZ)
+    var y = level.getHeight(blockX, blockZ)
     val pos = BlockPos.MutableBlockPos(blockX, y - 1, blockZ)
     while (y > level.minY) {
         val state = level.getBlockState(pos)

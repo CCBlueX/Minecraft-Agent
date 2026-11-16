@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.skills.fight
 
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.entity.LivingEntity
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToLong

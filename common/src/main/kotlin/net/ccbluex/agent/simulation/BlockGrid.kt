@@ -19,8 +19,8 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.shapes.VoxelShape
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.VoxelShape
 
 /**
  * The blocks [PlayerMotion] moves through, looked up by coordinates. Implementations decide what unknown blocks are.

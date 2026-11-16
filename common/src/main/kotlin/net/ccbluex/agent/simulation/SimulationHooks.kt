@@ -19,9 +19,9 @@
 
 package net.ccbluex.agent.simulation
 
-import net.minecraft.world.entity.MoverType
-import net.minecraft.world.phys.Vec2
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.Vec2
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.entity.MoverType
 
 /**
  * How a host changes the movement of its own player, so a [SimulatedPlayer] of that player moves the same. Every

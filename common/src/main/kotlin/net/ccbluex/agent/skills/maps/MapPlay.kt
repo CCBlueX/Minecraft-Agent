@@ -32,15 +32,14 @@ import net.ccbluex.agent.skills.Skills
 import net.ccbluex.agent.skills.games.GameMode
 import net.ccbluex.agent.tick.TickScope
 import net.ccbluex.agent.tick.tickUntil
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.core.component.DataComponents
-import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.world.entity.MobEffects
+import net.ccbluex.agent.world.entity.EquipmentSlot
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.math.Vec3
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -208,8 +207,9 @@ public class MapPlay(
     }
 
     private fun allLoaded(player: Player): Boolean {
-        val chunk = player.chunkPosition()
-        return (-2..2).all { dx -> (-2..2).all { dz -> player.level().hasChunk(chunk.x + dx, chunk.z + dz) } }
+        val chunkX = player.blockPosition().x shr 4
+        val chunkZ = player.blockPosition().z shr 4
+        return (-2..2).all { dx -> (-2..2).all { dz -> player.level().hasChunk(chunkX + dx, chunkZ + dz) } }
     }
 
     private fun recognise(player: Player) {
@@ -221,7 +221,7 @@ public class MapPlay(
         } else {
             val name = mapName.get()
             val map = maps.create(name)
-            map.samples += Fingerprint.sample(level, level.levelData.respawnData.pos())
+            map.samples += Fingerprint.sample(level, level.respawnPos)
             landmark(map, player)
             this.map = map
             report("Unknown map $name, learning it as ${map.id}")
@@ -254,7 +254,7 @@ public class MapPlay(
     }
 
     internal fun isFalling(player: Player): Boolean = !player.onGround() && player.deltaMovement.y < FALL_SPEED &&
-        player.fallDistance > FALL_DISTANCE && player.getItemBySlot(EquipmentSlot.CHEST).has(DataComponents.GLIDER)
+        player.fallDistance > FALL_DISTANCE && player.getItemBySlot(EquipmentSlot.CHEST).canGlideUsing(EquipmentSlot.CHEST)
 
     /**
      * Jump presses mid-air start the glide, one tick down and one up.

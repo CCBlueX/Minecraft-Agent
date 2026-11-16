@@ -24,12 +24,12 @@ import net.ccbluex.agent.skills.buildingBlocks
 import net.ccbluex.agent.skills.gear.GearScore
 import net.ccbluex.agent.skills.isBuildingBlock
 import net.ccbluex.agent.skills.itemId
-import net.minecraft.core.component.DataComponents
-import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+
+import net.ccbluex.agent.world.entity.Inventory
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.Item
+import net.ccbluex.agent.world.item.ItemStack
+import net.ccbluex.agent.world.item.Items
 
 /**
  * Which items make the agent better off: better armor or weapon, blocks, golden apples, pearls, and food, tools and
@@ -57,7 +57,7 @@ public data class Wanted @JvmOverloads constructor(
             isBuildingBlock(stack) -> inventory.buildingBlocks() < blocks
             stack.`is`(Items.GOLDEN_APPLE) || stack.`is`(Items.ENCHANTED_GOLDEN_APPLE) -> true
             stack.`is`(Items.ENDER_PEARL) -> true
-            stack.has(DataComponents.FOOD) -> count(inventory) { it.has(DataComponents.FOOD) } == 0
+            (stack.food != null) -> count(inventory) { (it.food != null) } == 0
             stack.itemId.endsWith(PICKAXE) -> count(inventory) { it.itemId.endsWith(PICKAXE) } == 0
             stack.itemId.endsWith(SHOVEL) -> count(inventory) { it.itemId.endsWith(SHOVEL) } == 0
             stack.`is`(Items.BOW) || stack.`is`(Items.FISHING_ROD) -> count(inventory, stack.item) == 0

@@ -20,12 +20,14 @@
 package net.ccbluex.agent.skills.games
 
 import com.mojang.authlib.GameProfile
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.pathfinder.TestLevel
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Player
+import net.ccbluex.agent.v26_3.toMinecraft
+import net.ccbluex.agent.world.entity.Player
 import net.minecraft.world.level.GameType
-import net.minecraft.world.phys.Vec3
 import java.util.UUID
+import net.minecraft.world.entity.player.Player as McPlayer
 
 /**
  * Round facts a test sets by hand: playing, the agent called Me, nobody a friend or a bot.
@@ -50,11 +52,11 @@ internal open class FakeRoundFacts : RoundFacts {
  *
  * @agent claude-sonnet-5-5
  */
-internal fun TestLevel.playerNamed(name: String, feet: Vec3, mode: GameType = GameType.SURVIVAL): Player {
-    val player = object : Player(this, GameProfile(UUID.randomUUID(), name)) {
+internal fun TestLevel.playerNamed(name: String, feet: Vec3, mode: GameType = GameType.SURVIVAL): McPlayer {
+    val player = object : McPlayer(this, GameProfile(UUID.randomUUID(), name)) {
         override fun gameMode(): GameType = mode
     }
-    player.snapTo(feet, 0f, 0f)
+    player.snapTo(feet.toMinecraft(), 0f, 0f)
     player.setOnGround(true)
     add(player)
     return player
@@ -67,7 +69,7 @@ internal fun TestLevel.playerNamed(name: String, feet: Vec3, mode: GameType = Ga
  * @agent claude-sonnet-5-5
  */
 internal val BLOCKS_AROUND_ORIGIN = LoadedBlocks { level, _, test ->
-    BlockPos.betweenClosed(-40, 0, -40, 40, 4, 40).mapNotNull { pos ->
+    BlockPos.betweenClosed(BlockPos(-40, 0, -40), BlockPos(40, 4, 40)).mapNotNull { pos ->
         if (test.test(level.getBlockState(pos))) pos.immutable() else null
     }
 }

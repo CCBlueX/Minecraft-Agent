@@ -19,10 +19,10 @@
 
 package net.ccbluex.agent.skills.games.skywars
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Direction
+import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.world.entity.Player
 
 /**
  * Finds the cage by the blocks around the player, for hosts that do not know it: standing walled in at the feet and

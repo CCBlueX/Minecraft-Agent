@@ -24,8 +24,8 @@ import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.count
 import net.ccbluex.agent.skills.fight.OutnumberedPlan
 import net.ccbluex.agent.skills.games.WayCost
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.Items
+import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.Items
 import kotlin.math.abs
 
 /**

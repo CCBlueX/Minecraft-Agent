@@ -19,13 +19,13 @@
 
 package net.ccbluex.agent.skills.fight
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.FightingStyle
-import net.minecraft.core.BlockPos
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
+import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.block.Fluids
+import net.ccbluex.agent.world.entity.LivingEntity
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin

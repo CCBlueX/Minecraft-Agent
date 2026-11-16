@@ -20,8 +20,8 @@
 package net.ccbluex.agent.pathfinder.terrain
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.Blocks
+import net.ccbluex.agent.world.block.Block
+import net.ccbluex.agent.world.block.Blocks
 
 /**
  * Blocks that hurt or trap a player passing through, besides lava and fire.

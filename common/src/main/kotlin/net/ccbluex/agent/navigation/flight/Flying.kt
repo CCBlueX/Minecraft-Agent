@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.navigation.flight
 
+import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.FollowState
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.pathfinder.flight.FlyAbilities
@@ -28,9 +30,7 @@ import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.route.Replanner
-import net.minecraft.core.BlockPos
-import net.minecraft.world.entity.player.Input
-import net.minecraft.world.phys.Vec3
+import net.ccbluex.agent.world.Input
 
 /**
  * Flies to goals for a walking navigator while the player can fly, see [captureFlight].
