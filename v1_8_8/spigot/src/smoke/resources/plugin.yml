@@ -1,0 +1,5 @@
+name: AgentSmoke
+version: "${version}"
+main: net.ccbluex.agent.v1_8_8.spigot.smoke.SmokePlugin
+description: Runs bots through a course on a 1.8.8 server, logs each check and stops the server
+depend: [MinecraftAgent]
