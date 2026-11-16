@@ -240,6 +240,15 @@ public class Terrain(
         return true
     }
 
+    public fun containsAnyLiquid(box: AABB): Boolean {
+        forEachBlock(box) { x, y, z ->
+            if (!state(x, y, z).fluidState.isEmpty) {
+                return true
+            }
+        }
+        return false
+    }
+
     /**
      * Whether the server moves a player from [from] to [to] without hitting anything. It moves one axis after the
      * other, so the corners it passes are checked too.

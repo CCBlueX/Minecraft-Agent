@@ -33,6 +33,7 @@ import net.ccbluex.agent.pathfinder.route.WeightedEdge
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -148,7 +149,7 @@ public class AirwaySearch(
         val delta = to.subtract(from)
         val samples = max(1, ceil(delta.length() / LINE_SPACING).toInt())
         for (sample in 0..samples) {
-            if (!terrain.isClear(box(from.fma(sample.toDouble() / samples, delta), margin))) {
+            if (!isClear(box(from.fma(sample.toDouble() / samples, delta), margin))) {
                 return false
             }
         }
@@ -177,7 +178,7 @@ public class AirwaySearch(
         // The start may lie closer to blocks than the clearance; the way out of there takes what room there is.
         val fromStart = maxOf(abs(x - startNode.x), abs(y - startNode.y), abs(z - startNode.z))
         val margin = minOf(clearance, (fromStart - 1).coerceAtLeast(0) * ESCAPE_ROOM)
-        return terrain.isClear(nodeBox(x, y, z, margin)).also { open.put(key, it) }
+        return isClear(nodeBox(x, y, z, margin)).also { open.put(key, it) }
     }
 
     private fun isRoomy(x: Int, y: Int, z: Int): Boolean {
@@ -185,7 +186,7 @@ public class AirwaySearch(
         if (roomy.containsKey(key)) {
             return roomy.get(key)
         }
-        return terrain.isClear(nodeBox(x, y, z, clearance + ROOM)).also { roomy.put(key, it) }
+        return isClear(nodeBox(x, y, z, clearance + ROOM)).also { roomy.put(key, it) }
     }
 
     // Unknown blocks above and below are the edge of the searched region, not the end of what is loaded.
@@ -207,6 +208,9 @@ public class AirwaySearch(
     private fun nodeBox(x: Int, y: Int, z: Int, margin: Double) = box(Vec3(x + 0.5, y + clearance, z + 0.5), margin)
 
     private fun box(feet: Vec3, margin: Double) = Passage.box(feet, margin)
+
+    // Water ends a glide, so it is kept clear of like a block.
+    private fun isClear(box: AABB) = terrain.isClear(box) && !terrain.containsAnyLiquid(box)
 
     @InternalAgentApi
     public companion object {

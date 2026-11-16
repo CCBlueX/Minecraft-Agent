@@ -30,6 +30,8 @@ import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.simulation.ElytraMotion
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import kotlin.math.PI
 import kotlin.math.min
@@ -89,9 +91,17 @@ class PassageTest {
     }
 
     /**
-     * The result of a flight: how it ended, its ticks, the length flown and the least room kept to any block.
+     * The result of a flight: how it ended, its ticks, the length flown and the least room kept to any block, where it touched a
+     * block and where its body first was in water.
      */
-    private class Flight(val end: Vec3, val ticks: Int, val length: Double, val leastRoom: Double, val touched: Vec3?)
+    private class Flight(
+        val end: Vec3,
+        val ticks: Int,
+        val length: Double,
+        val leastRoom: Double,
+        val touched: Vec3?,
+        val wet: Vec3?,
+    )
 
     /**
      * Flies from [start] at [motion] to the goal [goals] gives at every tick until within [RADIUS] of the last one, or
@@ -114,6 +124,7 @@ class PassageTest {
         var length = 0.0
         var leastRoom = Double.MAX_VALUE
         var steerNanos = 0L
+        var wet: Vec3? = null
 
         for (tick in 0 until maxTicks) {
             val next = goals(tick)
@@ -140,10 +151,10 @@ class PassageTest {
                         point.y - goal.y in -1.0..1.5 && deltaMovement.y >= Landing.SAFE_SINK &&
                         terrain.isClear(Passage.box(point.add(0.0, 0.5, 0.0), 0.0))
                     if (landed) {
-                        return report(Flight(point, tick, length, leastRoom, null), steerNanos)
+                        return report(Flight(point, tick, length, leastRoom, null, wet), steerNanos)
                     }
                     println("touched at $point moving $deltaMovement after $tick ticks")
-                    return Flight(point, tick, length, leastRoom, point)
+                    return Flight(point, tick, length, leastRoom, point, wet)
                 }
             }
             if (to.distanceTo(goal) > LANDING_ROOM) {
@@ -151,11 +162,15 @@ class PassageTest {
             }
             length += deltaMovement.length()
             position = to
+            val box = Passage.box(to, 0.0)
+            if (wet == null && BlockPos.betweenClosedStream(box).anyMatch { terrain.isWater(it.x, it.y, it.z) }) {
+                wet = to
+            }
             if (!landsAtTarget && position.distanceTo(goal) <= RADIUS && goals(tick + 1) == goal) {
-                return report(Flight(position, tick, length, leastRoom, null), steerNanos)
+                return report(Flight(position, tick, length, leastRoom, null, wet), steerNanos)
             }
         }
-        return report(Flight(position, maxTicks, length, leastRoom, null), steerNanos)
+        return report(Flight(position, maxTicks, length, leastRoom, null, wet), steerNanos)
     }
 
     private fun report(flight: Flight, steerNanos: Long): Flight {
@@ -266,6 +281,18 @@ class PassageTest {
         }
         assertClear(flight)
         assertTrue(flight.end.distanceTo(second) <= RADIUS, "stopped at ${flight.end}, away from $second")
+    }
+
+    @Test
+    fun `a waterfall in the middle of a cave is flown around`() {
+        val world = cave(0, 200) { z -> Section(-6, 6, 100 - z / 8, 119 - z / 8) }
+        world.fill(0, 88, 100, 0, 106, 100, Blocks.WATER.defaultBlockState())
+        val goal = Vec3(0.5, 82.0, 190.5)
+
+        val flight = fly(world, Vec3(0.5, 115.0, 3.5), Vec3(0.0, -0.2, 0.8), 600, landsAtTarget = false) { goal }
+        assertEquals(null, flight.wet, "glided into water")
+        assertEquals(null, flight.touched, "touched a block")
+        assertTrue(flight.end.distanceTo(goal) <= RADIUS, "stopped at ${flight.end}, away from $goal")
     }
 
 }

@@ -168,8 +168,8 @@ public class Passage(
                 closest = minOf(closest, next.distanceToSqr(target))
             }
 
-            if (!level.isClear(box(position, clearance).expandTowards(motion))) {
-                if (!level.isClear(box(position, 0.0).expandTowards(motion))) {
+            if (!isClear(level, box(position, clearance).expandTowards(motion))) {
+                if (!isClear(level, box(position, 0.0).expandTowards(motion))) {
                     if (isLanding(level, position, motion, next)) {
                         return cost - LANDING_REWARD + next.horizontalDistanceTo(target) * LANDING_DISTANCE_COST +
                             motion.horizontalDistance() * LANDING_SPEED_COST
@@ -209,6 +209,9 @@ public class Passage(
     /**
      * Whether the body coming down from [position] by [motion] to [next] touches down unhurt at the target.
      */
+    // Water ends a glide, so touching it is a contact.
+    private fun isClear(level: Terrain, box: AABB) = level.isClear(box) && !level.containsAnyLiquid(box)
+
     private fun isLanding(level: Terrain, position: Vec3, motion: Vec3, next: Vec3): Boolean {
         if (!landsAtTarget || motion.y < Landing.SAFE_SINK || next.horizontalDistanceTo(target) > LANDING_REACH ||
             abs(next.y - target.y) > LANDING_HEIGHT) {

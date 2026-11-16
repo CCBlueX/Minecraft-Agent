@@ -876,6 +876,7 @@ public final class net/ccbluex/agent/pathfinder/terrain/Terrain : net/ccbluex/ag
 	public final fun check (Lnet/minecraft/core/BlockPos;)Lnet/ccbluex/agent/pathfinder/terrain/DestinationCheck;
 	public final fun climbSide (III)Lnet/minecraft/core/Direction;
 	public final fun closedIn (Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/phys/AABB;Ljava/util/List;)V
+	public final fun containsAnyLiquid (Lnet/minecraft/world/phys/AABB;)Z
 	public final fun crouchHeight (III)D
 	public final fun feet (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;
 	public final fun getCanOpenDoors ()Z
