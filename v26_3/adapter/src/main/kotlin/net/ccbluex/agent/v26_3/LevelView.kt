@@ -24,6 +24,7 @@ import net.ccbluex.agent.math.AABB
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.pathfinder.level.BlockRegion
 import net.ccbluex.agent.pathfinder.level.SectionCache
+import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.world.BlockHitResult
 import net.ccbluex.agent.world.ClipContext
 import net.ccbluex.agent.world.Level
@@ -170,3 +171,10 @@ public fun McLevel.toAgent(): Level = levels.computeIfAbsent(this, ::LevelView)
  * @agent claude-opus-5-5
  */
 public fun Level.toMinecraft(): McLevel = (this as LevelView).handle
+
+/**
+ * [Terrain.live] over the game's [level]; only for the thread that ticks it.
+ *
+ * @agent claude-opus-5-5
+ */
+public fun Terrain.Companion.live(level: McLevel): Terrain = Terrain.live(level.toAgent())

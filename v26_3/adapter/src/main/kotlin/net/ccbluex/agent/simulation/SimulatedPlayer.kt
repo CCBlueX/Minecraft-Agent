@@ -94,7 +94,7 @@ public class SimulatedPlayer private constructor(
     override var hasBackedOffEdge: Boolean = false
         private set
 
-    override val pos: net.ccbluex.agent.math.Vec3
+    override val predictedPos: net.ccbluex.agent.math.Vec3
         get() = position().toAgent()
 
     override val player: net.ccbluex.agent.world.entity.Player

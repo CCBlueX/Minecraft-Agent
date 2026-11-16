@@ -24,6 +24,7 @@ import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.v26_3.live
 import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.world.Input
 import net.ccbluex.gametest.harness.GameTestScope
@@ -96,7 +97,7 @@ private class Course(
      * @agent claude-opus-5-5
      */
     fun difference(player: LocalPlayer): String? {
-        val motion = PlayerMotion(Terrain.live(player.level().toAgent()), MotionTraits.capture(player.toAgent()))
+        val motion = PlayerMotion(Terrain.live(player.level()), MotionTraits.capture(player.toAgent()))
         motion.reset(player.toAgent())
         val keys = Input(forward > 0, forward < 0, strafe > 0, strafe < 0, jump, sneak, sprint)
         val game = SimulatedPlayer.fromPlayer(player, SimulatedInput(keys), continuesTick = false)

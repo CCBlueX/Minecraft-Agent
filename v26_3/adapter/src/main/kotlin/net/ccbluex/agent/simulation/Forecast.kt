@@ -95,7 +95,7 @@ public class Forecast(private val player: SimulatedPlayer) {
     public fun asSimulation(): PlayerSimulation = object : PlayerSimulation {
         private var ticks = 0
 
-        override val pos: net.ccbluex.agent.math.Vec3
+        override val predictedPos: net.ccbluex.agent.math.Vec3
             get() = getSnapshotAt(ticks).pos.toAgent()
 
         override fun tick() {

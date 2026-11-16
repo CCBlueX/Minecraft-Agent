@@ -35,6 +35,7 @@ import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.v26_3.live
 import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.v26_3.toMinecraft
 import net.ccbluex.agent.world.Input
@@ -142,7 +143,7 @@ internal object Parkour {
      * The keys the assist presses this tick, or null when there is nothing to assist.
      */
     private fun assist(player: LocalPlayer, held: Input, yRot: Float): LeapInput? {
-        val terrain = Terrain.live(player.level().toAgent())
+        val terrain = Terrain.live(player.level())
         val abilities = abilities(player)
         val state = PlayerMotion(terrain, abilities.motion)
         state.reset(player.toAgent())

@@ -26,6 +26,7 @@ import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Options
 import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.v26_3.live
 import net.ccbluex.agent.v26_3.toAgent
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext
 import net.minecraft.client.Minecraft
@@ -113,7 +114,7 @@ internal object AutoWalk {
          * The ground to stand on: the block above when [pos] is not but that one is.
          */
         private fun feetAt(level: Level, pos: BlockPos): BlockPos {
-            val terrain = Terrain.live(level.toAgent())
+            val terrain = Terrain.live(level)
             val above = pos.above()
             return if (!terrain.isStandable(pos.toAgent()) && terrain.isStandable(above.toAgent())) above else pos
         }

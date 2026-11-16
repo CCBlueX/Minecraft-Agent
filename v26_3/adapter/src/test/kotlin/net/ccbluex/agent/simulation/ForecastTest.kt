@@ -83,7 +83,7 @@ class ForecastTest {
         val simulation = forecast.asSimulation()
 
         repeat(5) { simulation.tick() }
-        assertEquals(forecast.getSnapshotAt(5).pos.toAgent(), simulation.pos)
+        assertEquals(forecast.getSnapshotAt(5).pos.toAgent(), simulation.predictedPos)
     }
 
     @Test

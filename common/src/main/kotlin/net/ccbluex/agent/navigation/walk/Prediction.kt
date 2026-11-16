@@ -133,7 +133,7 @@ private fun NavigationContext.simulatesAhead(
 
     repeat(PREDICT_TICKS) {
         simulated.tick()
-        val position = simulated.pos
+        val position = simulated.predictedPos
         if (position.distanceTo(aim) < closer) {
             return true
         }
