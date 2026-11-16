@@ -162,6 +162,22 @@ class TickBodyTest {
     }
 
     @Test
+    fun `a look grazing an edge clicks the face the server's look hits`() {
+        // A Ninja click from a bridge test, yaw unwrapped: Vec3.directionFromRotation passes 0.0007 below the top edge
+        // onto the south face, the server's look lands on the top
+        val block = BlockPos(4, 0, 12)
+        val player = TestLevel(TestWorld().set(4, 0, 12, TestWorld.STONE))
+            .player(Vec3(4.376737410055266, 1.0, 13.203064042982586))
+        player.yRot = -225f
+        player.xRot = 79.950005f
+        val body = TickBody(Host(TestBody(player))) { Options() }
+        fun clicks(face: Direction) =
+            body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(Vec3.atCenterOf(block), face, block, false))
+        assertFalse(clicks(Direction.SOUTH))
+        assertTrue(clicks(Direction.UP))
+    }
+
+    @Test
     fun `an entity behind a wall is not seen`() {
         val level = TestLevel(TestWorld.flat().fill(2, 1, -3, 2, 5, 3))
         val player = level.player(TestWorld.feet(0, 1, 0), -90f)

@@ -20,6 +20,7 @@
 package net.ccbluex.agent.math
 
 import net.minecraft.util.Mth
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.phys.Vec3
 import kotlin.math.atan2
 
@@ -33,10 +34,12 @@ import kotlin.math.atan2
 public data class ViewRotation(public val yRot: Float, public val xRot: Float) {
 
     /**
-     * The unit vector this rotation looks along.
+     * The unit vector this rotation looks along, as the server's pick has it: `Entity.calculateViewVector` of the
+     * angles wrapped as a movement packet stores them. Another formula rounds differently and can hit the other face
+     * where a look grazes an edge.
      */
     public val viewVector: Vec3
-        get() = Vec3.directionFromRotation(xRot, yRot)
+        get() = Entity.calculateViewVector(Mth.wrapDegrees(xRot), Mth.wrapDegrees(yRot))
 
     public companion object {
         @JvmField
