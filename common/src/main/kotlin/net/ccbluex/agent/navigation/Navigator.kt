@@ -27,8 +27,12 @@ import net.ccbluex.agent.navigation.walk.Planning
 import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.isStraightWalkable
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.util.Mth
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Input
+import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.slf4j.LoggerFactory
@@ -62,7 +66,7 @@ public class Navigator @JvmOverloads constructor(
     @Volatile
     public var options: Options = options
 
-    private val tickBody = TickBody(body)
+    private val tickBody = TickBody(body) { this.options }
     private val context =
         NavigationContext(tickBody, RouteReport(listener), { this.options }, listener, LoggerFactory.getLogger(LOGGER))
     private val player get() = body.player
@@ -188,6 +192,36 @@ public class Navigator @JvmOverloads constructor(
         lastInput = Input.EMPTY
         body.safeWalk = false
     }
+
+    /**
+     * [Body.useItemOn], sent only when the rotation the server has hits that face of that block first, as the game's
+     * pick does, unless [Options.canClickThroughBlocks]; false when refused, so the caller moves or turns first.
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean = tickBody.useItemOn(hand, hit)
+
+    /**
+     * [Body.startDestroy], refused as [useItemOn] is.
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun startDestroy(pos: BlockPos, face: Direction): Boolean = tickBody.startDestroy(pos, face)
+
+    /**
+     * [Body.continueDestroy], refused as [useItemOn] is.
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun continueDestroy(pos: BlockPos, face: Direction): Boolean = tickBody.continueDestroy(pos, face)
+
+    /**
+     * Whether a hit on [entity] may go out: no solid block stands between the eyes and it where the rotation the
+     * server has meets it, unless [Options.canClickThroughBlocks].
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun canHit(entity: Entity): Boolean = options.canClickThroughBlocks || body.sees(entity)
 
     /**
      * Turns the camera towards [point] after this tick, for ticks something else moves the player.

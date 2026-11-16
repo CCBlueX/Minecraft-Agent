@@ -22,6 +22,7 @@ package net.ccbluex.agent.navigation.walk
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.hotbar
+import net.ccbluex.agent.navigation.pick
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.registries.Registries
@@ -99,11 +100,7 @@ internal class BlockTargets(private val context: NavigationContext) {
     /**
      * What the player hits looking with [rotation], up to [reach] blocks away.
      */
-    fun raycast(rotation: ViewRotation, reach: Double): BlockHitResult {
-        val eye = player.eyePosition
-        val end = eye.add(rotation.viewVector.scale(reach))
-        return level.clip(ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player))
-    }
+    fun raycast(rotation: ViewRotation, reach: Double): BlockHitResult = player.pick(rotation, reach)
 
     /**
      * The click that places a block at [pos] against a neighbour, turning least from the rotation sent last. Below

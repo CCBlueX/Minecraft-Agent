@@ -19,7 +19,11 @@
 
 package net.ccbluex.agent.navigation
 
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.player.Input
+import net.minecraft.world.phys.BlockHitResult
 import org.slf4j.Logger
 
 /**
@@ -37,17 +41,31 @@ internal class NavigationContext(
 )
 
 /**
- * [host] with [press] held back until [takePressed].
+ * [host] with [press] held back until [takePressed], and the one way to the host's clicks on blocks: a click goes out
+ * only when the rotation the server has hits that face of that block first ([pick]), unless
+ * [Options.canClickThroughBlocks]; else it is refused with false.
  *
  * @agent claude-opus-5-5
  */
-internal class TickBody(val host: Body) : Body by host {
+internal class TickBody(val host: Body, private val options: () -> Options) : Body by host {
 
     private var pressed: Input? = null
 
     override fun press(input: Input) {
         pressed = input
     }
+
+    override fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean {
+        if (options().canClickThroughBlocks) return host.useItemOn(hand, hit)
+        return host.useItemOn(hand, pick(hit.blockPos, hit.direction) ?: return false)
+    }
+
+    override fun startDestroy(pos: BlockPos, face: Direction): Boolean = sees(pos, face) && host.startDestroy(pos, face)
+
+    override fun continueDestroy(pos: BlockPos, face: Direction): Boolean =
+        sees(pos, face) && host.continueDestroy(pos, face)
+
+    private fun sees(pos: BlockPos, face: Direction) = options().canClickThroughBlocks || pick(pos, face) != null
 
     fun takePressed(): Input? = pressed.also { pressed = null }
 }

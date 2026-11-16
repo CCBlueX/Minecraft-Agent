@@ -78,6 +78,12 @@ public data class Options(
      * The blocks the walk places.
      */
     public val placeableBlocks: PlaceableBlocks = PlaceableBlocks.DEFAULT,
+
+    /**
+     * Whether the player may click what it does not see: place against or use a block face another block hides, dig
+     * through one, hit an entity behind a wall. Off, such a click is refused and not sent.
+     */
+    public val canClickThroughBlocks: Boolean = false,
 ) {
 
     /**
