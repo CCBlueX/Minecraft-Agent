@@ -49,7 +49,12 @@ internal class Handling {
     private var measuredVerticalThrust = Double.NaN
 
     private var lastPosition: Vec3? = null
-    private var lastMove: Vec3? = null
+
+    /**
+     * The move of the last tick recorded; null after a tick that was not.
+     */
+    var lastMove: Vec3? = null
+        private set
     private var lastTick = 0
 
     /**

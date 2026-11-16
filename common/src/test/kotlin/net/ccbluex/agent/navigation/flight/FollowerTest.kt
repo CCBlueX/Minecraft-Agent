@@ -25,8 +25,13 @@ import net.ccbluex.agent.navigation.TestBody
 import net.ccbluex.agent.pathfinder.MinecraftBootstrap
 import net.ccbluex.agent.pathfinder.TestLevel
 import net.ccbluex.agent.pathfinder.TestWorld
+import net.ccbluex.agent.pathfinder.advanceToEnd
 import net.ccbluex.agent.pathfinder.flight.Acceleration
 import net.ccbluex.agent.pathfinder.flight.Route
+import net.ccbluex.agent.pathfinder.flight.RouteSearch
+import net.ccbluex.agent.pathfinder.found
+import net.ccbluex.agent.pathfinder.route.Limits
+import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
@@ -42,7 +47,8 @@ import kotlin.test.fail
 /**
  * A fly mode flies a route with a sharp corner at half and at twice the speed a host used to report, stopping at once
  * or coasting on: the player gets to the end and comes to rest there, without flying past it or back and forth. One
- * that hops by itself sinks onto the end below.
+ * that hops by itself sinks onto the end below. One pressed against a wall below its top, or set down on its edge,
+ * gets on to the platform behind it.
  *
  * @agent claude-opus-5-5
  */
@@ -69,6 +75,11 @@ internal class FollowerTest {
 
         // Corners off whole multiples of the speeds, so a fly mode cannot happen to land on them exactly.
         private val POINTS = listOf(START, Vec3(23.3, 10.0, 0.5), Vec3(23.3, 15.3, 21.9), Vec3(4.7, 15.3, 21.9))
+
+        private fun axes(input: Input) = Pair(
+            (if (input.forward()) 1 else 0) - (if (input.backward()) 1 else 0),
+            (if (input.left()) 1 else 0) - (if (input.right()) 1 else 0),
+        )
     }
 
     /**
@@ -92,6 +103,7 @@ internal class FollowerTest {
             velocity = velocity.scale(drag).add(x / length * thrust, y * thrust / 2.0, z / length * thrust)
             player.setPos(player.position().add(velocity))
             player.deltaMovement = velocity.scale(drag)
+            player.setOnGround(false)
             player.tickCount++
         }
     }
@@ -180,11 +192,6 @@ internal class FollowerTest {
             player.tickCount++
         }
 
-        private fun axes(input: Input) = Pair(
-            (if (input.forward()) 1 else 0) - (if (input.backward()) 1 else 0),
-            (if (input.left()) 1 else 0) - (if (input.right()) 1 else 0),
-        )
-
         private companion object {
             const val HOP_TICKS = 11
             const val HOP_SPEED = 0.42
@@ -217,5 +224,79 @@ internal class FollowerTest {
             assertTrue(player.y > 0.0, "Fell at ${player.position()}")
         }
         fail("Did not land on $end in $MAX_TICKS ticks, at ${player.position()}")
+    }
+
+    /**
+     * LiquidBounce's Vanilla mode of Fly: the keys set the motion, 0.44 blocks a tick, before the player moves on the
+     * game's physics.
+     *
+     * @agent claude-opus-5-5
+     */
+    private class VanillaMode(world: TestWorld, start: Vec3, onGround: Boolean) : FlightControl {
+        private val motion = PlayerMotion(world.terrain()).also { it.reset(start, Vec3.ZERO, onGround) }
+
+        fun move(player: Player, input: Input) {
+            val (forward, strafe) = axes(input)
+            val length = sqrt((forward * forward + strafe * strafe).toDouble()).coerceAtLeast(1.0)
+            val y = when {
+                input.jump() && !input.shift() -> SPEED
+                input.shift() && !input.jump() -> -SPEED
+                else -> 0.0
+            }
+            motion.reset(motion.position, Vec3(strafe / length * SPEED, y, forward / length * SPEED), motion.onGround)
+            motion.tick(player.yRot, forward, strafe, input.jump(), sprint = false, sneak = input.shift())
+            player.setPos(motion.position)
+            player.deltaMovement = motion.deltaMovement
+            player.setOnGround(motion.onGround)
+            player.horizontalCollision = motion.horizontalCollision
+            player.tickCount++
+        }
+
+        private companion object {
+            const val SPEED = 0.44
+        }
+    }
+
+    /**
+     * Pressed against the wall a hair below its top, where a fly mode that sinks a little now and then stops.
+     */
+    @Test
+    fun `a fly mode pressed against a wall below its top climbs over it`() =
+        flyOverWall(Vec3(19.7, 15.96, 0.5), onGround = false)
+
+    /**
+     * On the edge of the wall's top, where sinking towards the far side set the player down.
+     */
+    @Test
+    fun `a fly mode that landed on the edge of a wall flies on`() =
+        flyOverWall(Vec3(21.29, 16.0, 0.5), onGround = true)
+
+    private fun flyOverWall(start: Vec3, onGround: Boolean) {
+        // A wall too wide to fly around with its top at y 16, and a platform 19 blocks behind it
+        val world = TestWorld().fill(20, 3, -30, 20, 15, 30).fill(39, 9, -1, 41, 9, 1)
+        val end = TestWorld.feet(40, 10, 0)
+        val player = TestLevel(world).player(start)
+        val mode = VanillaMode(world, start, onGround)
+        val body = TestBody(player, mode)
+        val context = body.context()
+        val handling = Handling()
+        val follower = Follower(context, handling)
+        val limits = Limits(64.0, maxVisitedNodes = 20_000, maxComputeNanos = Long.MAX_VALUE)
+        val abilities = checkNotNull(context.captureFlight(handling))
+        val search = RouteSearch(world.terrain(), start, NearDestination(end, GOAL_RADIUS), abilities, limits)
+        val route = found(search.advanceToEnd())
+        follower.follow(route)
+
+        repeat(MAX_TICKS) {
+            if (follower.tick(0f, checkNotNull(context.captureFlight(handling))) == FollowState.FINISHED) {
+                val at = player.position()
+                val left = at.distanceTo(route.end)
+                assertTrue(left <= ARRIVAL, "Finished at $at, $left from ${route.end}")
+                return
+            }
+            mode.move(player, body.pressed)
+            assertTrue(player.y > end.y - 8.0, "Fell at ${player.position()} flying ${route.points}")
+        }
+        fail("Stopped at ${player.position()} flying ${route.points}")
     }
 }

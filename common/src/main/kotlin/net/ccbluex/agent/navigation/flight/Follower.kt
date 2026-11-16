@@ -136,7 +136,8 @@ internal class Follower(private val context: NavigationContext, private val hand
      * on an axis that one more tick of the keys would push past [aim] by more than it closes.
      */
     private fun fly(frameYRot: Float, aim: Vec3, abilities: FlyAbilities, isFinal: Boolean) {
-        val error = aim.subtract(handling.rest(context.body.player))
+        val player = context.body.player
+        val error = aim.subtract(handling.rest(player))
 
         val horizontalTolerance = handling.step / 2.0
         val riseTolerance = handling.verticalSpeed / 2.0
@@ -145,8 +146,12 @@ internal class Follower(private val context: NavigationContext, private val hand
 
         val moves = error.horizontalDistanceSqr() > horizontalTolerance * horizontalTolerance
         val direction = if (moves) getDirectionalInputTowards(error, frameYRot) else Input.EMPTY
-        val jump = error.y > riseTolerance
-        val sneak = error.y < -sinkTolerance && !jump
+        // A flight sagging a little below a route that grazes a wall's top stalls against it: only rising gets past
+        val isStalled = moves && player.horizontalCollision && (handling.lastMove?.horizontalDistance() ?: 0.0) < 0.01
+        val jump = error.y > riseTolerance || isStalled
+        // On ground the aim lies a block or more below, sneaking only holds the player at the edge it has to leave
+        val leaves = player.onGround() && error.y < -1.0
+        val sneak = error.y < -sinkTolerance && !jump && !leaves
         val input =
             Input(direction.forward(), direction.backward(), direction.left(), direction.right(), jump, sneak, false)
         context.body.press(input)
