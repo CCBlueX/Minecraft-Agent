@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.v26_3.toAgent
 import net.minecraft.world.entity.player.Player
 import java.util.concurrent.ConcurrentHashMap
 
@@ -35,7 +36,7 @@ public class Forecasts {
     private val forecasts = ConcurrentHashMap<Player, Forecast>()
 
     public fun of(player: Player): Forecast = forecasts.computeIfAbsent(player) {
-        Forecast(SimulatedPlayer.fromOtherPlayer(it, SimulatedInput.guess(it)))
+        Forecast(SimulatedPlayer.fromOtherPlayer(it, SimulatedInput.guess(it.toAgent())))
     }
 
     public fun clear() {

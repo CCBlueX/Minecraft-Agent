@@ -19,7 +19,6 @@
 
 package net.ccbluex.agent.simulation
 
-import net.ccbluex.agent.math.fma
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
@@ -66,7 +65,13 @@ public fun interface PositionExtrapolation {
 
         @JvmStatic
         public fun linear(position: Vec3, deltaMovement: Vec3): PositionExtrapolation =
-            PositionExtrapolation { ticks -> position.fma(ticks, deltaMovement) }
+            PositionExtrapolation { ticks ->
+                Vec3(
+                    Math.fma(ticks, deltaMovement.x, position.x),
+                    Math.fma(ticks, deltaMovement.y, position.y),
+                    Math.fma(ticks, deltaMovement.z, position.z),
+                )
+            }
 
         @JvmStatic
         public fun constant(position: Vec3): PositionExtrapolation = PositionExtrapolation { position }

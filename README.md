@@ -11,10 +11,12 @@ Java.
 builds on.
 
 - `common`: everything that runs on every game version
+  - `world`: the game's blocks, entities and items, the same on every game version
   - `simulation`: player movement, tick by tick
   - `pathfinder`: route searches
   - `navigation`: follows routes
   - `skills`: fighting, looting, game modes
+- `vanilla`: the libraries on Minecraft 26.3
 
 ## Platforms
 

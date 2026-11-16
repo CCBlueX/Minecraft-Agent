@@ -19,6 +19,8 @@
 
 package net.ccbluex.agent.simulation
 
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.minecraft.core.component.DataComponents
 import net.minecraft.util.Mth
 import net.minecraft.world.effect.MobEffectInstance
@@ -51,14 +53,14 @@ import kotlin.math.sqrt
 @Suppress("TooManyFunctions")
 public class SimulatedPlayer private constructor(
     source: Player,
-    public var input: SimulatedInput,
+    override var input: SimulatedInput,
     deltaMovement: Vec3,
     /**
      * The source already ran its tick up to [aiStep], so the first tick picks up from there.
      */
     private var continuesTick: Boolean,
     private val hooks: SimulationHooks,
-) : Player(source.level(), source.gameProfile), PlayerSimulation {
+) : Player(source.level(), source.gameProfile), PlayerSimulation.Steered {
 
     private val sourceGameMode: GameType? = source.gameMode()
 
@@ -89,11 +91,14 @@ public class SimulatedPlayer private constructor(
     /**
      * Sneaking or safe walk would have held the player back at a ledge in the last tick.
      */
-    public var hasBackedOffEdge: Boolean = false
+    override var hasBackedOffEdge: Boolean = false
         private set
 
-    override val pos: Vec3
-        get() = position()
+    override val pos: net.ccbluex.agent.math.Vec3
+        get() = position().toAgent()
+
+    override val player: net.ccbluex.agent.world.entity.Player
+        get() = toAgent()
 
     init {
         attributes.assignAllValues(source.attributes)
@@ -221,7 +226,7 @@ public class SimulatedPlayer private constructor(
      * so diagonal input reaches the corners of the unit square.
      */
     override fun applyInput() {
-        var move = input.moveVector
+        var move = input.moveVector.toMinecraft()
         if (move.lengthSquared() != 0.0f) {
             move = move.scale(INPUT_FRICTION)
             itemUseMultiplier?.let { move = Vec2(move.x * it.x, move.y * it.y) }
@@ -275,7 +280,7 @@ public class SimulatedPlayer private constructor(
     }
 
     override fun move(moverType: MoverType, delta: Vec3) {
-        super.move(moverType, hooks.move(moverType, delta))
+        super.move(moverType, hooks.move(moverType.toAgent(), delta.toAgent()).toMinecraft())
     }
 
     override fun maybeBackOffFromEdge(delta: Vec3, moverType: MoverType): Vec3 {

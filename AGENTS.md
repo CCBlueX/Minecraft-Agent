@@ -4,14 +4,21 @@ Minecraft 26.3 (Mojang names, unobfuscated), Java 25, Kotlin. Root package `net.
 
 | Module | Artifact (`net.ccbluex`) | Builds with | Needs |
 |---|---|---|---|
-| `common/` | `minecraft-agent-common` | `agent.shared` | - |
+| `common/` | `minecraft-agent-common` | `agent.neutral` | - |
+| `vanilla/` | `minecraft-agent-adapter` | `agent.shared` (Loom, server jar) | pathfinder |
+| `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.client` (Loom, client) | navigation, vanilla |
 | `v26_3/fabric/` | `minecraft-agent-fabric` | `agent.fabric` (Loom, client) | common |
-| `v26_3/paper/` | `minecraft-agent-paper`, plugin jar (classifier `plugin`) | `agent.paper` (paperweight) | common |
+| `v26_3/paper/` | `minecraft-agent-paper`, plugin jar (classifier `plugin`) | `agent.paper` (paperweight) | server-common, vanilla |
 | `gradle/build-logic/` | - | convention plugins and checks | - |
 
-- Shared modules compile against the vanilla server jar only (`serverOnlyMinecraftJar()`), so their classes link
-  on the Fabric client and on Paper. `checkClientClasses` fails on `net.minecraft.client` or `com.mojang.blaze3d`
-  in their sources or classes.
+- Version-neutral modules (`agent.neutral`) see only `world`'s game types (Mojang names); `checkGameClasses` fails
+  on `net.minecraft`, `com.mojang` or `org.bukkit.craftbukkit` in their main sources or classes. An adapter
+  (`vanilla` for 26.3) converts at the boundary with `toAgent()`/`toMinecraft()`; hosts call `defineGameTypes()` once
+  the registries are frozen.
+- `vanilla` compiles against the vanilla server jar only (`serverOnlyMinecraftJar()`), so its classes link on the
+  Fabric client and on Paper. `checkClientClasses` fails on `net.minecraft.client` or `com.mojang.blaze3d` there.
+- Unit tests of neutral modules build worlds with Minecraft's blocks and items through `testFixtures(":vanilla")`
+  (`MinecraftBootstrap`, `TestWorld`, `TestLevel`), which brings the game's jar onto their test classpath.
 - The Paper plugin jar bundles the library modules; Kotlin and coroutines come from `libraries` in `plugin.yml`
   (write `libraries: ${libraries}` and `version: "${version}"`, the build fills them in).
 - Dependency repositories are in `agent.kotlin`, not in settings: Loom and paperweight add project repositories,
@@ -28,7 +35,8 @@ timeout 900 flock /tmp/minecraft-agent-gradle.lock xvfb-run -a -s "-screen 0 128
 timeout 600 flock /tmp/minecraft-agent-gradle.lock ./gradlew -Dorg.gradle.jvmargs=-Xmx2g :v26_3-paper:runServer
 ```
 
-- `build` runs the unit tests, the ABI check (`api/*.api`), `checkLicenseHeaders` and `checkClientClasses`.
+- `build` runs the unit tests, the ABI check (`api/*.api`), `checkLicenseHeaders`, `checkGameClasses` and
+  `checkClientClasses`.
 - Game clients and servers run with `-Xmx2g` (set by the build) and a hard timeout; `runClientGameTest` has a
   10 minute Gradle timeout (`-PgameTestTimeoutMinutes` for a whole local run). Kill leftovers afterwards (`ps`,
   check `/proc/<pid>/cwd`).
