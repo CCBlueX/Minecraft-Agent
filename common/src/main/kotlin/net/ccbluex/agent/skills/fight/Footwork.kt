@@ -26,6 +26,7 @@ import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.block.Fluids
 import net.ccbluex.agent.world.entity.LivingEntity
+import net.ccbluex.agent.world.item.Items
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -165,7 +166,7 @@ internal class Footwork(private val fight: BuiltInFight) {
         FightingStyle.DEFENSIVE -> if (fight.striking.charging()) KEEP_CHARGING else 0.0
         FightingStyle.KITER -> when {
             fight.runner.readySoon(fight, Skill.BOW) && Ranged.bowLoaded(fight) -> KEEP_BOW
-            fight.runner.readySoon(fight, Skill.ROD) -> KEEP_ROD
+            fight.runner.readySoon(fight, Skill.ROD) && fight.hands.has { it.isOf(Items.FISHING_ROD) } -> KEEP_ROD
             fight.striking.charging() -> KEEP_CHARGING
             else -> 0.0
         }

@@ -24,6 +24,8 @@ import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.bukkit.Bot
 import net.ccbluex.agent.bukkit.BotSettings
 import net.ccbluex.agent.bukkit.MinecraftAgent
+import net.ccbluex.agent.skills.FightingStyle
+import net.ccbluex.agent.skills.Personality
 import net.ccbluex.agent.world.InteractionHand
 import org.bukkit.Location
 import org.bukkit.Material
@@ -150,7 +152,9 @@ internal class SmokePlugin : JavaPlugin(), Listener {
     private suspend fun fight(world: World, x: Int, ground: Int, z: Int) {
         val bots = MinecraftAgent.bots()
         val dummy = bots.spawn(Location(world, x + 0.5, ground.toDouble(), z + 0.5), "Dummy", null, BotSettings(immortal = true))
-        val fighter = bots.spawn(Location(world, x - 1.5, ground.toDouble(), z + 0.5, -90f, 0f), "Fighter")
+        // A kiter, the style that holds back for a rod or bow, carrying neither: it must still close in
+        val kiter = BotSettings(personality = Personality.BALANCED.copy(fighting = FightingStyle.KITER))
+        val fighter = bots.spawn(Location(world, x - 1.5, ground.toDouble(), z + 0.5, -90f, 0f), "Fighter", null, kiter)
         ticks(WARM_UP)
         val fighterBody = checkNotNull(fighter.body)
         val dummyBody = checkNotNull(dummy.body)
