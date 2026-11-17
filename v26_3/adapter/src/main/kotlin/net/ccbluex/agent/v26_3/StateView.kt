@@ -22,6 +22,7 @@ package net.ccbluex.agent.v26_3
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.world.BlockGetter
+import net.ccbluex.agent.world.Level
 import net.ccbluex.agent.world.block.BedPart
 import net.ccbluex.agent.world.block.BlockState
 import net.ccbluex.agent.world.block.BlockStateProperties
@@ -35,6 +36,12 @@ import net.ccbluex.agent.world.block.SlabType
 import net.ccbluex.agent.world.block.VoxelShape
 import net.minecraft.world.level.EmptyBlockGetter
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.BonemealSource
+import net.minecraft.world.level.block.BonemealableBlock
+import net.minecraft.world.level.block.CocoaBlock
+import net.minecraft.world.level.block.CropBlock
+import net.minecraft.world.level.block.NetherWartBlock
+import net.minecraft.world.level.block.SweetBerryBushBlock
 import net.minecraft.world.level.material.Fluids
 import java.util.Collections
 import java.util.WeakHashMap
@@ -68,6 +75,26 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
         handle.getDestroySpeed(level.toMinecraft(), pos.toMinecraft())
 
     override fun canBeReplaced(): Boolean = handle.canBeReplaced()
+
+    override fun canOcclude(): Boolean = handle.canOcclude()
+
+    override val isSolidRender: Boolean get() = handle.isSolidRender
+
+    override fun canSurvive(level: Level, pos: BlockPos): Boolean =
+        handle.canSurvive(level.toMinecraft(), pos.toMinecraft())
+
+    override val isMaxAge: Boolean
+        get() = when (val block = handle.block) {
+            is CropBlock -> block.isMaxAge(handle)
+            is NetherWartBlock -> handle.getValue(NetherWartBlock.AGE) >= NetherWartBlock.MAX_AGE
+            is CocoaBlock -> handle.getValue(CocoaBlock.AGE) >= CocoaBlock.MAX_AGE
+            is SweetBerryBushBlock -> handle.getValue(SweetBerryBushBlock.AGE) >= SweetBerryBushBlock.MAX_AGE
+            else -> false
+        }
+
+    override fun isValidBonemealTarget(level: Level, pos: BlockPos): Boolean =
+        (handle.block as? BonemealableBlock)
+            ?.isValidBonemealTarget(level.toMinecraft(), pos.toMinecraft(), handle, BonemealSource.INTERACTION) == true
 
     override val placedValues: List<Any> by lazy(LazyThreadSafetyMode.PUBLICATION) {
         handle.values.filter { it.property() in PLACED_PROPERTIES }.toList()

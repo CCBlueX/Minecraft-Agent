@@ -20,7 +20,8 @@
 package net.ccbluex.agent
 
 /**
- * The game modes in `skills.games`: they change while the bots get better, also in a minor release.
+ * The game modes in `skills.games` and the survival skills they play with: they change while the bots get better,
+ * also in a minor release.
  *
  * @agent claude-opus-5-5
  */

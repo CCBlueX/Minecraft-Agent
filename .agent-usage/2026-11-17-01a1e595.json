@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-17",
+  "change": "feat(skills): survival skills",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 834, "cachedInput": 120405110, "cacheWrite": 1163753, "output": 305056 },
+      "usd": 39.50
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 88, "cachedInput": 2307891, "cacheWrite": 479648, "output": 41690 },
+      "usd": 1.06
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 83803, "cachedInput": 130134, "cacheWrite": 1426, "output": 8504 },
+      "usd": 0.01
+    }
+  ]
+}

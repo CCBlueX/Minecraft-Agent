@@ -76,6 +76,12 @@ public class Item private constructor(public val id: String) {
 
         @JvmStatic
         public fun of(id: String): Item = items.computeIfAbsent(namespaced(id)) { Item(it) }
+
+        /**
+         * Every item the game defines, as its registry lists them.
+         */
+        @JvmStatic
+        public fun all(): List<Item> = items.values.filter { it.isDefined }
     }
 }
 
@@ -90,6 +96,9 @@ public object ItemTags {
     @JvmField public val PICKAXES: TagKey<Item> = TagKey.of("pickaxes")
     @JvmField public val LOGS: TagKey<Item> = TagKey.of("logs")
     @JvmField public val PLANKS: TagKey<Item> = TagKey.of("planks")
+    @JvmField public val BEDS: TagKey<Item> = TagKey.of("beds")
+    @JvmField public val BOATS: TagKey<Item> = TagKey.of("boats")
+    @JvmField public val HOES: TagKey<Item> = TagKey.of("hoes")
 }
 
 /**
@@ -115,6 +124,7 @@ public object Enchantments {
     @JvmField public val BREACH: Enchantment = Enchantment.of("breach")
     @JvmField public val DENSITY: Enchantment = Enchantment.of("density")
     @JvmField public val EFFICIENCY: Enchantment = Enchantment.of("efficiency")
+    @JvmField public val FORTUNE: Enchantment = Enchantment.of("fortune")
     @JvmField public val FLAME: Enchantment = Enchantment.of("flame")
     @JvmField public val INFINITY: Enchantment = Enchantment.of("infinity")
     @JvmField public val LUNGE: Enchantment = Enchantment.of("lunge")

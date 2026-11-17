@@ -57,6 +57,17 @@
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.EatingGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.BuildGameTest",
       "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.LitematicaBuildGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.GatherLogsGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.GatherStoneGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.ExploreGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.HuntGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.SleepGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.ShelterGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.LavaGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.DangersGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.FarmGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.TillGameTest",
+      "net.ccbluex.agent.v26_3.fabric.gametest.singleplayer.DepositGameTest",
       "net.ccbluex.gametest.harness.ResultsGameTest"
     ]
   },

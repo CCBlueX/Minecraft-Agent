@@ -19,7 +19,9 @@
 
 package net.ccbluex.agent.skills.eat
 
+import net.ccbluex.agent.navigation.isPlainFood
 import net.ccbluex.agent.skills.Agent
+import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * Eats, drinks and heals: food by hunger, golden apples, healing potions and soup.
@@ -37,7 +39,19 @@ public interface Eat {
 
     public companion object {
 
+        /**
+         * Hunger at or below which the built-in ability eats; a player with nothing to eat goes for food then.
+         */
+        public const val HUNGRY: Int = net.ccbluex.agent.navigation.HUNGRY
+
         @JvmStatic
         public fun builtIn(): Eat = Eating()
+
+        /**
+         * Whether [stack] is food to eat when hungry: no golden apple, which is kept for healing, and nothing that
+         * hurts, poisons or teleports.
+         */
+        @JvmStatic
+        public fun isFood(stack: ItemStack): Boolean = isPlainFood(stack)
     }
 }

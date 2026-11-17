@@ -10,7 +10,7 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`, 
 
 | Artifact | Use it for |
 |---|---|
-| `minecraft-agent-common` | The game's blocks, entities and items as the libraries see them, on every game version; predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, building, game modes; server bots as Bukkit sees them: `MinecraftAgent`, `Bots`, `Bot`, `BotBody` |
+| `minecraft-agent-common` | The game's blocks, entities and items as the libraries see them, on every game version; predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, mining, crafting, farming, hunting, sleeping, building, game modes; server bots as Bukkit sees them: `MinecraftAgent`, `Bots`, `Bot`, `BotBody` |
 | `minecraft-agent-adapter` | The libraries on Minecraft 26.3: `toAgent()`/`toMinecraft()`, `defineGameTypes()` |
 | `minecraft-agent-fabric` | The local player as a body (Fabric mod) |
 | `minecraft-agent-paper` | Server bots on Paper 26.3 (plugin `MinecraftAgent`) |
@@ -65,6 +65,13 @@ the agent ticks instead of the walk, and suspend skills run for the local player
 of the client tick. `agent.build(blocks, canBreak)` builds a `Map<BlockPos, BlockState>` from the inventory and returns
 what it left and which items ran short. With Litematica installed, `Placements.blocks()` (package
 `net.ccbluex.agent.v26_3.fabric.litematica`) gives the blocks of its enabled placements.
+
+Survival skills run on the same `Agent` (`@ExperimentalAgentApi`): `gather(Resource.IRON, count)` mines down and
+tunnels for a resource, `huntFor(Prey.FOOD)`, `craft(recipe)` and `smelt(input, count, fuels)` with `nextStep` planning the
+way to an item from the inventory alone, `farm(Farm(area))`, `fillLava()`, `shelter()` and `sleepThroughNight` for the night, `Dangers`
+as reflexes and `give(player, item, count)` to hand items to a teammate. `Options.canBoat`, `Options.canEat` and
+`Options.breakableBlocks` (`BreakableBlocks.NATURAL` leaves what players built) steer the walk; `AgentListener.step`
+reports what a skill is doing. A body implements `AgentBody.clickInventory` and `inventoryMenu` for the 2 by 2 grid.
 
 Placed bridges are crossed as players do: `Options.bridging` is `Bridging.AUTO` (Ninja, one-stack up rising bridges,
 Swift Sneak in Swift Sneak III leggings) or one fixed method (`NINJA`, `GODBRIDGE`, `MOONWALK`, `BREEZILY`,

@@ -207,7 +207,7 @@ internal class BlockActions(private val context: NavigationContext) {
             return
         }
 
-        targets.bestTool(state)?.let(body::selectHotbarSlot)
+        targets.diggingSlot(state)?.let(body::selectHotbarSlot)
 
         // The action goes out before this tick's rotation, so it has to match the rotation the server has.
         val reach = body.player.blockInteractionRange() + 1.0

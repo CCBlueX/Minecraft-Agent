@@ -85,6 +85,7 @@ public class Navigator @JvmOverloads constructor(
     private val heading = Heading(context, follower, actions, lookAhead)
     private val planning = Planning(context, follower, actions.unbreakable)
     private val course = Course(context, lookAhead, actions, follower, heading, planning)
+    private val snacking = Snacking(context)
 
     private var lastInput: Input = Input.EMPTY
     private var walk: Walk? = null
@@ -186,6 +187,7 @@ public class Navigator @JvmOverloads constructor(
         startTick()
         val keys = MovementKeys()
         val plainWalk = course.move(keys, goal, radius)
+        snacking.tick(isBuilding)
         strandedTicks = if (isStranded) strandedTicks + 1 else 0
         val pressed = tickBody.takePressed()
         val input = pressed ?: keys.toInput(sprint = false)
@@ -278,6 +280,7 @@ public class Navigator @JvmOverloads constructor(
     private fun idle() {
         startTick()
         clearWalk()
+        snacking.stop()
     }
 
     private fun clearWalk() {

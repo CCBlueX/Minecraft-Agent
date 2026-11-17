@@ -29,7 +29,17 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.level.block.AbstractBedBlock
+import net.minecraft.world.level.block.AttachedStemBlock
+import net.minecraft.world.level.block.BambooStalkBlock
 import net.minecraft.world.level.block.BaseFireBlock
+import net.minecraft.world.level.block.CactusBlock
+import net.minecraft.world.level.block.CocoaBlock
+import net.minecraft.world.level.block.CropBlock
+import net.minecraft.world.level.block.KelpPlantBlock
+import net.minecraft.world.level.block.NetherWartBlock
+import net.minecraft.world.level.block.StemBlock
+import net.minecraft.world.level.block.SugarCaneBlock
+import net.minecraft.world.level.block.SweetBerryBushBlock
 import net.minecraft.world.level.block.BasePressurePlateBlock
 import net.minecraft.world.level.block.BedBlock
 import net.minecraft.world.level.block.ButtonBlock
@@ -133,6 +143,16 @@ internal object GameTypes {
             is FarmlandBlock -> add(BlockKind.FARMLAND)
             is SlimeBlock -> add(BlockKind.SLIME)
             is BaseFireBlock -> add(BlockKind.FIRE)
+            is CropBlock -> add(BlockKind.CROP)
+            is NetherWartBlock -> add(BlockKind.NETHER_WART)
+            is CocoaBlock -> add(BlockKind.COCOA)
+            is SweetBerryBushBlock -> add(BlockKind.SWEET_BERRY_BUSH)
+            is SugarCaneBlock -> add(BlockKind.SUGAR_CANE)
+            is CactusBlock -> add(BlockKind.CACTUS)
+            is BambooStalkBlock -> add(BlockKind.BAMBOO)
+            is KelpPlantBlock -> add(BlockKind.KELP_PLANT)
+            is StemBlock -> add(BlockKind.STEM)
+            is AttachedStemBlock -> add(BlockKind.ATTACHED_STEM)
         }
         if (block is FallingBlock) add(BlockKind.FALLING)
         if (block is EntityBlock) add(BlockKind.ENTITY_BLOCK)

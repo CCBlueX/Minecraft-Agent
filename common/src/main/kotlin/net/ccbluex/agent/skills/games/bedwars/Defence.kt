@@ -134,9 +134,10 @@ private val SUPPORT_ORDER = listOf(
 )
 
 /**
- * The side of a solid neighbour to place a block at [pos] against, below first; null when it would float.
+ * The side of a solid neighbour to place a block at [pos] against that [accepts], below first; null when there is
+ * none, as when the block would float.
  *
  * @agent claude-opus-5-5
  */
-internal fun support(level: BlockGetter, pos: BlockPos): Direction? =
-    SUPPORT_ORDER.firstOrNull { isSolid(level, pos.relative(it)) }
+internal fun support(level: BlockGetter, pos: BlockPos, accepts: (Direction) -> Boolean = { true }): Direction? =
+    SUPPORT_ORDER.firstOrNull { isSolid(level, pos.relative(it)) && accepts(it) }

@@ -20,13 +20,13 @@
 package net.ccbluex.agent.skills.eat
 
 import net.ccbluex.agent.math.ViewRotation
+import net.ccbluex.agent.navigation.FED
 import net.ccbluex.agent.navigation.LookPurpose
+import net.ccbluex.agent.navigation.bestFoodSlot
 import net.ccbluex.agent.skills.Agent
-import net.ccbluex.agent.skills.CARRIED_SLOTS
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.world.InteractionHand
-import net.ccbluex.agent.world.entity.Player
 import net.ccbluex.agent.world.item.ItemStack
 import java.util.EnumMap
 import java.util.concurrent.ThreadLocalRandom
@@ -51,7 +51,7 @@ internal class Eating : Eat {
     private var xRot = 0f
 
     /**
-     * Eating food up to [Meal.FED] once hunger got to [Meal.HUNGRY].
+     * Eating food up to [FED] once hunger got to [Eat.HUNGRY].
      */
     private var feeding = false
     private var due = false
@@ -74,7 +74,7 @@ internal class Eating : Eat {
         val inventory = player.inventory
         for (next in BY_PRIORITY) {
             if (agent.ticks < (readyAt[next] ?: 0L) || !isWanted(next, agent)) continue
-            val slot = if (next == Meal.FOOD) bestFood(player) else inventory.slotOf(next::matches)
+            val slot = if (next == Meal.FOOD) inventory.bestFoodSlot() else inventory.slotOf(next::matches)
             if (slot < 0) continue
             due = true
             start(agent, next, slot)
@@ -99,25 +99,10 @@ internal class Eating : Eat {
                 (player.health < Meal.GAPPLE_HP || share < Meal.GAPPLE_SHARE * heal) && !Meal.stillBuffed(player)
             Meal.FOOD -> {
                 val hunger = player.foodData.foodLevel
-                if (hunger >= Meal.FED) feeding = false
-                target == null && (hunger <= Meal.HUNGRY || feeding && hunger < Meal.FED)
+                if (hunger >= FED) feeding = false
+                target == null && (hunger <= Eat.HUNGRY || feeding && hunger < FED)
             }
         }
-    }
-
-    private fun bestFood(player: Player): Int {
-        var best = -1
-        var nutrition = 0
-        for (slot in CARRIED_SLOTS) {
-            val stack = player.inventory.getItem(slot)
-            if (!Meal.isPlainFood(stack)) continue
-            val value = Meal.nutrition(stack)
-            if (value > nutrition) {
-                best = slot
-                nutrition = value
-            }
-        }
-        return best
     }
 
     private fun start(agent: Agent, meal: Meal, slot: Int) {

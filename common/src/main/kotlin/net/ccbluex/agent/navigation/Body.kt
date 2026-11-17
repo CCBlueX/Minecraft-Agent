@@ -30,6 +30,7 @@ import net.ccbluex.agent.world.BlockHitResult
 import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.entity.Entity
 import net.ccbluex.agent.world.entity.Player
 
 /**
@@ -141,6 +142,23 @@ public interface Body {
     public fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean
 
     public fun useItem(hand: InteractionHand): Boolean
+
+    /**
+     * Uses [hand] on [entity] as a right click on it does, such as to board a boat, open a villager's trades or answer
+     * an interaction hitbox; true if the use went through, always false for a body that cannot.
+     */
+    public fun interact(entity: Entity, hand: InteractionHand): Boolean = false
+
+    /**
+     * Attacks as a player does: swings and hits.
+     */
+    public fun attack(target: Entity)
+
+    /**
+     * Swaps inventory [inventorySlot] (9 to 35, or a hotbar slot) with hotbar [hotbarSlot], as a number key over it in
+     * the inventory does.
+     */
+    public fun swapWithHotbar(inventorySlot: Int, hotbarSlot: Int)
 
     /**
      * Whether a feature of the host, such as a fly module, flies the player right now, besides creative flight. The

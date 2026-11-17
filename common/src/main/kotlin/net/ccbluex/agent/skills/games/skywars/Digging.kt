@@ -20,14 +20,15 @@
 package net.ccbluex.agent.skills.games.skywars
 
 import net.ccbluex.agent.math.BlockPos
-import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
-import net.ccbluex.agent.skills.HOTBAR_SLOTS
+import net.ccbluex.agent.skills.canHarvest
+import net.ccbluex.agent.skills.diggingSlot
 import net.ccbluex.agent.skills.hold
 import net.ccbluex.agent.skills.isBuildingBlock
+import net.ccbluex.agent.skills.sentHit
 import net.ccbluex.agent.tick.waitTicks
 import net.ccbluex.agent.world.block.BlockState
 import net.ccbluex.agent.world.block.BlockTags
@@ -100,21 +101,7 @@ private fun Round.nearChest(pos: BlockPos): Boolean =
 private fun Round.givesBlock(state: BlockState): Boolean {
     if (state.hasBlockEntity() || state.`is`(BlockTags.LEAVES) || state.`is`(BlockTags.IMPERMEABLE)) return false
     if (!isBuildingBlock(state.block.asItem().getDefaultInstance())) return false
-    return !state.requiresCorrectToolForDrops() || toolSlot(state)?.let {
-        player.inventory.getItem(it).isCorrectToolForDrops(state)
-    } == true
-}
-
-/**
- * The hotbar slot whose item digs the block fastest; null when the hand is as good.
- *
- * @agent claude-opus-5-5
- */
-private fun Round.toolSlot(state: BlockState): Int? {
-    val inventory = player.inventory
-    return (0 until HOTBAR_SLOTS)
-        .filter { inventory.getItem(it).getDestroySpeed(state) > 1f }
-        .maxByOrNull { inventory.getItem(it).getDestroySpeed(state) }
+    return agent.canHarvest(state)
 }
 
 /**
@@ -134,7 +121,7 @@ internal suspend fun Round.gather(point: Vec3): Any? {
     }
     val state = level.getBlockState(pos)
     if (state.isAir || !givesBlock(state)) return null
-    toolSlot(state)?.let { body.hold(it) }
+    agent.diggingSlot(state).takeIf { it >= 0 }?.let { body.hold(it) }
     goal = "Gathering blocks"
     try {
         var started = false
@@ -145,10 +132,12 @@ internal suspend fun Round.gather(point: Vec3): Any? {
             }
             agent.takeMovement()
             body.look(ViewRotation.fromVector(point.subtract(player.eyePosition)), LookPurpose.AIM)
-            if (started) {
-                body.continueDestroy(pos, Direction.UP)
-            } else {
-                started = body.startDestroy(pos, Direction.UP)
+            // The face the rotation the server has hits first; none while another block is in the way
+            val face = agent.sentHit(pos, null)?.direction
+            if (face != null && started) {
+                agent.navigator.continueDestroy(pos, face)
+            } else if (face != null) {
+                started = agent.navigator.startDestroy(pos, face)
             }
             waitTicks(1)
         }

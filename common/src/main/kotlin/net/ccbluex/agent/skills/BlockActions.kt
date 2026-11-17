@@ -27,6 +27,8 @@ import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.Ending
 import net.ccbluex.agent.navigation.LookPurpose
+import net.ccbluex.agent.navigation.isToolFor
+import net.ccbluex.agent.navigation.isWearFree
 import net.ccbluex.agent.navigation.seenPoint
 import net.ccbluex.agent.pathfinder.walk.BreakTimes
 import net.ccbluex.agent.tick.tickConditional
@@ -86,6 +88,32 @@ internal fun Agent.seenPoint(pos: BlockPos, face: Direction?, reach: Double = BL
 }
 
 /**
+ * Walks to [goal] within [radius]; how the walk ended, or null when it took longer than a person would with a detour
+ * or a dig on the way.
+ *
+ * @agent claude-opus-5-5
+ */
+@ExperimentalAgentApi
+public suspend fun Agent.goTo(goal: Vec3, radius: Double): Ending? {
+    var ending: Ending? = null
+    val limit = walkTicks(goal)
+    navigator.moveTo(goal, radius) { ending = it }
+    try {
+        tickUntil { ticks -> ending != null || ticks >= limit || !body.player.isAlive }
+    } finally {
+        if (ending == null) navigator.stop()
+    }
+    return ending
+}
+
+/**
+ * The longest a walk to [goal] may take: a person walks a block in about 5 ticks; a way around or a dig takes longer.
+ *
+ * @agent claude-opus-5-5
+ */
+private fun Agent.walkTicks(goal: Vec3): Int = 200 + (body.player.position().distanceTo(goal) * 12).toInt()
+
+/**
  * Walks until [distance] from [goal] is within [radius]; false when the way was blocked or took too long.
  *
  * @agent claude-opus-5-5
@@ -93,8 +121,7 @@ internal fun Agent.seenPoint(pos: BlockPos, face: Direction?, reach: Double = BL
 internal suspend fun Agent.walkNear(goal: Vec3, radius: Double, distance: (Vec3) -> Double): Boolean {
     if (distance(goal) <= radius) return true
     var ending: Ending? = null
-    // A person walks a block in about 5 ticks; a way around or a dig takes longer
-    val limit = 200 + (body.player.position().distanceTo(goal) * 12).toInt()
+    val limit = walkTicks(goal)
     navigator.moveTo(goal, (radius - 1.6).coerceAtLeast(1.0)) { ending = it }
     try {
         tickUntil { ticks -> ending != null || ticks >= limit || distance(goal) <= radius - 0.3 || !body.player.isAlive }
@@ -147,14 +174,33 @@ internal fun Agent.sentHit(pos: BlockPos, face: Direction?): BlockHitResult? {
  * @agent claude-opus-5-5
  */
 @ExperimentalAgentApi
-public suspend fun Agent.useBlock(pos: BlockPos, done: BooleanSupplier): Boolean {
+public suspend fun Agent.useBlock(pos: BlockPos, done: BooleanSupplier): Boolean = useItemOn(-1, pos, null, done)
+
+/**
+ * Right-clicks [pos] on [face], or on any face in sight without one, holding inventory [slot], or what is held
+ * for -1, until [done] holds; false when it could not get there or nothing came of three clicks.
+ *
+ * @agent claude-opus-5-5
+ */
+internal suspend fun Agent.useItemOn(slot: Int, pos: BlockPos, face: Direction?, done: BooleanSupplier): Boolean {
     if (done.asBoolean) return true
-    if (!reach(pos)) return false
-    repeat(3) {
-        val hit = aimAt(pos) ?: return@repeat
-        navigator.useItemOn(InteractionHand.MAIN_HAND, hit)
-        body.swing(InteractionHand.MAIN_HAND)
-        if (!tickConditional(20) { takeMovement(); done.asBoolean }) return true
+    if (!reach(pos, face)) return false
+    try {
+        val hotbar = if (slot >= 0) body.hold(slot) else -1
+        repeat(3) {
+            val hit = aimAt(pos, face, hotbar) ?: return@repeat
+            if (hotbar >= 0) body.selectHotbarSlot(hotbar)
+            navigator.useItemOn(InteractionHand.MAIN_HAND, hit)
+            body.swing(InteractionHand.MAIN_HAND)
+            val timedOut = tickConditional(20) {
+                takeMovement()
+                if (hotbar >= 0) body.selectHotbarSlot(hotbar)
+                done.asBoolean
+            }
+            if (!timedOut) return true
+        }
+    } finally {
+        if (slot >= 0) body.releaseHotbarSlot()
     }
     return done.asBoolean
 }
@@ -198,18 +244,25 @@ public suspend fun Agent.placeBlock(slot: Int, pos: BlockPos): Boolean {
  */
 @ExperimentalAgentApi
 @JvmOverloads
-public suspend fun Agent.dig(pos: BlockPos, forDrops: Boolean = true): Boolean {
+public suspend fun Agent.dig(pos: BlockPos, forDrops: Boolean = true): Boolean = dig(pos, forDrops, ::diggingSlot)
+
+/**
+ * [dig] with the carried slot [slotFor] picks for the block, -1 for none in particular.
+ *
+ * @agent claude-opus-5-5
+ */
+internal suspend fun Agent.dig(pos: BlockPos, forDrops: Boolean, slotFor: (BlockState) -> Int): Boolean {
     val level = body.level
     if (level.getBlockState(pos).isAir) return true
     if (forDrops && !canHarvest(level.getBlockState(pos))) return false
     if (!reach(pos)) return false
     val state = level.getBlockState(pos)
     if (state.isAir) return true
-    val tool = toolFor(state)
+    val slot = slotFor(state)
     try {
-        val hotbar = if (tool >= 0) body.hold(tool) else -1.also { body.releaseHotbarSlot() }
+        val hotbar = if (slot >= 0) body.hold(slot) else -1.also { body.releaseHotbarSlot() }
         waitTicks(1)
-        val held = if (tool >= 0) body.player.inventory.getItem(tool) else ItemStack.EMPTY
+        val held = if (slot >= 0) body.player.inventory.getItem(slot) else ItemStack.EMPTY
         val ticksToBreak = BreakTimes.capture(listOf(held)).applyAsDouble(state)
         if (!ticksToBreak.isFinite()) return false
         // Some ticks over what the server counts, for the latency and a slower start
@@ -256,16 +309,17 @@ internal fun Agent.canHarvest(state: BlockState): Boolean {
 }
 
 /**
- * The carried slot whose item digs [state] fastest, preferring one that makes it drop; -1 when the hand is as good.
+ * The carried slot to dig [state] with: the fastest tool made for it, else one holding no tool, the selected one
+ * first, as any other tool only wears out on it; -1 when everything carried is a tool.
  *
  * @agent claude-opus-5-5
  */
-internal fun Agent.toolFor(state: BlockState): Int {
+internal fun Agent.diggingSlot(state: BlockState): Int {
     val inventory = body.player.inventory
-    return (0 until INVENTORY_SLOTS)
-        .filter { inventory.getItem(it).getDestroySpeed(state) > 1f || inventory.getItem(it).isCorrectToolForDrops(state) && state.requiresCorrectToolForDrops() }
-        .maxByOrNull { slot ->
-            val stack = inventory.getItem(slot)
-            stack.getDestroySpeed(state) + if (stack.isCorrectToolForDrops(state)) 100f else 0f
-        } ?: -1
+    val slots = 0 until INVENTORY_SLOTS
+    slots.filter { isToolFor(inventory.getItem(it), state) }.maxByOrNull { inventory.getItem(it).getDestroySpeed(state) }
+        ?.let { return it }
+    val selected = inventory.selectedSlot
+    if (isWearFree(inventory.getItem(selected))) return selected
+    return slots.firstOrNull { isWearFree(inventory.getItem(it)) } ?: -1
 }

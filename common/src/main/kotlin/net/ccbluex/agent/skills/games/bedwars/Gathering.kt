@@ -19,14 +19,13 @@
 
 package net.ccbluex.agent.skills.games.bedwars
 
-import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.skills.aimAt
 import net.ccbluex.agent.skills.shop.Currency
 import net.ccbluex.agent.skills.shop.Wishes
 import net.ccbluex.agent.tick.tickConditional
 import net.ccbluex.agent.tick.waitTicks
-import net.ccbluex.agent.world.BlockHitResult
 import net.ccbluex.agent.world.ContainerInput
 import net.ccbluex.agent.world.InteractionHand
 import kotlin.math.abs
@@ -210,11 +209,9 @@ internal suspend fun Activities.spare(): Boolean {
         waitTicks(1)
     }
 
-    val top = Vec3.atCenterOf(chest).add(0.0, 0.5, 0.0)
     val body = agent.body
-    look(top)
     if (body.containerMenu == null) {
-        body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(top, Direction.UP, chest, false))
+        agent.aimAt(chest)?.let { agent.navigator.useItemOn(InteractionHand.MAIN_HAND, it) }
         if (body.containerMenu == null && tickConditional(OPEN_TICKS) { body.containerMenu != null }) {
             chestAgainAt = tick + RETRY_TICKS
             return true

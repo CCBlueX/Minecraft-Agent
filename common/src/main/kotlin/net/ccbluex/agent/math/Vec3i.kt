@@ -33,6 +33,11 @@ public open class Vec3i(x: Int, y: Int, z: Int) : Comparable<Vec3i> {
     public var z: Int = z
         protected set
 
+    public fun toShortString(): String = "$x, $y, $z"
+
+    public fun closerToCenterThan(pos: Vec3, distance: Double): Boolean =
+        distToCenterSqr(pos) < Mth.square(distance)
+
     public fun subtract(other: Vec3i): Vec3i = Vec3i(x - other.x, y - other.y, z - other.z)
 
     public fun distSqr(other: Vec3i): Double {
@@ -52,6 +57,9 @@ public open class Vec3i(x: Int, y: Int, z: Int) : Comparable<Vec3i> {
     }
 
     public fun distToCenterSqr(pos: Vec3): Double = distToCenterSqr(pos.x, pos.y, pos.z)
+
+    public fun distChessboard(other: Vec3i): Int =
+        maxOf(Math.abs(x - other.x), Math.abs(y - other.y), Math.abs(z - other.z))
 
     public fun distManhattan(other: Vec3i): Int =
         Math.abs(other.x - x) + Math.abs(other.y - y) + Math.abs(other.z - z)

@@ -41,6 +41,11 @@ public interface AgentListener {
      */
     public fun phase(name: String) {}
 
+    /**
+     * A skill took a step worth following in a log, such as `mining down for iron towards north`.
+     */
+    public fun step(description: String) {}
+
     public fun engaged(target: LivingEntity) {}
 
     public fun ate(item: ItemStack) {}

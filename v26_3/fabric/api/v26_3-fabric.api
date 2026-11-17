@@ -4,11 +4,13 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/skill
 	public synthetic fun <init> (Lnet/ccbluex/agent/navigation/Turning;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun attack (Lnet/ccbluex/agent/world/entity/Entity;)V
 	public fun clickContainer (IILnet/ccbluex/agent/world/ContainerInput;)V
+	public fun clickInventory (IILnet/ccbluex/agent/world/ContainerInput;)V
 	public fun closeContainer ()V
 	public fun continueDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
 	public fun drop (IZ)V
 	public fun getAttackStrength ()F
 	public fun getContainerMenu ()Lnet/ccbluex/agent/world/ContainerMenu;
+	public fun getInventoryMenu ()Lnet/ccbluex/agent/world/ContainerMenu;
 	public fun getLatencyMillis ()I
 	public fun getMaxAttackReach ()D
 	public fun getMinAttackReach ()D
@@ -20,6 +22,7 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/skill
 	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
 	public final fun getTurning ()Lnet/ccbluex/agent/navigation/Turning;
 	public fun getViewStep ()F
+	public fun interact (Lnet/ccbluex/agent/world/entity/Entity;Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public fun isCombat1_8 ()Z
 	public fun isRotationOverridden ()Z
 	public fun isUsingItem ()Z

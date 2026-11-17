@@ -22,6 +22,7 @@ package net.ccbluex.agent.navigation
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.navigation.ride.Boating
 import net.ccbluex.agent.navigation.walk.BlockActions
 import net.ccbluex.agent.navigation.walk.Follower
 import net.ccbluex.agent.navigation.walk.Hops
@@ -52,6 +53,7 @@ internal class Course(
     private val player get() = body.player
     private val travel = Travel(context, ::stopWalking, ::resetWalk)
     private val hops = Hops(context, follower.stride)
+    private val boating = Boating(context)
 
     /**
      * Whether the goal is reached by walking straight on, as of the last tick on the ground.
@@ -102,6 +104,12 @@ internal class Course(
                 isStraightWalkable(Terrain.live(body.level), position, goal, radius, context.safeFall())
         }
 
+        // A boat for water ahead is placed, boarded and taken back while the walk stands or steps up to it
+        if (boating.tick(follower)) {
+            boating.walkTarget?.let { heading.walkTowards(keys, it, sprint = false) } ?: stop(keys)
+            return false
+        }
+
         // A ridden vehicle follows the view, which the ride turns itself.
         if (travel.ride(goal, radius)) {
             return false
@@ -145,6 +153,7 @@ internal class Course(
         arrived = false
         failed = false
         travel.halt()
+        boating.halt()
         stopWalking()
     }
 

@@ -28,6 +28,7 @@ import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.world.BlockHitResult
 import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Entity
 import net.ccbluex.agent.world.entity.Player
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
@@ -74,5 +75,9 @@ internal class NavigatorTest {
         override fun useItem(hand: InteractionHand) = false
         override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
             error("There is no player")
+
+        override fun interact(entity: Entity, hand: InteractionHand) = false
+        override fun attack(target: Entity) = Unit
+        override fun swapWithHotbar(inventorySlot: Int, hotbarSlot: Int) = Unit
     }
 }

@@ -114,6 +114,7 @@ internal open class EntityView(open val handle: McEntity) : Entity {
     override val isInvisible: Boolean get() = handle.isInvisible
     override val isPassenger: Boolean get() = handle.vehicle != null
     override val isInWater: Boolean get() = handle.V()
+    override val passengers: List<Entity> get() = listOfNotNull(handle.passenger?.let(::view))
     override fun onGround(): Boolean = handle.onGround
     override fun level(): Level = LevelView.of(handle.world)
     override val vehicle: Entity? get() = handle.vehicle?.let(::view)
@@ -212,6 +213,7 @@ internal open class LivingEntityView(override val handle: EntityLiving) : Entity
     }
     override val isFallFlying: Boolean get() = false
     override val isDeadOrDying: Boolean get() = handle.health <= 0f
+    override val isSleeping: Boolean get() = handle.isSleeping
     override val jumpBoostPower: Float
         get() = handle.getEffect(MobEffectList.JUMP)?.let { (it.amplifier + 1) * 0.1f } ?: 0f
     override val lastHurtByMob: LivingEntity? get() = handle.lastDamager?.let { view(it) as? LivingEntity }
@@ -303,6 +305,9 @@ internal class PlayerView(override val handle: EntityHuman) : LivingEntityView(h
     override val fishing: FishingHook? get() = handle.hookedFish?.let { view(it) as? FishingHook }
     override val noJumpDelay: Int get() = JUMP_DELAY.getInt(handle)
     override val latency: Int? get() = (handle as? EntityPlayer)?.ping
+
+    // No attack cooldown under 1.8 rules
+    override fun getAttackStrengthScale(adjustTicks: Float): Float = 1f
 
     private companion object {
         val JUMP_DELAY: java.lang.reflect.Field = EntityLiving::class.java.getDeclaredField("bn").apply { isAccessible = true }

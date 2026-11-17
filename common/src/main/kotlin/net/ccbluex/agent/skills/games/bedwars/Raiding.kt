@@ -20,11 +20,11 @@
 package net.ccbluex.agent.skills.games.bedwars
 
 import net.ccbluex.agent.math.BlockPos
-import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.gear.GearScore
 import net.ccbluex.agent.skills.hold
+import net.ccbluex.agent.skills.sentHit
 import net.ccbluex.agent.skills.shop.Wishes
 import net.ccbluex.agent.tick.waitTicks
 import net.ccbluex.agent.world.block.BlockTags
@@ -224,17 +224,19 @@ internal fun Activities.dig(pos: BlockPos) {
         travel.walk(agent, Vec3.atBottomCenterOf(pos), 2.0)
         return
     }
-    val face = Direction.getApproximateNearest(eyes().subtract(centre))
     look(centre)
+    // The face the rotation the server has hits first; none while another block is in the way
+    val face = agent.sentHit(pos, null)?.direction
     val body = agent.body
     if (pos != digging) {
         stopDigging()
-        digging = pos
         val tool = tool(pos)
         if (tool >= 0) body.hold(tool) else body.releaseHotbarSlot()
-        body.startDestroy(pos, face)
-    } else {
-        body.continueDestroy(pos, face)
+        if (face == null) return
+        digging = pos
+        agent.navigator.startDestroy(pos, face)
+    } else if (face != null) {
+        agent.navigator.continueDestroy(pos, face)
     }
 }
 

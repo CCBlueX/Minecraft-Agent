@@ -19,18 +19,18 @@
 
 package net.ccbluex.agent.v26_3.paper
 
+import net.ccbluex.agent.bukkit.BotBody
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.BodyTraits
 import net.ccbluex.agent.navigation.Teleporter
-import net.ccbluex.agent.bukkit.BotBody
+import net.ccbluex.agent.simulation.PlayerSimulation
+import net.ccbluex.agent.simulation.SimulatedInput
+import net.ccbluex.agent.simulation.SimulatedPlayer
 import net.ccbluex.agent.v26_3.paper.body.BotPlayer
 import net.ccbluex.agent.v26_3.paper.body.Digging
 import net.ccbluex.agent.v26_3.paper.body.InventoryClicks
 import net.ccbluex.agent.v26_3.paper.body.PositionTeleporter
 import net.ccbluex.agent.v26_3.paper.body.launch
-import net.ccbluex.agent.simulation.PlayerSimulation
-import net.ccbluex.agent.simulation.SimulatedInput
-import net.ccbluex.agent.simulation.SimulatedPlayer
 import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.v26_3.toMinecraft
 import net.ccbluex.agent.world.ContainerMenu
@@ -182,6 +182,20 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Bo
     override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
         SimulatedPlayer.fromPlayer(handle, input, TRAITS.navigatesInMovementTick, simulationHooks)
             .also { it.yRot = yRot }
+
+    // ServerGamePacketListenerImpl.handleInteract, at the middle of the entity's box
+    override fun interact(entity: net.ccbluex.agent.world.entity.Entity, hand: net.ccbluex.agent.world.InteractionHand): Boolean {
+        val target = entity.toMinecraft()
+        val game = hand.toMinecraft()
+        val stack = handle.getItemInHand(game)
+        if (!stack.isItemEnabled(handle.level().enabledFeatures())) return false
+        val animation = stack.interactAnimation
+        val result = handle.interactOn(target, game, target.boundingBox.center.subtract(target.position()))
+        if (result is InteractionResult.Success && result.shouldSwing()) {
+            handle.swingAndResetAttackStrength(game, animation, false)
+        }
+        return result.consumesAction()
+    }
 
     override val teleporter: Teleporter = PositionTeleporter(handle)
 
@@ -359,6 +373,13 @@ public class PaperBody internal constructor(internal val handle: BotPlayer) : Bo
 
     override val containerMenu: ContainerMenu?
         get() = handle.containerMenu.takeIf { it !== handle.inventoryMenu }?.toAgent()
+
+    override val inventoryMenu: ContainerMenu
+        get() = handle.inventoryMenu.toAgent()
+
+    override fun clickInventory(menuSlot: Int, button: Int, type: net.ccbluex.agent.world.ContainerInput) {
+        if (containerMenu == null) clicks.click(menuSlot, button, type.toMinecraft())
+    }
 
     override fun takeFromContainer(containerSlot: Int) {
         clicks.click(containerSlot, 0, ContainerInput.QUICK_MOVE)

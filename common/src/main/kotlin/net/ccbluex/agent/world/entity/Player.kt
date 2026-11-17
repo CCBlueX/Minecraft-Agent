@@ -116,6 +116,11 @@ public interface Player : LivingEntity {
     public val noJumpDelay: Int
 
     /**
+     * How charged the attack is, 0 to 1, [adjustTicks] ticks ahead; always 1 under 1.8 rules.
+     */
+    public fun getAttackStrengthScale(adjustTicks: Float): Float
+
+    /**
      * The round trip in milliseconds the server measured to the player's client; null where the game does not know it,
      * as for players a client sees.
      */
@@ -153,6 +158,20 @@ public interface Inventory {
     public val containerSize: Int
 
     public fun getItem(slot: Int): ItemStack
+
+    /**
+     * The hotbar slot to put an item into: the first empty one from the selected slot on, else the selected one.
+     */
+    public val suitableHotbarSlot: Int
+        get() = (0 until SELECTION_SIZE).map { (selectedSlot + it) % SELECTION_SIZE }
+            .firstOrNull { getItem(it).isEmpty } ?: selectedSlot
+
+    /**
+     * How many of [item] the main inventory and the offhand hold.
+     */
+    public fun countItem(item: Item): Int =
+        (0 until INVENTORY_SIZE + 1).map { if (it == INVENTORY_SIZE) SLOT_OFFHAND else it }
+            .sumOf { getItem(it).let { stack -> if (stack.`is`(item)) stack.count else 0 } }
 
     public val selectedSlot: Int
 

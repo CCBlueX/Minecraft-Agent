@@ -23,9 +23,17 @@ import net.ccbluex.agent.v26_3.fabric.gametest.autoWalk
 import net.ccbluex.agent.v26_3.fabric.gametest.autoWalkStages
 import net.ccbluex.agent.v26_3.fabric.gametest.blockSight
 import net.ccbluex.agent.v26_3.fabric.gametest.building
+import net.ccbluex.agent.v26_3.fabric.gametest.dangers
+import net.ccbluex.agent.v26_3.fabric.gametest.depositing
 import net.ccbluex.agent.v26_3.fabric.gametest.eating
 import net.ccbluex.agent.v26_3.fabric.gametest.elytraTravel
+import net.ccbluex.agent.v26_3.fabric.gametest.exploring
+import net.ccbluex.agent.v26_3.fabric.gametest.farming
+import net.ccbluex.agent.v26_3.fabric.gametest.fillingLava
 import net.ccbluex.agent.v26_3.fabric.gametest.flightNavigation
+import net.ccbluex.agent.v26_3.fabric.gametest.gatherLogs
+import net.ccbluex.agent.v26_3.fabric.gametest.gatherStone
+import net.ccbluex.agent.v26_3.fabric.gametest.hunting
 import net.ccbluex.agent.v26_3.fabric.gametest.keyTiming
 import net.ccbluex.agent.v26_3.fabric.gametest.litematicaBuilding
 import net.ccbluex.agent.v26_3.fabric.gametest.parkourAssist
@@ -33,6 +41,9 @@ import net.ccbluex.agent.v26_3.fabric.gametest.parkourEdge
 import net.ccbluex.agent.v26_3.fabric.gametest.playerMotion
 import net.ccbluex.agent.v26_3.fabric.gametest.playerSimulation
 import net.ccbluex.agent.v26_3.fabric.gametest.rideNavigation
+import net.ccbluex.agent.v26_3.fabric.gametest.sheltering
+import net.ccbluex.agent.v26_3.fabric.gametest.sleeping
+import net.ccbluex.agent.v26_3.fabric.gametest.tilling
 import net.ccbluex.agent.v26_3.fabric.gametest.tunnelGlide
 import net.ccbluex.agent.v26_3.fabric.gametest.turning
 import net.ccbluex.agent.v26_3.fabric.gametest.walkBlocked
@@ -174,3 +185,58 @@ public class BuildGameTest : SingleplayerGameTest(building)
  * @agent claude-opus-5-5
  */
 public class LitematicaBuildGameTest : SingleplayerGameTest(litematicaBuilding)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class GatherLogsGameTest : SingleplayerGameTest(gatherLogs)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class GatherStoneGameTest : SingleplayerGameTest(gatherStone)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class ExploreGameTest : SingleplayerGameTest(exploring)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class HuntGameTest : SingleplayerGameTest(hunting)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class SleepGameTest : SingleplayerGameTest(sleeping)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class ShelterGameTest : SingleplayerGameTest(sheltering)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class LavaGameTest : SingleplayerGameTest(fillingLava)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class DangersGameTest : SingleplayerGameTest(dangers)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class FarmGameTest : SingleplayerGameTest(farming)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class TillGameTest : SingleplayerGameTest(tilling)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class DepositGameTest : SingleplayerGameTest(depositing)

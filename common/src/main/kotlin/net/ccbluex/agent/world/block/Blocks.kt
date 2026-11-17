@@ -35,6 +35,9 @@ public object Blocks {
     public val CACTUS: Block = Block.of("cactus")
 
     @JvmField
+    public val CALCITE: Block = Block.of("calcite")
+
+    @JvmField
     public val CAMPFIRE: Block = Block.of("campfire")
 
     @JvmField
@@ -44,10 +47,49 @@ public object Blocks {
     public val CAVE_VINES_PLANT: Block = Block.of("cave_vines_plant")
 
     @JvmField
+    public val CLAY: Block = Block.of("clay")
+
+    @JvmField
+    public val COAL_ORE: Block = Block.of("coal_ore")
+
+    @JvmField
     public val COBWEB: Block = Block.of("cobweb")
 
     @JvmField
+    public val CRAFTING_TABLE: Block = Block.of("crafting_table")
+
+    @JvmField
+    public val DEEPSLATE: Block = Block.of("deepslate")
+
+    @JvmField
+    public val DEEPSLATE_COAL_ORE: Block = Block.of("deepslate_coal_ore")
+
+    @JvmField
+    public val DEEPSLATE_DIAMOND_ORE: Block = Block.of("deepslate_diamond_ore")
+
+    @JvmField
+    public val DEEPSLATE_IRON_ORE: Block = Block.of("deepslate_iron_ore")
+
+    @JvmField
+    public val DIAMOND_ORE: Block = Block.of("diamond_ore")
+
+    @JvmField
+    public val DRIPSTONE_BLOCK: Block = Block.of("dripstone_block")
+
+    @JvmField
+    public val FARMLAND: Block = Block.of("farmland")
+
+    @JvmField
+    public val FURNACE: Block = Block.of("furnace")
+
+    @JvmField
     public val GLOWSTONE: Block = Block.of("glowstone")
+
+    @JvmField
+    public val GRAVEL: Block = Block.of("gravel")
+
+    @JvmField
+    public val IRON_ORE: Block = Block.of("iron_ore")
 
     @JvmField
     public val IRON_TRAPDOOR: Block = Block.of("iron_trapdoor")
@@ -56,7 +98,13 @@ public object Blocks {
     public val LADDER: Block = Block.of("ladder")
 
     @JvmField
+    public val LAVA: Block = Block.of("lava")
+
+    @JvmField
     public val MAGMA_BLOCK: Block = Block.of("magma_block")
+
+    @JvmField
+    public val MELON: Block = Block.of("melon")
 
     @JvmField
     public val OBSIDIAN: Block = Block.of("obsidian")
@@ -65,10 +113,22 @@ public object Blocks {
     public val POWDER_SNOW: Block = Block.of("powder_snow")
 
     @JvmField
+    public val PUMPKIN: Block = Block.of("pumpkin")
+
+    @JvmField
+    public val RED_SANDSTONE: Block = Block.of("red_sandstone")
+
+    @JvmField
     public val RESPAWN_ANCHOR: Block = Block.of("respawn_anchor")
 
     @JvmField
+    public val SANDSTONE: Block = Block.of("sandstone")
+
+    @JvmField
     public val SOUL_CAMPFIRE: Block = Block.of("soul_campfire")
+
+    @JvmField
+    public val STONE: Block = Block.of("stone")
 
     @JvmField
     public val SWEET_BERRY_BUSH: Block = Block.of("sweet_berry_bush")
@@ -87,6 +147,9 @@ public object Blocks {
 
     @JvmField
     public val VOID_AIR: Block = Block.of("void_air")
+
+    @JvmField
+    public val WATER: Block = Block.of("water")
 
     @JvmField
     public val WEEPING_VINES: Block = Block.of("weeping_vines")

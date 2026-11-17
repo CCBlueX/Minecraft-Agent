@@ -52,6 +52,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.InventoryMenu
+import net.minecraft.world.phys.EntityHitResult
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import net.minecraft.world.inventory.ContainerInput as McContainerInput
@@ -367,15 +368,15 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
         get() = false
 
     override fun swapWithHotbar(inventorySlot: Int, hotbarSlot: Int) {
-        clickInventory(menuSlot(inventorySlot), hotbarSlot, McContainerInput.SWAP)
+        click(menuSlot(inventorySlot), hotbarSlot, McContainerInput.SWAP)
     }
 
     override fun swapWithOffhand(inventorySlot: Int) {
-        clickInventory(menuSlot(inventorySlot), Inventory.SLOT_OFFHAND, McContainerInput.SWAP)
+        click(menuSlot(inventorySlot), Inventory.SLOT_OFFHAND, McContainerInput.SWAP)
     }
 
     override fun drop(inventorySlot: Int, wholeStack: Boolean) {
-        clickInventory(menuSlot(inventorySlot), if (wholeStack) 1 else 0, McContainerInput.THROW)
+        click(menuSlot(inventorySlot), if (wholeStack) 1 else 0, McContainerInput.THROW)
     }
 
     override val containerMenu: ContainerMenu?
@@ -391,7 +392,14 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
         minecraft.gameMode?.handleContainerInput(menu.containerId, containerSlot, button, type.toMinecraft(), player)
     }
 
-    private fun clickInventory(menuSlot: Int, button: Int, type: McContainerInput) {
+    override val inventoryMenu: ContainerMenu
+        get() = localPlayer.inventoryMenu.toAgent()
+
+    override fun clickInventory(menuSlot: Int, button: Int, type: ContainerInput) {
+        click(menuSlot, button, type.toMinecraft())
+    }
+
+    private fun click(menuSlot: Int, button: Int, type: McContainerInput) {
         val player = localPlayer
         minecraft.gameMode?.handleContainerInput(player.inventoryMenu.containerId, menuSlot, button, type, player)
     }
@@ -408,6 +416,28 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
         in 9..35 -> inventorySlot
         in 36..39 -> InventoryMenu.ARMOR_SLOT_END - 1 - (inventorySlot - 36)
         else -> InventoryMenu.SHIELD_SLOT
+    }
+
+    /**
+     * The entity branch of `Minecraft.startUseItem`, at the point of [entity] the rotation the server has meets.
+     */
+    override fun interact(entity: Entity, hand: InteractionHand): Boolean {
+        val gameMode = minecraft.gameMode ?: return false
+        val player = localPlayer
+        val target = entity.toMinecraft()
+        val game = hand.toMinecraft()
+        val eye = player.eyePosition
+        val box = target.boundingBox.inflate(target.pickRadius.toDouble())
+        val reach = sentRotation.viewVector.toMinecraft().scale(player.entityInteractionRange())
+        val point = box.clip(eye, eye.add(reach)).orElse(box.center)
+        val result = gameMode.interact(player, target, EntityHitResult(target, point), game)
+        if (result !is InteractionResult.Success) {
+            return false
+        }
+        if (result.swingSource() == InteractionResult.SwingSource.PREDICTED) {
+            player.swing(game, player.getItemInHand(game).attackAnimation, false)
+        }
+        return true
     }
 
     /**

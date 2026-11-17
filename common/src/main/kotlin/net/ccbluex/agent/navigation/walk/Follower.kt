@@ -128,6 +128,16 @@ internal class Follower(
         }
 
     /**
+     * The swim steps in a row from this step or the next, empty without.
+     */
+    val swimAhead: List<Step>
+        get() {
+            val steps = path?.steps ?: return emptyList()
+            val start = if (steps.getOrNull(index)?.move == Move.SWIM) index else index + 1
+            return steps.drop(start).takeWhile { it.move == Move.SWIM }
+        }
+
+    /**
      * The line the bridge being crossed is run along, null while not crossing one.
      */
     private var bridgeLine: BridgeLine? = null

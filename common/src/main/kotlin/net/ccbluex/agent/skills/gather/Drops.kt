@@ -21,9 +21,12 @@ package net.ccbluex.agent.skills.gather
 
 import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.math.AABB
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.navigation.Ending
 import net.ccbluex.agent.skills.Agent
+import net.ccbluex.agent.skills.dig
+import net.ccbluex.agent.tick.tickConditional
 import net.ccbluex.agent.tick.tickUntil
 import net.ccbluex.agent.world.entity.ItemEntity
 import net.ccbluex.agent.world.entity.Player
@@ -47,16 +50,42 @@ public suspend fun Agent.pickUpItems(around: Vec3, radius: Double = 8.0, limitTi
             .filter { it.isAlive && it.id !in tried && fits(player, it.item) }
             .minByOrNull { it.distanceToSqr(player) } ?: break
         tried += item.id
-        var ending: Ending? = null
-        navigator.moveTo(item.position(), 0.5) { ending = it }
-        try {
-            tickUntil { t -> ending != null || !item.isAlive || t >= 100 || ticks - start >= limitTicks }
-        } finally {
-            if (ending == null) navigator.stop()
-        }
-        if (!item.isAlive) picked++
+        if (pickUp(item, minOf(100L, limitTicks - (ticks - start)).toInt())) picked++
     }
     return picked
+}
+
+/**
+ * Walks onto [item] until it is picked up, for at most [limitTicks]; whether it is gone.
+ *
+ * @agent claude-opus-5-5
+ */
+internal suspend fun Agent.pickUp(item: ItemEntity, limitTicks: Int = 100): Boolean {
+    var ending: Ending? = null
+    navigator.moveTo(item.position(), 0.5) { ending = it }
+    try {
+        tickUntil { t -> ending != null || !item.isAlive || t >= limitTicks }
+    } finally {
+        if (ending == null) navigator.stop()
+    }
+    return !item.isAlive
+}
+
+/**
+ * Digs [pos] and picks up what it dropped, as a player mines a block or takes back one it placed; false when the
+ * dig failed, see [dig].
+ *
+ * @agent claude-opus-5-5
+ */
+@ExperimentalAgentApi
+@JvmOverloads
+public suspend fun Agent.mine(pos: BlockPos, forDrops: Boolean = true): Boolean {
+    if (!dig(pos, forDrops)) return false
+    // The drop reaches the client a few ticks after the block went
+    val around = AABB(pos).inflate(1.0)
+    tickConditional(10) { body.level.getEntitiesOfClass(ItemEntity::class.java, around).isNotEmpty() }
+    pickUpItems(Vec3.atCenterOf(pos), 6.0, 100)
+    return true
 }
 
 /**

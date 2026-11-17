@@ -20,6 +20,7 @@
 package net.ccbluex.agent.skills.eat
 
 
+import net.ccbluex.agent.navigation.isPlainFood
 import net.ccbluex.agent.world.entity.MobEffects
 import net.ccbluex.agent.world.entity.Player
 import net.ccbluex.agent.world.item.ItemStack
@@ -84,18 +85,7 @@ internal enum class Meal(val priority: Int, val cooldown: Int, val use: Use) {
          */
         const val SOUP_HP = 12.0
 
-        /**
-         * Hunger at or below which food is eaten, and up to which.
-         */
-        const val HUNGRY = 14
-        const val FED = 18
-
         fun isGoldenApple(stack: ItemStack) = stack.`is`(Items.GOLDEN_APPLE) || stack.`is`(Items.ENCHANTED_GOLDEN_APPLE)
-
-        fun isPlainFood(stack: ItemStack): Boolean =
-            stack.food != null && !isGoldenApple(stack) && stack.item !in BAD_FOOD
-
-        fun nutrition(stack: ItemStack): Int = stack.food?.nutrition ?: 0
 
         /**
          * Whether a golden apple's effects still run.
@@ -104,12 +94,5 @@ internal enum class Meal(val priority: Int, val cooldown: Int, val use: Use) {
 
         private fun heals(stack: ItemStack): Boolean =
             stack.potionEffects?.any { it.effect == MobEffects.INSTANT_HEALTH } == true
-
-        /**
-         * Food that hurts or teleports.
-         */
-        private val BAD_FOOD = setOf(
-            Items.ROTTEN_FLESH, Items.SPIDER_EYE, Items.POISONOUS_POTATO, Items.PUFFERFISH, Items.CHORUS_FRUIT,
-        )
     }
 }

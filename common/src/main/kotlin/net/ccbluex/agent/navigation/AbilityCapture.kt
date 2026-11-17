@@ -59,7 +59,9 @@ internal fun NavigationContext.captureWalk(avoid: LongSet, unbreakable: LongSet)
         safeFall = safeFall(),
         waterFall = WATER_FALL,
         breakTicks = if (options.canBreak) {
-            BreakTimes.capture(hotbar().filterNot { it.isEmpty })
+            val ticks = BreakTimes.capture(hotbar().filterNot { it.isEmpty })
+            val breakable = options.breakableBlocks
+            ToDoubleFunction { state -> if (breakable.isBreakable(state)) ticks.applyAsDouble(state) else Double.POSITIVE_INFINITY }
         } else {
             ToDoubleFunction { Double.POSITIVE_INFINITY }
         },

@@ -4,7 +4,7 @@ plugins {
     id("agent.publish")
 }
 
-description = "Player movement simulation, route searches and route following, and skills: fighting, eating, looting, gear, shopping, void rescue, building, and game modes, on the game types of the world package"
+description = "Player movement simulation, route searches and route following, and skills: fighting, eating, looting, gear, shopping, void rescue, mining, crafting, farming, hunting, sleeping, building, and game modes, on the game types of the world package"
 
 kotlin {
     compilerOptions.optIn.add("net.ccbluex.agent.ExperimentalAgentApi")

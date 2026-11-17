@@ -167,7 +167,8 @@ internal class BuiltInFight(
     }
 
     override fun damaged(agent: Agent, attacker: Entity?) {
-        this.attacker = attacker as? LivingEntity
+        // A teammate's hit is friendly fire, never a reason to turn on them
+        this.attacker = (attacker as? LivingEntity)?.takeUnless { agent.senses?.isTeammate(it) == true }
         attackedAt = tick
         attackerUntil = tick + ATTACKER_TICKS
         tally.hurt()

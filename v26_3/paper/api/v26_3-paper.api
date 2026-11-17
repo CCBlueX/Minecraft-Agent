@@ -2,6 +2,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/b
 	public fun attack (Lnet/ccbluex/agent/world/entity/Entity;)V
 	public fun attack (Lorg/bukkit/entity/Entity;)Z
 	public fun clickContainer (IILnet/ccbluex/agent/world/ContainerInput;)V
+	public fun clickInventory (IILnet/ccbluex/agent/world/ContainerInput;)V
 	public fun closeContainer ()V
 	public fun continueDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
 	public fun destroyBlock (Lorg/bukkit/block/Block;)Z
@@ -13,6 +14,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/b
 	public fun getEntity ()Lorg/bukkit/entity/Player;
 	public fun getFallDistance ()F
 	public fun getImmortal ()Z
+	public fun getInventoryMenu ()Lnet/ccbluex/agent/world/ContainerMenu;
 	public fun getKnockback ()Z
 	public fun getMaxAttackReach ()D
 	public fun getMinAttackReach ()D
@@ -24,6 +26,7 @@ public final class net/ccbluex/agent/v26_3/paper/PaperBody : net/ccbluex/agent/b
 	public fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
 	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
 	public synthetic fun getTurnsAtOnce$net_ccbluex_minecraft_agent_common ()Z
+	public fun interact (Lnet/ccbluex/agent/world/entity/Entity;Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public fun isBlocking ()Z
 	public fun isCombat1_8 ()Z
 	public fun isOnGround ()Z

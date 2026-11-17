@@ -22,10 +22,11 @@ package net.ccbluex.agent.skills.games.bedwars
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.horizontalDistanceTo
+import net.ccbluex.agent.skills.aimAt
 import net.ccbluex.agent.skills.games.WayCost
 import net.ccbluex.agent.skills.hold
+import net.ccbluex.agent.skills.seenPoint
 import net.ccbluex.agent.tick.waitTicks
-import net.ccbluex.agent.world.BlockHitResult
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.entity.Player
 import kotlin.math.hypot
@@ -100,10 +101,13 @@ private suspend fun Activities.place(spot: Spot, still: () -> Boolean) {
         }
         waitTicks(1)
     }
-    val face = support(level, target) ?: return
+    support(level, target) ?: return
+    // A support whose face towards the cell shows, never one behind another block
+    val face = support(level, target) { agent.seenPoint(target.relative(it), it.opposite) != null }
+        ?: return skip(target)
     val against = target.relative(face)
     val side = face.opposite
-    val point = Vec3.atCenterOf(against).add(side.unitVec3.scale(0.5))
+    val point = agent.seenPoint(against, side) ?: return skip(target)
     look(point)
     while (tick < placeAt) {
         waitTicks(1)
@@ -113,8 +117,10 @@ private suspend fun Activities.place(spot: Spot, still: () -> Boolean) {
     val slot = slotOf(blocks(spot.fill))
     if (slot < 0) return
     placeAt = tick + PLACE_TICKS
-    agent.body.hold(slot)
-    if (!agent.body.useItemOn(InteractionHand.MAIN_HAND, BlockHitResult(point, side, against, false))) skip(target)
+    val hotbar = agent.body.hold(slot)
+    val hit = agent.aimAt(against, side, hotbar)
+    agent.body.selectHotbarSlot(hotbar)
+    if (hit == null || !agent.navigator.useItemOn(InteractionHand.MAIN_HAND, hit)) skip(target)
 }
 
 /**

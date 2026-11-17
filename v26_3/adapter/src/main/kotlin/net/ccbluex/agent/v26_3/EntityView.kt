@@ -29,11 +29,17 @@ import net.ccbluex.agent.world.Level
 import net.ccbluex.agent.world.entity.Abilities
 import net.ccbluex.agent.world.entity.AbstractArrow
 import net.ccbluex.agent.world.entity.AbstractBoat
+import net.ccbluex.agent.world.entity.AbstractCow
 import net.ccbluex.agent.world.entity.AbstractHorse
+import net.ccbluex.agent.world.entity.AbstractSkeleton
+import net.ccbluex.agent.world.entity.Animal
 import net.ccbluex.agent.world.entity.ArmorStand
 import net.ccbluex.agent.world.entity.Attribute
 import net.ccbluex.agent.world.entity.Camel
+import net.ccbluex.agent.world.entity.Creeper
 import net.ccbluex.agent.world.entity.EndCrystal
+import net.ccbluex.agent.world.entity.Enderman
+import net.ccbluex.agent.world.entity.Enemy
 import net.ccbluex.agent.world.entity.Entity
 import net.ccbluex.agent.world.entity.EquipmentSlot
 import net.ccbluex.agent.world.entity.FishingHook
@@ -45,12 +51,20 @@ import net.ccbluex.agent.world.entity.ItemEntity
 import net.ccbluex.agent.world.entity.LivingEntity
 import net.ccbluex.agent.world.entity.Minecart
 import net.ccbluex.agent.world.entity.MinecartTNT
+import net.ccbluex.agent.world.entity.Mob
 import net.ccbluex.agent.world.entity.MobEffect
 import net.ccbluex.agent.world.entity.MobEffectInstance
+import net.ccbluex.agent.world.entity.Monster
+import net.ccbluex.agent.world.entity.Pig
 import net.ccbluex.agent.world.entity.Player
 import net.ccbluex.agent.world.entity.Pose
 import net.ccbluex.agent.world.entity.Projectile
+import net.ccbluex.agent.world.entity.Rabbit
+import net.ccbluex.agent.world.entity.Sheep
+import net.ccbluex.agent.world.entity.Spider
 import net.ccbluex.agent.world.entity.ThrownEnderpearl
+import net.ccbluex.agent.world.entity.Zombie
+import net.ccbluex.agent.world.item.DyeColor
 import net.ccbluex.agent.world.item.Item
 import net.ccbluex.agent.world.item.ItemStack
 import net.minecraft.core.registries.BuiltInRegistries
@@ -61,11 +75,24 @@ import java.util.concurrent.ConcurrentMap
 import net.minecraft.world.effect.MobEffectInstance as McMobEffectInstance
 import net.minecraft.world.entity.Entity as McEntity
 import net.minecraft.world.entity.LivingEntity as McLivingEntity
+import net.minecraft.world.entity.Mob as McMob
+import net.minecraft.world.entity.animal.Animal as McAnimal
 import net.minecraft.world.entity.animal.camel.Camel as McCamel
+import net.minecraft.world.entity.animal.cow.AbstractCow as McAbstractCow
 import net.minecraft.world.entity.animal.equine.AbstractHorse as McAbstractHorse
+import net.minecraft.world.entity.animal.pig.Pig as McPig
+import net.minecraft.world.entity.animal.rabbit.Rabbit as McRabbit
+import net.minecraft.world.entity.animal.sheep.Sheep as McSheep
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal as McEndCrystal
 import net.minecraft.world.entity.decoration.ArmorStand as McArmorStand
 import net.minecraft.world.entity.item.ItemEntity as McItemEntity
+import net.minecraft.world.entity.monster.Creeper as McCreeper
+import net.minecraft.world.entity.monster.Enderman as McEnderman
+import net.minecraft.world.entity.monster.Enemy as McEnemy
+import net.minecraft.world.entity.monster.Monster as McMonster
+import net.minecraft.world.entity.monster.skeleton.AbstractSkeleton as McAbstractSkeleton
+import net.minecraft.world.entity.monster.spider.Spider as McSpider
+import net.minecraft.world.entity.monster.zombie.Zombie as McZombie
 import net.minecraft.world.entity.player.Player as McPlayer
 import net.minecraft.world.entity.projectile.FishingHook as McFishingHook
 import net.minecraft.world.entity.projectile.Projectile as McProjectile
@@ -117,6 +144,7 @@ internal open class EntityView(open val handle: McEntity) : Entity {
     override val isInvisible: Boolean get() = handle.isInvisible
     override val isPassenger: Boolean get() = handle.isPassenger
     override val isInWater: Boolean get() = handle.isInWater
+    override val passengers: List<Entity> get() = handle.passengers.map { it.toAgent() }
 
     override fun onGround(): Boolean = handle.onGround()
 
@@ -172,6 +200,7 @@ internal open class LivingEntityView(override val handle: McLivingEntity) : Enti
 
     override val isFallFlying: Boolean get() = handle.isFallFlying
     override val isDeadOrDying: Boolean get() = handle.isDeadOrDying
+    override val isSleeping: Boolean get() = handle.isSleeping
     override val jumpBoostPower: Float get() = handle.jumpBoostPower
     override val lastHurtByMob: LivingEntity? get() = handle.lastHurtByMob?.toAgent()
 
@@ -247,6 +276,8 @@ internal open class PlayerView(override val handle: McPlayer) : LivingEntityView
     override val fishing: FishingHook? get() = handle.fishing?.toAgent() as FishingHook?
     override val noJumpDelay: Int get() = EntityFields.noJumpDelay(handle)
     override val latency: Int? get() = (handle as? ServerPlayer)?.connection?.latency()
+
+    override fun getAttackStrengthScale(adjustTicks: Float): Float = handle.getAttackStrengthScale(adjustTicks)
 }
 
 private class ItemEntityView(override val handle: McItemEntity) : EntityView(handle), ItemEntity {
@@ -280,6 +311,41 @@ private open class AbstractHorseView(override val handle: McAbstractHorse) : Liv
 }
 
 private class CamelView(handle: McCamel) : AbstractHorseView(handle), Camel
+
+private open class MobView(override val handle: McMob) : LivingEntityView(handle), Mob {
+    override val isLeashed: Boolean get() = handle.isLeashed
+}
+
+private open class EnemyView(handle: McMob) : MobView(handle), Enemy
+
+private open class MonsterView(handle: McMonster) : EnemyView(handle), Monster
+
+private class CreeperView(handle: McCreeper) : MonsterView(handle), Creeper
+
+private class EndermanView(override val handle: McEnderman) : MonsterView(handle), Enderman {
+    override val isCreepy: Boolean get() = handle.isCreepy
+}
+
+private class SpiderView(handle: McSpider) : MonsterView(handle), Spider
+
+private class ZombieView(handle: McZombie) : MonsterView(handle), Zombie
+
+private class SkeletonView(handle: McAbstractSkeleton) : MonsterView(handle), AbstractSkeleton
+
+private open class AnimalView(override val handle: McAnimal) : MobView(handle), Animal {
+    override val isBaby: Boolean get() = handle.isBaby
+}
+
+private class SheepView(override val handle: McSheep) : AnimalView(handle), Sheep {
+    override val isSheared: Boolean get() = handle.isSheared
+    override val color: DyeColor get() = DyeColor.valueOf(handle.color.name)
+}
+
+private class PigView(handle: McPig) : AnimalView(handle), Pig
+
+private class CowView(handle: McAbstractCow) : AnimalView(handle), AbstractCow
+
+private class RabbitView(handle: McRabbit) : AnimalView(handle), Rabbit
 
 private class ArmorStandView(override val handle: McArmorStand) : LivingEntityView(handle), ArmorStand {
     override val isMarker: Boolean get() = handle.isMarker
@@ -329,6 +395,19 @@ private fun view(entity: McEntity): Entity = when (entity) {
     is McArmorStand -> ArmorStandView(entity)
     is McCamel -> CamelView(entity)
     is McAbstractHorse -> AbstractHorseView(entity)
+    is McSheep -> SheepView(entity)
+    is McPig -> PigView(entity)
+    is McAbstractCow -> CowView(entity)
+    is McRabbit -> RabbitView(entity)
+    is McAnimal -> AnimalView(entity)
+    is McCreeper -> CreeperView(entity)
+    is McEnderman -> EndermanView(entity)
+    is McSpider -> SpiderView(entity)
+    is McZombie -> ZombieView(entity)
+    is McAbstractSkeleton -> SkeletonView(entity)
+    is McMonster -> MonsterView(entity)
+    is McEnemy -> EnemyView(entity as McMob)
+    is McMob -> MobView(entity)
     is McLivingEntity -> LivingEntityView(entity)
     is McItemEntity -> ItemEntityView(entity)
     is McThrownEnderpearl -> ThrownEnderpearlView(entity)

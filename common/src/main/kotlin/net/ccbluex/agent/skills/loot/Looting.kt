@@ -20,16 +20,14 @@
 package net.ccbluex.agent.skills.loot
 
 import net.ccbluex.agent.math.BlockPos
-import net.ccbluex.agent.math.Direction
-import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.skills.Agent
-import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.skills.seenPoint
+import net.ccbluex.agent.skills.sentHit
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.block.BlockEntityType
-import kotlin.math.abs
 
 /**
  * The built-in [Loot]: walks within reach of the chest, aims at it and clicks it until its menu opens (at most
@@ -104,13 +102,14 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
 
         val center = Vec3.atCenterOf(pos)
         val eyes = body.player.eyePosition
-        if (eyes.distanceToSqr(center) > REACH * REACH) {
+        // A chest behind another block is walked up to until a point of it shows
+        val seen = agent.seenPoint(pos, null)
+        if (eyes.distanceToSqr(center) > REACH * REACH || seen == null) {
             agent.walkTo(center, WALK_RADIUS)
             return
         }
         agent.takeMovement()
-        val aim = ViewRotation.fromVector(center.subtract(eyes))
-        body.look(aim, LookPurpose.AIM)
+        body.look(ViewRotation.fromVector(seen.subtract(eyes)), LookPurpose.AIM)
 
         if (body.containerMenu != null && clicks > 0 && agent.ticks - clickedAt <= SCREEN_TICKS) {
             openedAt = agent.ticks
@@ -121,12 +120,9 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
             giveUp(agent, pos, "no menu after $clicks clicks")
             return
         }
-        // The click carries the rotation the server has, so it waits until that one points at the chest
-        if (!isAimed(body.sentRotation, aim)) return
-        val face = Direction.getApproximateNearest(eyes.subtract(center))
-        val offset = Vec3(face.stepX * HALF, face.stepY * HALF, face.stepZ * HALF)
-        val hit = BlockHitResult(center.add(offset), face, pos, false)
-        body.useItemOn(InteractionHand.MAIN_HAND, hit)
+        // The click carries the rotation the server has, so it waits until that one hits the chest first
+        val hit = agent.sentHit(pos, null) ?: return
+        agent.navigator.useItemOn(InteractionHand.MAIN_HAND, hit)
         clicks++
         clickedAt = agent.ticks
     }
@@ -161,9 +157,6 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
         agent.logger.debug("Gave up on chest {}: {}", pos, reason)
     }
 
-    private fun isAimed(sent: ViewRotation, aim: ViewRotation) =
-        abs(Mth.wrapDegrees(sent.yRot - aim.yRot)) < AIM_TOLERANCE && abs(sent.xRot - aim.xRot) < AIM_TOLERANCE
-
     private companion object {
         const val NEVER = Long.MIN_VALUE / 2
 
@@ -172,8 +165,6 @@ internal class Looting(override val chests: Chests, private val wanted: Wanted) 
          */
         const val REACH = 4.0
         const val WALK_RADIUS = 2.0
-        const val HALF = 0.5
-        const val AIM_TOLERANCE = 15f
 
         /**
          * A menu opening this long after a click came from it; without one, the chest is clicked again.

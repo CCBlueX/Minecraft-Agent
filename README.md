@@ -13,7 +13,7 @@ builds on.
   - `simulation`: player movement, tick by tick
   - `pathfinder`: route searches
   - `navigation`: follows routes
-  - `skills`: fighting, looting, building, game modes
+  - `skills`: fighting, looting, mining, crafting, farming, hunting, sleeping, building, game modes
 - `adapter`: the libraries on Minecraft 26.3
 
 ## Platforms

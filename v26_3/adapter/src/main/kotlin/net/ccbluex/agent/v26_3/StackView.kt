@@ -59,6 +59,11 @@ internal class StackView(val handle: McItemStack) : ItemStack() {
 
     override fun isCorrectToolForDrops(state: BlockState): Boolean = handle.isCorrectToolForDrops(state.toMinecraft())
 
+    override val isTool: Boolean get() = handle.has(DataComponents.TOOL)
+
+    override fun isToolCorrectForDrops(state: BlockState): Boolean =
+        handle.get(DataComponents.TOOL)?.isCorrectForDrops(state.toMinecraft()) == true
+
     override fun getEnchantmentLevel(enchantment: Enchantment): Int =
         handle.enchantments.entrySet().firstOrNull { it.key.id == enchantment.id }?.intValue ?: 0
 

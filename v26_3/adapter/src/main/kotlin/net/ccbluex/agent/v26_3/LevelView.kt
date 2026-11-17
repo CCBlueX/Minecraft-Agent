@@ -29,6 +29,7 @@ import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.world.BlockHitResult
 import net.ccbluex.agent.world.ClipContext
 import net.ccbluex.agent.world.Level
+import net.ccbluex.agent.world.Heightmap
 import net.ccbluex.agent.world.LevelBlocks
 import net.ccbluex.agent.world.WorldBorder
 import net.ccbluex.agent.world.block.BlockEntityType
@@ -49,7 +50,7 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity
 import net.minecraft.world.level.block.entity.SignBlockEntity
 import net.minecraft.world.level.block.entity.SignTextSlot
 import net.minecraft.world.level.border.BorderStatus
-import net.minecraft.world.level.levelgen.Heightmap
+import net.minecraft.world.level.levelgen.Heightmap as McHeightmap
 import net.minecraft.world.phys.shapes.CollisionContext
 import java.util.concurrent.ConcurrentMap
 import net.minecraft.core.Direction as McDirection
@@ -83,6 +84,7 @@ internal class LevelView(val handle: McLevel) : Level, GameBlocks {
         val collision = context.entity?.let { CollisionContext.of(it.toMinecraft()) } ?: CollisionContext.empty()
         val fluid = when (context.fluid) {
             ClipContext.Fluid.NONE -> McClipContext.Fluid.NONE
+            ClipContext.Fluid.SOURCE_ONLY -> McClipContext.Fluid.SOURCE_ONLY
             ClipContext.Fluid.ANY -> McClipContext.Fluid.ANY
         }
         val game = McClipContext(
@@ -115,7 +117,17 @@ internal class LevelView(val handle: McLevel) : Level, GameBlocks {
 
     override fun hasChunk(chunkX: Int, chunkZ: Int): Boolean = handle.hasChunk(chunkX, chunkZ)
 
-    override fun getHeight(x: Int, z: Int): Int = handle.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z)
+    override fun getHeight(heightmap: Heightmap, x: Int, z: Int): Int = handle.getHeight(
+        when (heightmap) {
+            Heightmap.MOTION_BLOCKING -> McHeightmap.Types.MOTION_BLOCKING
+            Heightmap.MOTION_BLOCKING_NO_LEAVES -> McHeightmap.Types.MOTION_BLOCKING_NO_LEAVES
+        },
+        x, z,
+    )
+
+    override val isDarkOutside: Boolean get() = handle.isDarkOutside
+
+    override val isBrightOutside: Boolean get() = handle.isBrightOutside
 
     override fun getBlockCollisions(entity: Entity?, box: AABB): Iterable<VoxelShape> =
         handle.getBlockCollisions(entity?.toMinecraft(), box.toMinecraft()).map { it.toAgent() }

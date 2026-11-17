@@ -23,7 +23,6 @@ import net.ccbluex.agent.navigation.Body
 import net.ccbluex.agent.world.ContainerInput
 import net.ccbluex.agent.world.ContainerMenu
 import net.ccbluex.agent.world.InteractionHand
-import net.ccbluex.agent.world.entity.Entity
 import net.ccbluex.agent.world.entity.Player
 
 /**
@@ -36,18 +35,7 @@ import net.ccbluex.agent.world.entity.Player
  */
 public interface AgentBody : Body {
 
-    /**
-     * Attacks as a player does: swings and hits.
-     */
-    public fun attack(target: Entity)
-
     public fun swing(hand: InteractionHand)
-
-    /**
-     * Interacts with [target] as the use key does with an entity in reach: a villager opens its trades, an
-     * interaction hitbox or an armor stand answers. False for a body that cannot.
-     */
-    public fun interact(target: Entity, hand: InteractionHand): Boolean = false
 
     /**
      * Asks to come back from the death screen, as its button does. False for a body that cannot, as a server bot,
@@ -95,8 +83,6 @@ public interface AgentBody : Body {
      */
     public val isCombat1_8: Boolean
 
-    public fun swapWithHotbar(inventorySlot: Int, hotbarSlot: Int)
-
     public fun swapWithOffhand(inventorySlot: Int)
 
     public fun drop(inventorySlot: Int, wholeStack: Boolean)
@@ -115,6 +101,19 @@ public interface AgentBody : Body {
      * A raw click on [containerMenu], as shop menus on clients need.
      */
     public fun clickContainer(containerSlot: Int, button: Int, type: ContainerInput)
+
+    /**
+     * A raw click on the own inventory's menu while no container is open, as its 2 by 2 crafting grid needs; [menuSlot]
+     * is an index into the slots of the game's inventory menu. The inventory stays open from the first
+     * click until [closeContainer], as a player keeps it open while crafting; closing it gives back what the grid holds.
+     */
+    public fun clickInventory(menuSlot: Int, button: Int, type: ContainerInput)
+
+    /**
+     * The own inventory's menu with its 2 by 2 crafting grid, which [clickInventory] clicks; null for a body that has
+     * none.
+     */
+    public val inventoryMenu: ContainerMenu? get() = null
 
     public fun closeContainer()
 }

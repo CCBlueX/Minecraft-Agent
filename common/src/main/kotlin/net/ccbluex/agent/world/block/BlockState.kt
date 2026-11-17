@@ -22,6 +22,7 @@ package net.ccbluex.agent.world.block
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.world.BlockGetter
+import net.ccbluex.agent.world.Level
 import net.ccbluex.agent.world.TagKey
 
 /**
@@ -58,6 +59,31 @@ public abstract class BlockState(public val block: Block) {
     public abstract fun hasBlockEntity(): Boolean
 
     public abstract fun isCollisionShapeFullBlock(level: BlockGetter, pos: BlockPos): Boolean
+
+    /**
+     * Whether the block blocks light and sight, as a full opaque cube does; false where an adapter does not tell.
+     */
+    public open fun canOcclude(): Boolean = false
+
+    /**
+     * Whether the block is a full opaque cube; false where an adapter does not tell.
+     */
+    public open val isSolidRender: Boolean get() = false
+
+    /**
+     * Whether the block can stand at [pos], as a crop needs farmland under it; true where an adapter does not tell.
+     */
+    public open fun canSurvive(level: Level, pos: BlockPos): Boolean = true
+
+    /**
+     * Whether a crop, nether wart, cocoa pod or berry bush has grown full; false for any other block.
+     */
+    public open val isMaxAge: Boolean get() = false
+
+    /**
+     * Whether bone meal makes the block at [pos] grow; false where an adapter does not tell.
+     */
+    public open fun isValidBonemealTarget(level: Level, pos: BlockPos): Boolean = false
 
     /**
      * Whether the collision shape fills the whole face towards [direction], as the block under a player's feet does.
@@ -199,6 +225,13 @@ public object Fluids {
 public class FluidState(public val type: Fluid, public val isSource: Boolean, public val amount: Int) {
 
     public val isEmpty: Boolean get() = type == Fluid.EMPTY
+
+    /**
+     * How high the fluid stands in its block, from 0 to 1: the whole block under more of the same fluid, else the
+     * ninths its amount says.
+     */
+    public fun getHeight(level: BlockGetter, pos: BlockPos): Float =
+        if (level.getFluidState(pos.above()).type == type) 1f else amount / 9f
 
     override fun equals(other: Any?): Boolean =
         other is FluidState && other.type == type && other.isSource == isSource && other.amount == amount

@@ -56,6 +56,16 @@ public abstract class ItemStack {
 
     public abstract fun isCorrectToolForDrops(state: BlockState): Boolean
 
+    /**
+     * Whether the item is a tool the game gives mining rules, such as a pickaxe; false where an adapter does not tell.
+     */
+    public open val isTool: Boolean get() = false
+
+    /**
+     * Whether it is a tool made for [state], one the block drops its item for; false where an adapter does not tell.
+     */
+    public open fun isToolCorrectForDrops(state: BlockState): Boolean = false
+
     public abstract fun getEnchantmentLevel(enchantment: Enchantment): Int
 
     public abstract val enchantments: Map<Enchantment, Int>

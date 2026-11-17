@@ -58,6 +58,9 @@ internal class TestWalker(
     val isActing: Boolean
         get() = navigation.navigator.isActing
 
+    val isBuilding: Boolean
+        get() = navigation.navigator.isBuilding
+
     /**
      * Whether the walk holds the player at ledges now, as sneaking does.
      */

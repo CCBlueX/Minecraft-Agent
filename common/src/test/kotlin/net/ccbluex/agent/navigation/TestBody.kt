@@ -29,6 +29,7 @@ import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.world.BlockHitResult
 import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Entity
 import net.ccbluex.agent.world.entity.Player
 import org.slf4j.LoggerFactory
 import net.minecraft.world.entity.player.Player as McPlayer
@@ -73,6 +74,9 @@ internal class TestBody(
     override fun stopDestroy() = Unit
     override fun useItemOn(hand: InteractionHand, hit: BlockHitResult) = false
     override fun useItem(hand: InteractionHand) = false
+    override fun interact(entity: Entity, hand: InteractionHand) = false
+    override fun attack(target: Entity) = Unit
+    override fun swapWithHotbar(inventorySlot: Int, hotbarSlot: Int) = Unit
 
     override fun simulate(input: SimulatedInput, yRot: Float): PlayerSimulation.Steered =
         SimulatedPlayer.fromPlayer(handle, input, traits.navigatesInMovementTick, simulationHooks)

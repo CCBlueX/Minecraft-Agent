@@ -219,7 +219,22 @@ public interface Level : BlockGetter {
     /**
      * The y above the highest block that blocks motion or holds liquid, as the game's MOTION_BLOCKING height map.
      */
-    public fun getHeight(x: Int, z: Int): Int
+    public fun getHeight(x: Int, z: Int): Int = getHeight(Heightmap.MOTION_BLOCKING, x, z)
+
+    /**
+     * The y above the highest block [heightmap] counts; an adapter without that map answers the plain one.
+     */
+    public fun getHeight(heightmap: Heightmap, x: Int, z: Int): Int
+
+    /**
+     * Whether it is night or dark enough for monsters to spawn out in the open, as the game tells it.
+     */
+    public val isDarkOutside: Boolean
+
+    /**
+     * Whether it is day and the sky bright, as the game tells it.
+     */
+    public val isBrightOutside: Boolean
 
     /**
      * The collision shapes of the blocks [box] touches, moved to where they are, as [entity] meets them.
@@ -314,7 +329,7 @@ public class ClipContext(
     /**
      * @agent claude-sonnet-5-5
      */
-    public enum class Fluid { NONE, ANY }
+    public enum class Fluid { NONE, SOURCE_ONLY, ANY }
 }
 
 /**
@@ -365,7 +380,45 @@ public class EntityHitResult(public val entity: Entity, location: Vec3) : HitRes
  */
 public interface ContainerMenu {
     public val slots: List<Slot>
+
+    /**
+     * What the cursor holds.
+     */
+    public val carried: net.ccbluex.agent.world.item.ItemStack
+
+    public companion object {
+        /**
+         * The slot index of a click outside the menu, which drops what the cursor holds.
+         */
+        public const val SLOT_CLICKED_OUTSIDE: Int = -999
+    }
 }
+
+/**
+ * A crafting grid: the own inventory's 2 by 2 or a crafting table's 3 by 3, with the slot of the result.
+ *
+ * @agent claude-sonnet-5-5
+ */
+public interface CraftingMenu : ContainerMenu {
+    public val resultSlot: Slot
+    public val inputGridSlots: List<Slot>
+    public val gridWidth: Int
+    public val gridHeight: Int
+}
+
+/**
+ * A furnace, blast furnace or smoker, with the input, fuel and result slots at 0, 1 and 2.
+ *
+ * @agent claude-sonnet-5-5
+ */
+public interface FurnaceMenu : ContainerMenu
+
+/**
+ * How the game's height maps count blocks; each answers the y above the highest block it counts.
+ *
+ * @agent claude-sonnet-5-5
+ */
+public enum class Heightmap { MOTION_BLOCKING, MOTION_BLOCKING_NO_LEAVES }
 
 /**
  * A slot of a [ContainerMenu]: [index] in the menu, [isPlayerInventory] for the player's own slots below the
@@ -377,6 +430,11 @@ public interface Slot {
     public val index: Int
     public val item: net.ccbluex.agent.world.item.ItemStack
     public val isPlayerInventory: Boolean
+
+    /**
+     * The index in the container the slot belongs to, such as 0 to 35 for the main inventory.
+     */
+    public val containerSlot: Int
 }
 
 /**

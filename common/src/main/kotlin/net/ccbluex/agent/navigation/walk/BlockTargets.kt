@@ -28,6 +28,8 @@ import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.hotbar
 import net.ccbluex.agent.navigation.isSeen
+import net.ccbluex.agent.navigation.isToolFor
+import net.ccbluex.agent.navigation.isWearFree
 import net.ccbluex.agent.navigation.pick
 import net.ccbluex.agent.navigation.seenPoint
 import net.ccbluex.agent.world.BlockHitResult
@@ -155,12 +157,15 @@ internal class BlockTargets(private val context: NavigationContext) {
     }
 
     /**
-     * The hotbar slot with the tool that mines [state] fastest, if it is faster than a hand.
+     * The hotbar slot to dig [state] with: the fastest tool made for it, efficiency counted; else one holding no
+     * tool, nearest the selected one, as any other tool only wears out on it. Null when every slot holds a tool.
      */
-    fun bestTool(state: BlockState): Int? {
+    fun diggingSlot(state: BlockState): Int? {
+        val hotbar = context.hotbar()
         var best: Int? = null
-        var bestSpeed = 1f
-        context.hotbar().forEachIndexed { slot, stack ->
+        var bestSpeed = 0f
+        hotbar.forEachIndexed { slot, stack ->
+            if (!isToolFor(stack, state)) return@forEachIndexed
             var speed = stack.getDestroySpeed(state)
             val level = stack.getEnchantmentLevel(Enchantments.EFFICIENCY)
             if (speed > 1f && level > 0) {
@@ -171,7 +176,9 @@ internal class BlockTargets(private val context: NavigationContext) {
                 bestSpeed = speed
             }
         }
-        return best
+        if (best != null) return best
+        val selected = player.inventory.selectedSlot
+        return hotbar.indices.filter { isWearFree(hotbar[it]) }.minByOrNull { abs(it - selected) }
     }
 
     /**

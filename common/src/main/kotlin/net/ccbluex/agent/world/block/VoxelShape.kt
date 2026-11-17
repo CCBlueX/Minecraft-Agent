@@ -187,6 +187,12 @@ public enum class BlockEntityType {
  */
 public object BlockTags {
     @JvmField
+    public val BASE_STONE_NETHER: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("base_stone_nether")
+
+    @JvmField
+    public val BASE_STONE_OVERWORLD: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("base_stone_overworld")
+
+    @JvmField
     public val IMPERMEABLE: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("impermeable")
 
     @JvmField
@@ -196,10 +202,34 @@ public object BlockTags {
     public val LOGS: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("logs")
 
     @JvmField
+    public val ORES: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("ores")
+
+    @JvmField
+    public val OVERWORLD_NATURAL_LOGS: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("overworld_natural_logs")
+
+    @JvmField
     public val PLANKS: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("planks")
 
     @JvmField
     public val RAILS: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("rails")
+
+    @JvmField
+    public val SAND: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("sand")
+
+    @JvmField
+    public val SNOW: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("snow")
+
+    @JvmField
+    public val SUBSTRATE_OVERWORLD: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("substrate_overworld")
+
+    @JvmField
+    public val SUPPORTS_CROPS: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("supports_crops")
+
+    @JvmField
+    public val SUPPORTS_NETHER_WART: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("supports_nether_wart")
+
+    @JvmField
+    public val TURNS_INTO_FARMLAND: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("turns_into_farmland")
 
     @JvmField
     public val WOOL: net.ccbluex.agent.world.TagKey<Block> = net.ccbluex.agent.world.TagKey.of("wool")

@@ -111,6 +111,23 @@ public data class Options(
      * that fall on one slip, such as godbridging.
      */
     public val riskyBridges: Boolean = false,
+
+    /**
+     * The blocks the walk and the agent's digging may break while [canBreak].
+     */
+    public val breakableBlocks: BreakableBlocks = BreakableBlocks.ANY,
+
+    /**
+     * Whether water the walk would swim across is crossed in a boat from the inventory: placed at the shore, ridden
+     * to the far one and taken along again.
+     */
+    public val canBoat: Boolean = false,
+
+    /**
+     * Whether the player eats the best plain food it carries once hungry, walking or riding, but never while it
+     * places or digs blocks on the way.
+     */
+    public val canEat: Boolean = false,
 ) {
 
     /**

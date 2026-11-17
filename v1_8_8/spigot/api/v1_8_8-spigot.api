@@ -6,6 +6,7 @@ public final class net/ccbluex/agent/v1_8_8/spigot/SpigotBody : net/ccbluex/agen
 	public fun attack (Lnet/ccbluex/agent/world/entity/Entity;)V
 	public fun attack (Lorg/bukkit/entity/Entity;)Z
 	public fun clickContainer (IILnet/ccbluex/agent/world/ContainerInput;)V
+	public fun clickInventory (IILnet/ccbluex/agent/world/ContainerInput;)V
 	public fun closeContainer ()V
 	public fun continueDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
 	public fun destroyBlock (Lorg/bukkit/block/Block;)Z

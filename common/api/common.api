@@ -495,8 +495,10 @@ public final class net/ccbluex/agent/math/Vec3$Companion {
 public class net/ccbluex/agent/math/Vec3i : java/lang/Comparable {
 	public fun <init> (III)V
 	public final fun closerThan (Lnet/ccbluex/agent/math/Vec3i;D)Z
+	public final fun closerToCenterThan (Lnet/ccbluex/agent/math/Vec3;D)Z
 	public synthetic fun compareTo (Ljava/lang/Object;)I
 	public fun compareTo (Lnet/ccbluex/agent/math/Vec3i;)I
+	public final fun distChessboard (Lnet/ccbluex/agent/math/Vec3i;)I
 	public final fun distManhattan (Lnet/ccbluex/agent/math/Vec3i;)I
 	public final fun distSqr (Lnet/ccbluex/agent/math/Vec3i;)D
 	public final fun distToCenterSqr (DDD)D
@@ -510,6 +512,7 @@ public class net/ccbluex/agent/math/Vec3i : java/lang/Comparable {
 	protected final fun setY (I)V
 	protected final fun setZ (I)V
 	public final fun subtract (Lnet/ccbluex/agent/math/Vec3i;)Lnet/ccbluex/agent/math/Vec3i;
+	public final fun toShortString ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -554,6 +557,7 @@ public final class net/ccbluex/agent/math/ViewRotation$Companion {
 }
 
 public abstract interface class net/ccbluex/agent/navigation/Body {
+	public abstract fun attack (Lnet/ccbluex/agent/world/entity/Entity;)V
 	public abstract fun continueDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
 	public fun getInputYRot ()F
 	public abstract fun getLatencyMillis ()I
@@ -567,6 +571,7 @@ public abstract interface class net/ccbluex/agent/navigation/Body {
 	public abstract fun getTeleporter ()Lnet/ccbluex/agent/navigation/Teleporter;
 	public abstract fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
 	public fun getViewStep ()F
+	public fun interact (Lnet/ccbluex/agent/world/entity/Entity;Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public fun isFlying ()Z
 	public fun isViewTakenOver ()Z
 	public abstract fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
@@ -577,6 +582,7 @@ public abstract interface class net/ccbluex/agent/navigation/Body {
 	public abstract fun simulate (Lnet/ccbluex/agent/simulation/SimulatedInput;F)Lnet/ccbluex/agent/simulation/PlayerSimulation$Steered;
 	public abstract fun startDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
 	public abstract fun stopDestroy ()V
+	public abstract fun swapWithHotbar (II)V
 	public abstract fun useItem (Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public abstract fun useItemOn (Lnet/ccbluex/agent/world/InteractionHand;Lnet/ccbluex/agent/world/BlockHitResult;)Z
 }
@@ -588,6 +594,16 @@ public final class net/ccbluex/agent/navigation/BodyTraits {
 	public final fun getExactSimulation ()Z
 	public final fun getJumpClimbsLadders ()Z
 	public final fun getNavigatesInMovementTick ()Z
+}
+
+public abstract interface class net/ccbluex/agent/navigation/BreakableBlocks {
+	public static final field ANY Lnet/ccbluex/agent/navigation/BreakableBlocks;
+	public static final field Companion Lnet/ccbluex/agent/navigation/BreakableBlocks$Companion;
+	public static final field NATURAL Lnet/ccbluex/agent/navigation/BreakableBlocks;
+	public abstract fun isBreakable (Lnet/ccbluex/agent/world/block/BlockState;)Z
+}
+
+public final class net/ccbluex/agent/navigation/BreakableBlocks$Companion {
 }
 
 public class net/ccbluex/agent/navigation/Bridging : java/lang/Enum {
@@ -714,8 +730,8 @@ public final class net/ccbluex/agent/navigation/NavigatorKt {
 
 public final class net/ccbluex/agent/navigation/Options {
 	public fun <init> ()V
-	public fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;Z)V
-	public synthetic fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZLnet/ccbluex/agent/navigation/BreakableBlocks;ZZ)V
+	public synthetic fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZLnet/ccbluex/agent/navigation/BreakableBlocks;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
 	public final fun component10 ()Z
 	public final fun component11 ()F
@@ -731,6 +747,9 @@ public final class net/ccbluex/agent/navigation/Options {
 	public final fun component20 ()I
 	public final fun component21 ()Lnet/ccbluex/agent/navigation/Bridging;
 	public final fun component22 ()Z
+	public final fun component23 ()Lnet/ccbluex/agent/navigation/BreakableBlocks;
+	public final fun component24 ()Z
+	public final fun component25 ()Z
 	public final fun component3 ()Z
 	public final fun component4 ()Z
 	public final fun component5 ()I
@@ -738,12 +757,15 @@ public final class net/ccbluex/agent/navigation/Options {
 	public final fun component7 ()Z
 	public final fun component8 ()Z
 	public final fun component9 ()Z
-	public final fun copy (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;Z)Lnet/ccbluex/agent/navigation/Options;
-	public static synthetic fun copy$default (Lnet/ccbluex/agent/navigation/Options;ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZILjava/lang/Object;)Lnet/ccbluex/agent/navigation/Options;
+	public final fun copy (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZLnet/ccbluex/agent/navigation/BreakableBlocks;ZZ)Lnet/ccbluex/agent/navigation/Options;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/navigation/Options;ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZLnet/ccbluex/agent/navigation/BreakableBlocks;ZZILjava/lang/Object;)Lnet/ccbluex/agent/navigation/Options;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBreakableBlocks ()Lnet/ccbluex/agent/navigation/BreakableBlocks;
 	public final fun getBridging ()Lnet/ccbluex/agent/navigation/Bridging;
+	public final fun getCanBoat ()Z
 	public final fun getCanBreak ()Z
 	public final fun getCanClickThroughBlocks ()Z
+	public final fun getCanEat ()Z
 	public final fun getCanElytra ()Z
 	public final fun getCanFly ()Z
 	public final fun getCanParkour ()Z
@@ -1807,15 +1829,15 @@ public final class net/ccbluex/agent/skills/Agent {
 }
 
 public abstract interface class net/ccbluex/agent/skills/AgentBody : net/ccbluex/agent/navigation/Body {
-	public abstract fun attack (Lnet/ccbluex/agent/world/entity/Entity;)V
 	public abstract fun clickContainer (IILnet/ccbluex/agent/world/ContainerInput;)V
+	public abstract fun clickInventory (IILnet/ccbluex/agent/world/ContainerInput;)V
 	public abstract fun closeContainer ()V
 	public abstract fun drop (IZ)V
 	public abstract fun getAttackStrength ()F
 	public abstract fun getContainerMenu ()Lnet/ccbluex/agent/world/ContainerMenu;
+	public fun getInventoryMenu ()Lnet/ccbluex/agent/world/ContainerMenu;
 	public abstract fun getMaxAttackReach ()D
 	public abstract fun getMinAttackReach ()D
-	public fun interact (Lnet/ccbluex/agent/world/entity/Entity;Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public abstract fun isCombat1_8 ()Z
 	public abstract fun isUsingItem ()Z
 	public fun players ()Ljava/util/List;
@@ -1823,7 +1845,6 @@ public abstract interface class net/ccbluex/agent/skills/AgentBody : net/ccbluex
 	public fun respawn ()Z
 	public abstract fun stab ()V
 	public abstract fun startUsingItem (Lnet/ccbluex/agent/world/InteractionHand;)Z
-	public abstract fun swapWithHotbar (II)V
 	public abstract fun swapWithOffhand (I)V
 	public abstract fun swing (Lnet/ccbluex/agent/world/InteractionHand;)V
 	public abstract fun takeFromContainer (I)V
@@ -1839,6 +1860,7 @@ public abstract interface class net/ccbluex/agent/skills/AgentListener {
 	public fun looted (Lnet/ccbluex/agent/math/BlockPos;)V
 	public fun phase (Ljava/lang/String;)V
 	public fun roundEnded (Z)V
+	public fun step (Ljava/lang/String;)V
 }
 
 public final class net/ccbluex/agent/skills/AgentListener$Companion {
@@ -1848,6 +1870,7 @@ public final class net/ccbluex/agent/skills/BlockActionsKt {
 	public static final fun dig (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun dig (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun dig$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun goTo (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun placeBlock (Lnet/ccbluex/agent/skills/Agent;ILnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun reach (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun reach (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1871,6 +1894,10 @@ public final class net/ccbluex/agent/skills/FightingStyle : java/lang/Enum {
 	public final fun getWtap ()D
 	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/FightingStyle;
 	public static fun values ()[Lnet/ccbluex/agent/skills/FightingStyle;
+}
+
+public final class net/ccbluex/agent/skills/GivingKt {
+	public static final fun give (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/world/entity/Player;Lnet/ccbluex/agent/world/item/Item;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class net/ccbluex/agent/skills/ItemMatch {
@@ -2036,15 +2063,189 @@ public final class net/ccbluex/agent/skills/build/BuildingKt {
 	public static synthetic fun build$default (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class net/ccbluex/agent/skills/craft/CraftingKt {
+	public static final fun craft (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/craft/GridRecipe;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun craft (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/craft/GridRecipe;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun craft$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/craft/GridRecipe;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun placeNearby (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/world/item/Item;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/skills/craft/GridRecipe {
+	public fun <init> (Lnet/ccbluex/agent/world/item/Item;IILjava/util/List;)V
+	public final fun getCells ()Ljava/util/List;
+	public final fun getCount ()I
+	public final fun getHeight ()I
+	public final fun getIngredients ()Ljava/util/Map;
+	public final fun getNeedsTable ()Z
+	public final fun getResult ()Lnet/ccbluex/agent/world/item/Item;
+	public final fun getWidth ()I
+	public final fun timesFrom (Ljava/util/List;)I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/craft/GridRecipes {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/craft/GridRecipes;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getLogs ()Ljava/util/Set;
+	public final fun getPlanks ()Ljava/util/Set;
+	public static final fun of (Lnet/ccbluex/agent/world/item/Item;)Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/skills/craft/ObtainingKt {
+	public static final fun nextStep (Ljava/util/Set;ILjava/util/Map;ZZ)Lnet/ccbluex/agent/skills/craft/Step;
+}
+
+public final class net/ccbluex/agent/skills/craft/SmeltingKt {
+	public static final fun burnTicks (Lnet/ccbluex/agent/world/item/Item;)I
+	public static final fun smelt (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Set;ILjava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class net/ccbluex/agent/skills/craft/Step {
+}
+
+public final class net/ccbluex/agent/skills/craft/Step$Craft : net/ccbluex/agent/skills/craft/Step {
+	public fun <init> (Lnet/ccbluex/agent/skills/craft/GridRecipe;I)V
+	public final fun component1 ()Lnet/ccbluex/agent/skills/craft/GridRecipe;
+	public final fun component2 ()I
+	public final fun copy (Lnet/ccbluex/agent/skills/craft/GridRecipe;I)Lnet/ccbluex/agent/skills/craft/Step$Craft;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/craft/Step$Craft;Lnet/ccbluex/agent/skills/craft/GridRecipe;IILjava/lang/Object;)Lnet/ccbluex/agent/skills/craft/Step$Craft;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRecipe ()Lnet/ccbluex/agent/skills/craft/GridRecipe;
+	public final fun getTimes ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/craft/Step$Gather : net/ccbluex/agent/skills/craft/Step {
+	public fun <init> (Lnet/ccbluex/agent/skills/gather/Resource;I)V
+	public final fun component1 ()Lnet/ccbluex/agent/skills/gather/Resource;
+	public final fun component2 ()I
+	public final fun copy (Lnet/ccbluex/agent/skills/gather/Resource;I)Lnet/ccbluex/agent/skills/craft/Step$Gather;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/craft/Step$Gather;Lnet/ccbluex/agent/skills/gather/Resource;IILjava/lang/Object;)Lnet/ccbluex/agent/skills/craft/Step$Gather;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCount ()I
+	public final fun getResource ()Lnet/ccbluex/agent/skills/gather/Resource;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/craft/Step$Hunt : net/ccbluex/agent/skills/craft/Step {
+	public fun <init> (Lnet/ccbluex/agent/skills/gather/Prey;)V
+	public final fun component1 ()Lnet/ccbluex/agent/skills/gather/Prey;
+	public final fun copy (Lnet/ccbluex/agent/skills/gather/Prey;)Lnet/ccbluex/agent/skills/craft/Step$Hunt;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/craft/Step$Hunt;Lnet/ccbluex/agent/skills/gather/Prey;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/craft/Step$Hunt;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPrey ()Lnet/ccbluex/agent/skills/gather/Prey;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/craft/Step$Smelt : net/ccbluex/agent/skills/craft/Step {
+	public fun <init> (Ljava/util/Set;ILjava/util/List;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/util/Set;ILjava/util/List;)Lnet/ccbluex/agent/skills/craft/Step$Smelt;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/craft/Step$Smelt;Ljava/util/Set;ILjava/util/List;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/craft/Step$Smelt;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCount ()I
+	public final fun getFuels ()Ljava/util/List;
+	public final fun getInput ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/craft/Step$Stuck : net/ccbluex/agent/skills/craft/Step {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lnet/ccbluex/agent/skills/craft/Step$Stuck;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/craft/Step$Stuck;Ljava/lang/String;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/craft/Step$Stuck;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/danger/Dangers {
+	public fun <init> ()V
+	public final fun getThreat ()Lnet/ccbluex/agent/world/entity/Mob;
+	public final fun tick (Lnet/ccbluex/agent/skills/Agent;Z)Z
+}
+
 public abstract interface class net/ccbluex/agent/skills/eat/Eat {
 	public static final field Companion Lnet/ccbluex/agent/skills/eat/Eat$Companion;
+	public static final field HUNGRY I
 	public static fun builtIn ()Lnet/ccbluex/agent/skills/eat/Eat;
 	public abstract fun getWantsToEat ()Z
+	public static fun isFood (Lnet/ccbluex/agent/world/item/ItemStack;)Z
 	public abstract fun tick (Lnet/ccbluex/agent/skills/Agent;)V
 }
 
 public final class net/ccbluex/agent/skills/eat/Eat$Companion {
+	public static final field HUNGRY I
 	public final fun builtIn ()Lnet/ccbluex/agent/skills/eat/Eat;
+	public final fun isFood (Lnet/ccbluex/agent/world/item/ItemStack;)Z
+}
+
+public final class net/ccbluex/agent/skills/farm/Crops {
+	public static final field INSTANCE Lnet/ccbluex/agent/skills/farm/Crops;
+	public static final fun isProduce (Lnet/ccbluex/agent/world/item/ItemStack;)Z
+	public static final fun isRipe (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/world/block/BlockState;)Z
+}
+
+public final class net/ccbluex/agent/skills/farm/Farm {
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;Z)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZ)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZ)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZ)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZ)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZ)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZZ)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;D)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;DLnet/ccbluex/agent/math/BlockPos;)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;DLnet/ccbluex/agent/math/BlockPos;Lkotlin/ranges/IntRange;)V
+	public fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;DLnet/ccbluex/agent/math/BlockPos;Lkotlin/ranges/IntRange;Lkotlin/ranges/IntRange;)V
+	public synthetic fun <init> (Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;DLnet/ccbluex/agent/math/BlockPos;Lkotlin/ranges/IntRange;Lkotlin/ranges/IntRange;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lnet/ccbluex/agent/math/AABB;
+	public final fun component10 ()D
+	public final fun component11 ()Lnet/ccbluex/agent/math/BlockPos;
+	public final fun component12 ()Lkotlin/ranges/IntRange;
+	public final fun component13 ()Lkotlin/ranges/IntRange;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun component7 ()Z
+	public final fun component8 ()Z
+	public final fun component9 ()Lnet/ccbluex/agent/skills/ItemMatch;
+	public final fun copy (Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;DLnet/ccbluex/agent/math/BlockPos;Lkotlin/ranges/IntRange;Lkotlin/ranges/IntRange;)Lnet/ccbluex/agent/skills/farm/Farm;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/skills/farm/Farm;Lnet/ccbluex/agent/math/AABB;ZZZZZZZLnet/ccbluex/agent/skills/ItemMatch;DLnet/ccbluex/agent/math/BlockPos;Lkotlin/ranges/IntRange;Lkotlin/ranges/IntRange;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/farm/Farm;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArea ()Lnet/ccbluex/agent/math/AABB;
+	public final fun getBoneMealDelayTicks ()Lkotlin/ranges/IntRange;
+	public final fun getCanHydrate ()Z
+	public final fun getCanPlant ()Z
+	public final fun getCanTill ()Z
+	public final fun getCanUseBoneMeal ()Z
+	public final fun getCanWalk ()Z
+	public final fun getCanWalkToPlant ()Z
+	public final fun getChest ()Lnet/ccbluex/agent/math/BlockPos;
+	public final fun getDelayTicks ()Lkotlin/ranges/IntRange;
+	public final fun getPickUp ()Lnet/ccbluex/agent/skills/ItemMatch;
+	public final fun getPickUpRadius ()D
+	public final fun getShouldUseFortune ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/ccbluex/agent/skills/farm/FarmingKt {
+	public static final fun farm (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/farm/Farm;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun farm (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/farm/Farm;Lnet/ccbluex/agent/tick/TickScope;)Lkotlinx/coroutines/Job;
+	public static final fun farm (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/farm/Farm;Lnet/ccbluex/agent/tick/TickScope;Ljava/util/function/IntConsumer;)Lkotlinx/coroutines/Job;
+	public static synthetic fun farm$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/farm/Farm;Lnet/ccbluex/agent/tick/TickScope;Ljava/util/function/IntConsumer;ILjava/lang/Object;)Lkotlinx/coroutines/Job;
 }
 
 public abstract interface class net/ccbluex/agent/skills/fight/Area {
@@ -2706,11 +2907,76 @@ public final class net/ccbluex/agent/skills/games/skywars/SkyWars : net/ccbluex/
 	public fun tick (Lnet/ccbluex/agent/skills/Agent;)V
 }
 
+public final class net/ccbluex/agent/skills/gather/BlockScanKt {
+	public static final fun isExposed (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)Z
+	public static final fun nearestBlocks (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;IIILjava/util/function/BiPredicate;)Ljava/util/List;
+}
+
 public final class net/ccbluex/agent/skills/gather/DropsKt {
+	public static final fun mine (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun mine (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun mine$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun pickUpItems (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;DILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun pickUpItems (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun pickUpItems (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun pickUpItems$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;DILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/skills/gather/ExploringKt {
+	public static final fun explore (Lnet/ccbluex/agent/skills/Agent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/skills/gather/GatheringKt {
+	public static final fun gather (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/gather/Resource;ILjava/util/function/Predicate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun gather (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/gather/Resource;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun gather$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/gather/Resource;ILjava/util/function/Predicate;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/skills/gather/HuntingKt {
+	public static final fun hunt (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/world/entity/LivingEntity;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun hunt (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/world/entity/LivingEntity;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun hunt$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/world/entity/LivingEntity;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun huntFor (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/skills/gather/Prey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/skills/gather/LavaKt {
+	public static final fun fillLava (Lnet/ccbluex/agent/skills/Agent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/skills/gather/Prey : java/lang/Enum {
+	public static final field FOOD Lnet/ccbluex/agent/skills/gather/Prey;
+	public static final field WOOL Lnet/ccbluex/agent/skills/gather/Prey;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/gather/Prey;
+	public static fun values ()[Lnet/ccbluex/agent/skills/gather/Prey;
+}
+
+public final class net/ccbluex/agent/skills/gather/Resource : java/lang/Enum {
+	public static final field COAL Lnet/ccbluex/agent/skills/gather/Resource;
+	public static final field Companion Lnet/ccbluex/agent/skills/gather/Resource$Companion;
+	public static final field DIAMOND Lnet/ccbluex/agent/skills/gather/Resource;
+	public static final field IRON Lnet/ccbluex/agent/skills/gather/Resource;
+	public static final field LOGS Lnet/ccbluex/agent/skills/gather/Resource;
+	public static final field STONE Lnet/ccbluex/agent/skills/gather/Resource;
+	public final fun getBatch ()I
+	public final fun getDepth ()Ljava/lang/Integer;
+	public final fun getDrops ()Ljava/util/Set;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getTier ()I
+	public final fun matches (Lnet/ccbluex/agent/world/block/BlockState;)Z
+	public static final fun pickaxeTier (Lnet/ccbluex/agent/world/item/Item;)I
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/skills/gather/Resource;
+	public static fun values ()[Lnet/ccbluex/agent/skills/gather/Resource;
+}
+
+public final class net/ccbluex/agent/skills/gather/Resource$Companion {
+	public final fun pickaxeTier (Lnet/ccbluex/agent/world/item/Item;)I
+}
+
+public final class net/ccbluex/agent/skills/gather/TunnelsKt {
+	public static final fun digStairsDown (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Direction;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun digTunnel (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Direction;ILjava/util/function/Predicate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun isSafeToDig (Lnet/ccbluex/agent/world/BlockGetter;Ljava/util/List;Lnet/ccbluex/agent/math/BlockPos;)Z
 }
 
 public abstract interface class net/ccbluex/agent/skills/gear/Gear {
@@ -2937,6 +3203,21 @@ public abstract interface class net/ccbluex/agent/skills/maps/MapTexts {
 	public abstract fun getShownTitle ()Ljava/lang/String;
 }
 
+public final class net/ccbluex/agent/skills/night/ShelterKt {
+	public static final fun canDigIn (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)Z
+	public static final fun digIn (Lnet/ccbluex/agent/skills/Agent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun shelter (Lnet/ccbluex/agent/skills/Agent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun waitForMorning (Lnet/ccbluex/agent/skills/Agent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class net/ccbluex/agent/skills/night/SleepingKt {
+	public static final fun placeBed (Lnet/ccbluex/agent/skills/Agent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun sleepIn (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun sleepIn (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun sleepIn$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun sleepThroughNight (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface class net/ccbluex/agent/skills/shop/Catalogue {
 	public abstract fun getActiveTraps ()I
 	public abstract fun getItems ()Ljava/util/List;
@@ -3131,6 +3412,7 @@ public final class net/ccbluex/agent/world/ClipContext$Block : java/lang/Enum {
 public final class net/ccbluex/agent/world/ClipContext$Fluid : java/lang/Enum {
 	public static final field ANY Lnet/ccbluex/agent/world/ClipContext$Fluid;
 	public static final field NONE Lnet/ccbluex/agent/world/ClipContext$Fluid;
+	public static final field SOURCE_ONLY Lnet/ccbluex/agent/world/ClipContext$Fluid;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/world/ClipContext$Fluid;
 	public static fun values ()[Lnet/ccbluex/agent/world/ClipContext$Fluid;
@@ -3150,7 +3432,21 @@ public final class net/ccbluex/agent/world/ContainerInput : java/lang/Enum {
 }
 
 public abstract interface class net/ccbluex/agent/world/ContainerMenu {
+	public static final field Companion Lnet/ccbluex/agent/world/ContainerMenu$Companion;
+	public static final field SLOT_CLICKED_OUTSIDE I
+	public abstract fun getCarried ()Lnet/ccbluex/agent/world/item/ItemStack;
 	public abstract fun getSlots ()Ljava/util/List;
+}
+
+public final class net/ccbluex/agent/world/ContainerMenu$Companion {
+	public static final field SLOT_CLICKED_OUTSIDE I
+}
+
+public abstract interface class net/ccbluex/agent/world/CraftingMenu : net/ccbluex/agent/world/ContainerMenu {
+	public abstract fun getGridHeight ()I
+	public abstract fun getGridWidth ()I
+	public abstract fun getInputGridSlots ()Ljava/util/List;
+	public abstract fun getResultSlot ()Lnet/ccbluex/agent/world/Slot;
 }
 
 public final class net/ccbluex/agent/world/EmptyBlockGetter : net/ccbluex/agent/world/BlockGetter {
@@ -3165,6 +3461,17 @@ public final class net/ccbluex/agent/world/EntityHitResult : net/ccbluex/agent/w
 	public fun <init> (Lnet/ccbluex/agent/world/entity/Entity;Lnet/ccbluex/agent/math/Vec3;)V
 	public final fun getEntity ()Lnet/ccbluex/agent/world/entity/Entity;
 	public fun getType ()Lnet/ccbluex/agent/world/HitResult$Type;
+}
+
+public abstract interface class net/ccbluex/agent/world/FurnaceMenu : net/ccbluex/agent/world/ContainerMenu {
+}
+
+public final class net/ccbluex/agent/world/Heightmap : java/lang/Enum {
+	public static final field MOTION_BLOCKING Lnet/ccbluex/agent/world/Heightmap;
+	public static final field MOTION_BLOCKING_NO_LEAVES Lnet/ccbluex/agent/world/Heightmap;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/world/Heightmap;
+	public static fun values ()[Lnet/ccbluex/agent/world/Heightmap;
 }
 
 public abstract class net/ccbluex/agent/world/HitResult {
@@ -3222,7 +3529,8 @@ public abstract interface class net/ccbluex/agent/world/Level : net/ccbluex/agen
 	public abstract fun getEntitiesOfClass (Ljava/lang/Class;Lnet/ccbluex/agent/math/AABB;Lkotlin/jvm/functions/Function1;)Ljava/util/List;
 	public static synthetic fun getEntitiesOfClass$default (Lnet/ccbluex/agent/world/Level;Ljava/lang/Class;Lnet/ccbluex/agent/math/AABB;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/util/List;
 	public abstract fun getEntity (I)Lnet/ccbluex/agent/world/entity/Entity;
-	public abstract fun getHeight (II)I
+	public fun getHeight (II)I
+	public abstract fun getHeight (Lnet/ccbluex/agent/world/Heightmap;II)I
 	public fun getMechanics ()Lnet/ccbluex/agent/world/Mechanics;
 	public abstract fun getRespawnPos ()Lnet/ccbluex/agent/math/BlockPos;
 	public abstract fun getWorldBorder ()Lnet/ccbluex/agent/world/WorldBorder;
@@ -3230,6 +3538,8 @@ public abstract interface class net/ccbluex/agent/world/Level : net/ccbluex/agen
 	public abstract fun hasChunk (II)Z
 	public fun hasChunkAt (II)Z
 	public fun hasChunkAt (Lnet/ccbluex/agent/math/BlockPos;)Z
+	public abstract fun isBrightOutside ()Z
+	public abstract fun isDarkOutside ()Z
 	public fun isLoaded (Lnet/ccbluex/agent/math/BlockPos;)Z
 	public fun noBlockCollision (Lnet/ccbluex/agent/world/entity/Entity;Lnet/ccbluex/agent/math/AABB;)Z
 	public fun placedState (Lnet/ccbluex/agent/world/item/ItemStack;Lnet/ccbluex/agent/world/BlockHitResult;Lnet/ccbluex/agent/math/ViewRotation;)Lnet/ccbluex/agent/world/block/BlockState;
@@ -3279,6 +3589,7 @@ public final class net/ccbluex/agent/world/Mechanics : java/lang/Enum {
 }
 
 public abstract interface class net/ccbluex/agent/world/Slot {
+	public abstract fun getContainerSlot ()I
 	public abstract fun getIndex ()I
 	public abstract fun getItem ()Lnet/ccbluex/agent/world/item/ItemStack;
 	public abstract fun isPlayerInventory ()Z
@@ -3351,9 +3662,14 @@ public final class net/ccbluex/agent/world/block/BlockEntityType : java/lang/Enu
 }
 
 public final class net/ccbluex/agent/world/block/BlockKind : java/lang/Enum {
+	public static final field ATTACHED_STEM Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field BAMBOO Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field BED Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field BUTTON Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field CACTUS Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field CHEST Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field COCOA Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field CROP Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field DOOR Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field ENTITY_BLOCK Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field FALLING Lnet/ccbluex/agent/world/block/BlockKind;
@@ -3362,12 +3678,17 @@ public final class net/ccbluex/agent/world/block/BlockKind : java/lang/Enum {
 	public static final field FENCE_GATE Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field FIRE Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field INTERACTIVE Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field KELP_PLANT Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field LADDER Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field LEVER Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field NETHER_WART Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field OPENS_BY_HAND Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field PRESSURE_PLATE Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field SLIME Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field STAIRS Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field STEM Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field SUGAR_CANE Lnet/ccbluex/agent/world/block/BlockKind;
+	public static final field SWEET_BERRY_BUSH Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field TRAPDOOR Lnet/ccbluex/agent/world/block/BlockKind;
 	public static final field WALL Lnet/ccbluex/agent/world/block/BlockKind;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
@@ -3378,6 +3699,8 @@ public final class net/ccbluex/agent/world/block/BlockKind : java/lang/Enum {
 public abstract class net/ccbluex/agent/world/block/BlockState {
 	public fun <init> (Lnet/ccbluex/agent/world/block/Block;)V
 	public abstract fun canBeReplaced ()Z
+	public fun canOcclude ()Z
+	public fun canSurvive (Lnet/ccbluex/agent/world/Level;Lnet/ccbluex/agent/math/BlockPos;)Z
 	public final fun getBlock ()Lnet/ccbluex/agent/world/block/Block;
 	public abstract fun getCollisionShape (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)Lnet/ccbluex/agent/world/block/VoxelShape;
 	public abstract fun getDestroySpeed (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)F
@@ -3394,6 +3717,9 @@ public abstract class net/ccbluex/agent/world/block/BlockState {
 	public abstract fun isAir ()Z
 	public abstract fun isCollisionShapeFullBlock (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)Z
 	public final fun isFaceSturdy (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
+	public fun isMaxAge ()Z
+	public fun isSolidRender ()Z
+	public fun isValidBonemealTarget (Lnet/ccbluex/agent/world/Level;Lnet/ccbluex/agent/math/BlockPos;)Z
 	public abstract fun requiresCorrectToolForDrops ()Z
 	public abstract fun setValue (Lnet/ccbluex/agent/world/block/Property;Ljava/lang/Object;)Lnet/ccbluex/agent/world/block/BlockState;
 	public fun toString ()Ljava/lang/String;
@@ -3410,12 +3736,22 @@ public final class net/ccbluex/agent/world/block/BlockStateProperties {
 }
 
 public final class net/ccbluex/agent/world/block/BlockTags {
+	public static final field BASE_STONE_NETHER Lnet/ccbluex/agent/world/TagKey;
+	public static final field BASE_STONE_OVERWORLD Lnet/ccbluex/agent/world/TagKey;
 	public static final field IMPERMEABLE Lnet/ccbluex/agent/world/TagKey;
 	public static final field INSTANCE Lnet/ccbluex/agent/world/block/BlockTags;
 	public static final field LEAVES Lnet/ccbluex/agent/world/TagKey;
 	public static final field LOGS Lnet/ccbluex/agent/world/TagKey;
+	public static final field ORES Lnet/ccbluex/agent/world/TagKey;
+	public static final field OVERWORLD_NATURAL_LOGS Lnet/ccbluex/agent/world/TagKey;
 	public static final field PLANKS Lnet/ccbluex/agent/world/TagKey;
 	public static final field RAILS Lnet/ccbluex/agent/world/TagKey;
+	public static final field SAND Lnet/ccbluex/agent/world/TagKey;
+	public static final field SNOW Lnet/ccbluex/agent/world/TagKey;
+	public static final field SUBSTRATE_OVERWORLD Lnet/ccbluex/agent/world/TagKey;
+	public static final field SUPPORTS_CROPS Lnet/ccbluex/agent/world/TagKey;
+	public static final field SUPPORTS_NETHER_WART Lnet/ccbluex/agent/world/TagKey;
+	public static final field TURNS_INTO_FARMLAND Lnet/ccbluex/agent/world/TagKey;
 	public static final field WOOL Lnet/ccbluex/agent/world/TagKey;
 }
 
@@ -3423,26 +3759,47 @@ public final class net/ccbluex/agent/world/block/Blocks {
 	public static final field AIR Lnet/ccbluex/agent/world/block/Block;
 	public static final field BEDROCK Lnet/ccbluex/agent/world/block/Block;
 	public static final field CACTUS Lnet/ccbluex/agent/world/block/Block;
+	public static final field CALCITE Lnet/ccbluex/agent/world/block/Block;
 	public static final field CAMPFIRE Lnet/ccbluex/agent/world/block/Block;
 	public static final field CAVE_VINES Lnet/ccbluex/agent/world/block/Block;
 	public static final field CAVE_VINES_PLANT Lnet/ccbluex/agent/world/block/Block;
+	public static final field CLAY Lnet/ccbluex/agent/world/block/Block;
+	public static final field COAL_ORE Lnet/ccbluex/agent/world/block/Block;
 	public static final field COBWEB Lnet/ccbluex/agent/world/block/Block;
+	public static final field CRAFTING_TABLE Lnet/ccbluex/agent/world/block/Block;
+	public static final field DEEPSLATE Lnet/ccbluex/agent/world/block/Block;
+	public static final field DEEPSLATE_COAL_ORE Lnet/ccbluex/agent/world/block/Block;
+	public static final field DEEPSLATE_DIAMOND_ORE Lnet/ccbluex/agent/world/block/Block;
+	public static final field DEEPSLATE_IRON_ORE Lnet/ccbluex/agent/world/block/Block;
+	public static final field DIAMOND_ORE Lnet/ccbluex/agent/world/block/Block;
+	public static final field DRIPSTONE_BLOCK Lnet/ccbluex/agent/world/block/Block;
+	public static final field FARMLAND Lnet/ccbluex/agent/world/block/Block;
+	public static final field FURNACE Lnet/ccbluex/agent/world/block/Block;
 	public static final field GLOWSTONE Lnet/ccbluex/agent/world/block/Block;
+	public static final field GRAVEL Lnet/ccbluex/agent/world/block/Block;
 	public static final field INSTANCE Lnet/ccbluex/agent/world/block/Blocks;
+	public static final field IRON_ORE Lnet/ccbluex/agent/world/block/Block;
 	public static final field IRON_TRAPDOOR Lnet/ccbluex/agent/world/block/Block;
 	public static final field LADDER Lnet/ccbluex/agent/world/block/Block;
+	public static final field LAVA Lnet/ccbluex/agent/world/block/Block;
 	public static final field MAGMA_BLOCK Lnet/ccbluex/agent/world/block/Block;
+	public static final field MELON Lnet/ccbluex/agent/world/block/Block;
 	public static final field OBSIDIAN Lnet/ccbluex/agent/world/block/Block;
 	public static final field POWDER_SNOW Lnet/ccbluex/agent/world/block/Block;
+	public static final field PUMPKIN Lnet/ccbluex/agent/world/block/Block;
+	public static final field RED_SANDSTONE Lnet/ccbluex/agent/world/block/Block;
 	public static final field RESPAWN_ANCHOR Lnet/ccbluex/agent/world/block/Block;
+	public static final field SANDSTONE Lnet/ccbluex/agent/world/block/Block;
 	public static final field SLIME_BLOCK Lnet/ccbluex/agent/world/block/Block;
 	public static final field SOUL_CAMPFIRE Lnet/ccbluex/agent/world/block/Block;
+	public static final field STONE Lnet/ccbluex/agent/world/block/Block;
 	public static final field SWEET_BERRY_BUSH Lnet/ccbluex/agent/world/block/Block;
 	public static final field TNT Lnet/ccbluex/agent/world/block/Block;
 	public static final field TWISTING_VINES Lnet/ccbluex/agent/world/block/Block;
 	public static final field TWISTING_VINES_PLANT Lnet/ccbluex/agent/world/block/Block;
 	public static final field VINE Lnet/ccbluex/agent/world/block/Block;
 	public static final field VOID_AIR Lnet/ccbluex/agent/world/block/Block;
+	public static final field WATER Lnet/ccbluex/agent/world/block/Block;
 	public static final field WEEPING_VINES Lnet/ccbluex/agent/world/block/Block;
 	public static final field WEEPING_VINES_PLANT Lnet/ccbluex/agent/world/block/Block;
 	public static final field WITHER_ROSE Lnet/ccbluex/agent/world/block/Block;
@@ -3472,6 +3829,7 @@ public final class net/ccbluex/agent/world/block/FluidState {
 	public fun <init> (Lnet/ccbluex/agent/world/block/Fluid;ZI)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAmount ()I
+	public final fun getHeight (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)F
 	public final fun getType ()Lnet/ccbluex/agent/world/block/Fluid;
 	public fun hashCode ()I
 	public final fun isEmpty ()Z
@@ -3549,9 +3907,19 @@ public abstract interface class net/ccbluex/agent/world/entity/AbstractArrow : n
 public abstract interface class net/ccbluex/agent/world/entity/AbstractBoat : net/ccbluex/agent/world/entity/Entity {
 }
 
+public abstract interface class net/ccbluex/agent/world/entity/AbstractCow : net/ccbluex/agent/world/entity/Animal {
+}
+
 public abstract interface class net/ccbluex/agent/world/entity/AbstractHorse : net/ccbluex/agent/world/entity/LivingEntity {
 	public abstract fun canJump ()Z
 	public abstract fun maxUpStep ()F
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/AbstractSkeleton : net/ccbluex/agent/world/entity/Monster {
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/Animal : net/ccbluex/agent/world/entity/Mob {
+	public abstract fun isBaby ()Z
 }
 
 public abstract interface class net/ccbluex/agent/world/entity/ArmorStand : net/ccbluex/agent/world/entity/LivingEntity {
@@ -3584,7 +3952,17 @@ public final class net/ccbluex/agent/world/entity/Attributes {
 public abstract interface class net/ccbluex/agent/world/entity/Camel : net/ccbluex/agent/world/entity/AbstractHorse {
 }
 
+public abstract interface class net/ccbluex/agent/world/entity/Creeper : net/ccbluex/agent/world/entity/Monster {
+}
+
 public abstract interface class net/ccbluex/agent/world/entity/EndCrystal : net/ccbluex/agent/world/entity/Entity {
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/Enderman : net/ccbluex/agent/world/entity/Monster {
+	public abstract fun isCreepy ()Z
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/Enemy : net/ccbluex/agent/world/entity/Mob {
 }
 
 public abstract interface class net/ccbluex/agent/world/entity/Entity {
@@ -3602,6 +3980,7 @@ public abstract interface class net/ccbluex/agent/world/entity/Entity {
 	public abstract fun distanceToSqr (Lnet/ccbluex/agent/world/entity/Entity;)D
 	public abstract fun getBbHeight ()F
 	public abstract fun getBbWidth ()F
+	public fun getBlockY ()I
 	public abstract fun getBoundingBox ()Lnet/ccbluex/agent/math/AABB;
 	public abstract fun getControlledVehicle ()Lnet/ccbluex/agent/world/entity/Entity;
 	public abstract fun getCustomName ()Ljava/lang/String;
@@ -3613,6 +3992,7 @@ public abstract interface class net/ccbluex/agent/world/entity/Entity {
 	public abstract fun getLookAngle ()Lnet/ccbluex/agent/math/Vec3;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getPassengerRidingPosition (Lnet/ccbluex/agent/world/entity/Entity;)Lnet/ccbluex/agent/math/Vec3;
+	public abstract fun getPassengers ()Ljava/util/List;
 	public abstract fun getPickRadius ()F
 	public abstract fun getPosition (F)Lnet/ccbluex/agent/math/Vec3;
 	public abstract fun getRootVehicle ()Lnet/ccbluex/agent/world/entity/Entity;
@@ -3706,10 +4086,12 @@ public abstract interface class net/ccbluex/agent/world/entity/Inventory {
 	public static final field INVENTORY_SIZE I
 	public static final field SELECTION_SIZE I
 	public static final field SLOT_OFFHAND I
+	public fun countItem (Lnet/ccbluex/agent/world/item/Item;)I
 	public abstract fun getContainerSize ()I
 	public abstract fun getItem (I)Lnet/ccbluex/agent/world/item/ItemStack;
 	public abstract fun getSelectedSlot ()I
 	public static fun getSelectionSize ()I
+	public fun getSuitableHotbarSlot ()I
 	public static fun isHotbarSlot (I)Z
 }
 
@@ -3759,6 +4141,7 @@ public abstract interface class net/ccbluex/agent/world/entity/LivingEntity : ne
 	public abstract fun isBlocking ()Z
 	public abstract fun isDeadOrDying ()Z
 	public abstract fun isFallFlying ()Z
+	public abstract fun isSleeping ()Z
 	public abstract fun isSwinging ()Z
 	public abstract fun isUsingItem ()Z
 }
@@ -3778,6 +4161,10 @@ public abstract interface class net/ccbluex/agent/world/entity/Minecart : net/cc
 }
 
 public abstract interface class net/ccbluex/agent/world/entity/MinecartTNT : net/ccbluex/agent/world/entity/Entity {
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/Mob : net/ccbluex/agent/world/entity/LivingEntity {
+	public abstract fun isLeashed ()Z
 }
 
 public final class net/ccbluex/agent/world/entity/MobEffect {
@@ -3819,6 +4206,9 @@ public final class net/ccbluex/agent/world/entity/MobEffects {
 	public static final field STRENGTH Lnet/ccbluex/agent/world/entity/MobEffect;
 }
 
+public abstract interface class net/ccbluex/agent/world/entity/Monster : net/ccbluex/agent/world/entity/Enemy {
+}
+
 public final class net/ccbluex/agent/world/entity/MoverType : java/lang/Enum {
 	public static final field PISTON Lnet/ccbluex/agent/world/entity/MoverType;
 	public static final field PLAYER Lnet/ccbluex/agent/world/entity/MoverType;
@@ -3830,6 +4220,9 @@ public final class net/ccbluex/agent/world/entity/MoverType : java/lang/Enum {
 	public static fun values ()[Lnet/ccbluex/agent/world/entity/MoverType;
 }
 
+public abstract interface class net/ccbluex/agent/world/entity/Pig : net/ccbluex/agent/world/entity/Animal {
+}
+
 public abstract interface class net/ccbluex/agent/world/entity/Player : net/ccbluex/agent/world/entity/LivingEntity {
 	public static final field Companion Lnet/ccbluex/agent/world/entity/Player$Companion;
 	public static final field DEFAULT_EYE_HEIGHT F
@@ -3838,6 +4231,7 @@ public abstract interface class net/ccbluex/agent/world/entity/Player : net/ccbl
 	public abstract fun gameMode ()Lnet/ccbluex/agent/world/entity/GameType;
 	public abstract fun getAbilities ()Lnet/ccbluex/agent/world/entity/Abilities;
 	public abstract fun getAirSupply ()I
+	public abstract fun getAttackStrengthScale (F)F
 	public abstract fun getBlockPosBelowThatAffectsMyMovement ()Lnet/ccbluex/agent/math/BlockPos;
 	public abstract fun getCooldowns ()Lnet/ccbluex/agent/world/entity/ItemCooldowns;
 	public abstract fun getFallDistance ()D
@@ -3894,7 +4288,21 @@ public abstract interface class net/ccbluex/agent/world/entity/Projectile : net/
 	public abstract fun getOwner ()Lnet/ccbluex/agent/world/entity/Entity;
 }
 
+public abstract interface class net/ccbluex/agent/world/entity/Rabbit : net/ccbluex/agent/world/entity/Animal {
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/Sheep : net/ccbluex/agent/world/entity/Animal {
+	public abstract fun getColor ()Lnet/ccbluex/agent/world/item/DyeColor;
+	public abstract fun isSheared ()Z
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/Spider : net/ccbluex/agent/world/entity/Monster {
+}
+
 public abstract interface class net/ccbluex/agent/world/entity/ThrownEnderpearl : net/ccbluex/agent/world/entity/Projectile {
+}
+
+public abstract interface class net/ccbluex/agent/world/entity/Zombie : net/ccbluex/agent/world/entity/Monster {
 }
 
 public final class net/ccbluex/agent/world/item/DyeColor : java/lang/Enum {
@@ -3935,6 +4343,7 @@ public final class net/ccbluex/agent/world/item/Enchantments {
 	public static final field DENSITY Lnet/ccbluex/agent/world/item/Enchantment;
 	public static final field EFFICIENCY Lnet/ccbluex/agent/world/item/Enchantment;
 	public static final field FLAME Lnet/ccbluex/agent/world/item/Enchantment;
+	public static final field FORTUNE Lnet/ccbluex/agent/world/item/Enchantment;
 	public static final field INFINITY Lnet/ccbluex/agent/world/item/Enchantment;
 	public static final field INSTANCE Lnet/ccbluex/agent/world/item/Enchantments;
 	public static final field KNOCKBACK Lnet/ccbluex/agent/world/item/Enchantment;
@@ -3956,6 +4365,7 @@ public final class net/ccbluex/agent/world/item/FoodProperties {
 public final class net/ccbluex/agent/world/item/Item {
 	public static final field AIR Lnet/ccbluex/agent/world/item/Item;
 	public static final field Companion Lnet/ccbluex/agent/world/item/Item$Companion;
+	public static final fun all ()Ljava/util/List;
 	public final fun getBlock ()Lnet/ccbluex/agent/world/block/Block;
 	public final fun getDefaultInstance ()Lnet/ccbluex/agent/world/item/ItemStack;
 	public final fun getId ()Ljava/lang/String;
@@ -3966,6 +4376,7 @@ public final class net/ccbluex/agent/world/item/Item {
 }
 
 public final class net/ccbluex/agent/world/item/Item$Companion {
+	public final fun all ()Ljava/util/List;
 	public final fun of (Ljava/lang/String;)Lnet/ccbluex/agent/world/item/Item;
 }
 
@@ -3995,6 +4406,8 @@ public abstract class net/ccbluex/agent/world/item/ItemStack {
 	public abstract fun isDamageableItem ()Z
 	public fun isEmpty ()Z
 	public static final fun isSameItemSameComponents (Lnet/ccbluex/agent/world/item/ItemStack;Lnet/ccbluex/agent/world/item/ItemStack;)Z
+	public fun isTool ()Z
+	public fun isToolCorrectForDrops (Lnet/ccbluex/agent/world/block/BlockState;)Z
 	public static final fun matches (Lnet/ccbluex/agent/world/item/ItemStack;Lnet/ccbluex/agent/world/item/ItemStack;)Z
 	protected abstract fun sameData (Lnet/ccbluex/agent/world/item/ItemStack;)Z
 	public fun toString ()Ljava/lang/String;
@@ -4007,6 +4420,9 @@ public final class net/ccbluex/agent/world/item/ItemStack$Companion {
 
 public final class net/ccbluex/agent/world/item/ItemTags {
 	public static final field AXES Lnet/ccbluex/agent/world/TagKey;
+	public static final field BEDS Lnet/ccbluex/agent/world/TagKey;
+	public static final field BOATS Lnet/ccbluex/agent/world/TagKey;
+	public static final field HOES Lnet/ccbluex/agent/world/TagKey;
 	public static final field INSTANCE Lnet/ccbluex/agent/world/item/ItemTags;
 	public static final field LOGS Lnet/ccbluex/agent/world/TagKey;
 	public static final field PICKAXES Lnet/ccbluex/agent/world/TagKey;
@@ -4017,19 +4433,38 @@ public final class net/ccbluex/agent/world/item/ItemTags {
 public final class net/ccbluex/agent/world/item/Items {
 	public static final field AIR Lnet/ccbluex/agent/world/item/Item;
 	public static final field ARROW Lnet/ccbluex/agent/world/item/Item;
+	public static final field BAMBOO Lnet/ccbluex/agent/world/item/Item;
+	public static final field BAMBOO_PLANKS Lnet/ccbluex/agent/world/item/Item;
+	public static final field BEETROOT Lnet/ccbluex/agent/world/item/Item;
+	public static final field BEETROOT_SEEDS Lnet/ccbluex/agent/world/item/Item;
+	public static final field BLACKSTONE Lnet/ccbluex/agent/world/item/Item;
+	public static final field BLAZE_ROD Lnet/ccbluex/agent/world/item/Item;
 	public static final field BLUE_EGG Lnet/ccbluex/agent/world/item/Item;
+	public static final field BONE_MEAL Lnet/ccbluex/agent/world/item/Item;
 	public static final field BOW Lnet/ccbluex/agent/world/item/Item;
 	public static final field BOWL Lnet/ccbluex/agent/world/item/Item;
+	public static final field BREAD Lnet/ccbluex/agent/world/item/Item;
 	public static final field BROWN_EGG Lnet/ccbluex/agent/world/item/Item;
 	public static final field BUCKET Lnet/ccbluex/agent/world/item/Item;
+	public static final field CACTUS Lnet/ccbluex/agent/world/item/Item;
+	public static final field CARROT Lnet/ccbluex/agent/world/item/Item;
 	public static final field CHAINMAIL_BOOTS Lnet/ccbluex/agent/world/item/Item;
+	public static final field CHARCOAL Lnet/ccbluex/agent/world/item/Item;
+	public static final field CHEST Lnet/ccbluex/agent/world/item/Item;
+	public static final field CHICKEN Lnet/ccbluex/agent/world/item/Item;
 	public static final field CHORUS_FRUIT Lnet/ccbluex/agent/world/item/Item;
+	public static final field COAL Lnet/ccbluex/agent/world/item/Item;
+	public static final field COAL_BLOCK Lnet/ccbluex/agent/world/item/Item;
+	public static final field COBBLED_DEEPSLATE Lnet/ccbluex/agent/world/item/Item;
+	public static final field COBBLESTONE Lnet/ccbluex/agent/world/item/Item;
 	public static final field COBWEB Lnet/ccbluex/agent/world/item/Item;
+	public static final field COCOA_BEANS Lnet/ccbluex/agent/world/item/Item;
 	public static final field COMPASS Lnet/ccbluex/agent/world/item/Item;
 	public static final field COPPER_AXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field COPPER_SHOVEL Lnet/ccbluex/agent/world/item/Item;
 	public static final field COPPER_SPEAR Lnet/ccbluex/agent/world/item/Item;
 	public static final field COPPER_SWORD Lnet/ccbluex/agent/world/item/Item;
+	public static final field CRAFTING_TABLE Lnet/ccbluex/agent/world/item/Item;
 	public static final field DIAMOND Lnet/ccbluex/agent/world/item/Item;
 	public static final field DIAMOND_AXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field DIAMOND_BOOTS Lnet/ccbluex/agent/world/item/Item;
@@ -4046,6 +4481,9 @@ public final class net/ccbluex/agent/world/item/Items {
 	public static final field END_STONE Lnet/ccbluex/agent/world/item/Item;
 	public static final field FIREWORK_ROCKET Lnet/ccbluex/agent/world/item/Item;
 	public static final field FISHING_ROD Lnet/ccbluex/agent/world/item/Item;
+	public static final field FLINT Lnet/ccbluex/agent/world/item/Item;
+	public static final field FLINT_AND_STEEL Lnet/ccbluex/agent/world/item/Item;
+	public static final field FURNACE Lnet/ccbluex/agent/world/item/Item;
 	public static final field GLOWSTONE Lnet/ccbluex/agent/world/item/Item;
 	public static final field GOLDEN_APPLE Lnet/ccbluex/agent/world/item/Item;
 	public static final field GOLDEN_AXE Lnet/ccbluex/agent/world/item/Item;
@@ -4057,22 +4495,33 @@ public final class net/ccbluex/agent/world/item/Items {
 	public static final field INSTANCE Lnet/ccbluex/agent/world/item/Items;
 	public static final field IRON_AXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field IRON_BOOTS Lnet/ccbluex/agent/world/item/Item;
+	public static final field IRON_CHESTPLATE Lnet/ccbluex/agent/world/item/Item;
+	public static final field IRON_HELMET Lnet/ccbluex/agent/world/item/Item;
 	public static final field IRON_INGOT Lnet/ccbluex/agent/world/item/Item;
+	public static final field IRON_LEGGINGS Lnet/ccbluex/agent/world/item/Item;
 	public static final field IRON_PICKAXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field IRON_SHOVEL Lnet/ccbluex/agent/world/item/Item;
 	public static final field IRON_SPEAR Lnet/ccbluex/agent/world/item/Item;
 	public static final field IRON_SWORD Lnet/ccbluex/agent/world/item/Item;
+	public static final field KELP Lnet/ccbluex/agent/world/item/Item;
 	public static final field LAVA_BUCKET Lnet/ccbluex/agent/world/item/Item;
 	public static final field MACE Lnet/ccbluex/agent/world/item/Item;
+	public static final field MELON_SLICE Lnet/ccbluex/agent/world/item/Item;
 	public static final field MUSHROOM_STEW Lnet/ccbluex/agent/world/item/Item;
 	public static final field NETHERITE_AXE Lnet/ccbluex/agent/world/item/Item;
+	public static final field NETHERITE_PICKAXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field NETHERITE_SHOVEL Lnet/ccbluex/agent/world/item/Item;
 	public static final field NETHERITE_SPEAR Lnet/ccbluex/agent/world/item/Item;
 	public static final field NETHERITE_SWORD Lnet/ccbluex/agent/world/item/Item;
+	public static final field NETHER_WART Lnet/ccbluex/agent/world/item/Item;
+	public static final field OAK_LOG Lnet/ccbluex/agent/world/item/Item;
 	public static final field OBSIDIAN Lnet/ccbluex/agent/world/item/Item;
 	public static final field POISONOUS_POTATO Lnet/ccbluex/agent/world/item/Item;
+	public static final field POTATO Lnet/ccbluex/agent/world/item/Item;
 	public static final field PUFFERFISH Lnet/ccbluex/agent/world/item/Item;
+	public static final field PUMPKIN Lnet/ccbluex/agent/world/item/Item;
 	public static final field RAIL Lnet/ccbluex/agent/world/item/Item;
+	public static final field RAW_IRON Lnet/ccbluex/agent/world/item/Item;
 	public static final field RESPAWN_ANCHOR Lnet/ccbluex/agent/world/item/Item;
 	public static final field ROTTEN_FLESH Lnet/ccbluex/agent/world/item/Item;
 	public static final field SHEARS Lnet/ccbluex/agent/world/item/Item;
@@ -4080,19 +4529,28 @@ public final class net/ccbluex/agent/world/item/Items {
 	public static final field SNOWBALL Lnet/ccbluex/agent/world/item/Item;
 	public static final field SPIDER_EYE Lnet/ccbluex/agent/world/item/Item;
 	public static final field SPLASH_POTION Lnet/ccbluex/agent/world/item/Item;
+	public static final field STICK Lnet/ccbluex/agent/world/item/Item;
 	public static final field STONE_AXE Lnet/ccbluex/agent/world/item/Item;
+	public static final field STONE_PICKAXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field STONE_SHOVEL Lnet/ccbluex/agent/world/item/Item;
 	public static final field STONE_SPEAR Lnet/ccbluex/agent/world/item/Item;
 	public static final field STONE_SWORD Lnet/ccbluex/agent/world/item/Item;
+	public static final field SUGAR_CANE Lnet/ccbluex/agent/world/item/Item;
+	public static final field SUSPICIOUS_STEW Lnet/ccbluex/agent/world/item/Item;
+	public static final field SWEET_BERRIES Lnet/ccbluex/agent/world/item/Item;
 	public static final field TNT_MINECART Lnet/ccbluex/agent/world/item/Item;
+	public static final field TORCH Lnet/ccbluex/agent/world/item/Item;
 	public static final field TOTEM_OF_UNDYING Lnet/ccbluex/agent/world/item/Item;
 	public static final field WATER_BUCKET Lnet/ccbluex/agent/world/item/Item;
+	public static final field WHEAT Lnet/ccbluex/agent/world/item/Item;
+	public static final field WHEAT_SEEDS Lnet/ccbluex/agent/world/item/Item;
 	public static final field WIND_CHARGE Lnet/ccbluex/agent/world/item/Item;
 	public static final field WOODEN_AXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field WOODEN_PICKAXE Lnet/ccbluex/agent/world/item/Item;
 	public static final field WOODEN_SHOVEL Lnet/ccbluex/agent/world/item/Item;
 	public static final field WOODEN_SPEAR Lnet/ccbluex/agent/world/item/Item;
 	public static final field WOODEN_SWORD Lnet/ccbluex/agent/world/item/Item;
+	public static final field WOOL Ljava/util/List;
 }
 
 public final class net/ccbluex/agent/world/item/UseEffects {

@@ -100,6 +100,10 @@ public interface Entity {
 
     public val isInWater: Boolean
 
+    public val blockY: Int get() = blockPosition().y
+
+    public val passengers: List<Entity>
+
     public fun onGround(): Boolean
 
     public fun level(): Level
@@ -186,6 +190,8 @@ public interface LivingEntity : Entity {
     public val isFallFlying: Boolean
 
     public val isDeadOrDying: Boolean
+
+    public val isSleeping: Boolean
 
     public val jumpBoostPower: Float
 

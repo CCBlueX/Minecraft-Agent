@@ -305,8 +305,11 @@ public class SpigotBody internal constructor(internal val handle: BotPlayer) : B
                         override val index: Int get() = slot.rawSlotIndex
                         override val item get() = StackView.of(slot.item)
                         override val isPlayerInventory: Boolean get() = slot.inventory is PlayerInventory
+                        override val containerSlot: Int get() = slot.index
                     }
                 }
+
+                override val carried get() = StackView.of(handle.inventory.carried)
             }
         }
 
@@ -319,6 +322,13 @@ public class SpigotBody internal constructor(internal val handle: BotPlayer) : B
         val container = handle.activeContainer
         if (containerSlot !in container.c.indices) return
         container.clickItem(containerSlot, button, type.ordinal, handle)
+        container.b()
+    }
+
+    override fun clickInventory(menuSlot: Int, button: Int, type: ContainerInput) {
+        val container = handle.defaultContainer
+        if (menuSlot !in container.c.indices) return
+        container.clickItem(menuSlot, button, type.ordinal, handle)
         container.b()
     }
 

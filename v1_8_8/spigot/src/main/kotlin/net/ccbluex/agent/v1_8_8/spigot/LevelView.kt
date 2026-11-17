@@ -23,6 +23,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.ccbluex.agent.math.AABB
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Mth
+import net.ccbluex.agent.world.Heightmap
 import net.ccbluex.agent.world.Level
 import net.ccbluex.agent.world.LevelBlocks
 import net.ccbluex.agent.world.Mechanics
@@ -103,7 +104,12 @@ internal class LevelView private constructor(val handle: World) : Level {
     override fun hasChunk(chunkX: Int, chunkZ: Int): Boolean = chunks.isChunkLoaded(chunkX, chunkZ)
 
     // 1.8 has one height map, the highest block that lets no light through, close to MOTION_BLOCKING
-    override fun getHeight(x: Int, z: Int): Int = chunk(x, z)?.b(x and 15, z and 15) ?: 0
+    override fun getHeight(heightmap: Heightmap, x: Int, z: Int): Int = chunk(x, z)?.b(x and 15, z and 15) ?: 0
+
+    // The sky darkens from tick 13000 to 23000 of the day, whatever the weather
+    override val isDarkOutside: Boolean get() = handle.dayTime % DAY_TICKS in NIGHT_START..NIGHT_END
+
+    override val isBrightOutside: Boolean get() = !isDarkOutside
 
     override fun getBlockCollisions(entity: Entity?, box: AABB): Iterable<VoxelShape> {
         val shapes = ArrayList<VoxelShape>()
@@ -199,6 +205,9 @@ internal class LevelView private constructor(val handle: World) : Level {
     companion object {
         const val WORLD_HEIGHT = 256
         private const val NETHER_ID = -1
+        private const val DAY_TICKS = 24000L
+        private const val NIGHT_START = 13000L
+        private const val NIGHT_END = 23000L
         private const val END_ID = 1
 
         private val levels = Collections.synchronizedMap(WeakHashMap<World, LevelView>())
