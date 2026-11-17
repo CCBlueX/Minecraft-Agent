@@ -45,6 +45,8 @@ internal class Follower(private val context: NavigationContext, private val hand
 
     private var route: Leg? = null
     private var takeOffTicks = 0
+    private var isLanding = false
+    private var hasLanded = false
 
     /**
      * The keys the flight pressed last tick, for [handling] to measure what they did.
@@ -61,7 +63,7 @@ internal class Follower(private val context: NavigationContext, private val hand
         get() = route?.path
 
     val isFinished: Boolean
-        get() = route?.isFinished == true
+        get() = (route?.isFinished == true || hasLanded) && !isLanding
 
     override val isMoving: Boolean
         get() = route?.isFinished == false
@@ -82,6 +84,8 @@ internal class Follower(private val context: NavigationContext, private val hand
         route = null
         takeOffTicks = 0
         target = null
+        isLanding = false
+        hasLanded = false
         sprint = false
         pressed = null
     }
@@ -102,7 +106,16 @@ internal class Follower(private val context: NavigationContext, private val hand
         sprint = false
 
         val route = route?.also(::advance)
-        if (route == null || route.isFinished) {
+        // Coasting to the end, the player may sink onto the ground before the route counts as finished
+        if (route != null && !hasLanded && (isLanding || lands(route.path.end))) {
+            isLanding = land(abilities)
+            if (isLanding) {
+                return FollowState.WALKING
+            }
+            hasLanded = true
+        }
+
+        if (route == null || route.isFinished || hasLanded) {
             context.body.press(Input.EMPTY, true)
             return FollowState.FINISHED
         }
@@ -119,6 +132,37 @@ internal class Follower(private val context: NavigationContext, private val hand
         target = aim
         fly(frameYRot, aim, abilities, isFinal = aim == route.path.end)
         return progress(route)
+    }
+
+    /**
+     * Whether the player hovers in creative flight over [end] with the ground at most [LAND_HEIGHT] below.
+     */
+    private fun lands(end: Vec3): Boolean {
+        val player = context.body.player
+        if (context.body.isFlying || !player.abilities.flying) {
+            return false
+        }
+
+        val tolerance = handling.step / 2.0
+        val height = player.y - end.y
+        return end.subtract(handling.rest(player)).horizontalDistanceSqr() <= tolerance * tolerance &&
+            height in 0.0..LAND_HEIGHT &&
+            !context.body.level.noBlockCollision(player, player.boundingBox.expandTowards(0.0, -LAND_HEIGHT, 0.0))
+    }
+
+    /**
+     * Ends creative flight with a double jump and falls to the ground; false once on it. Touching the ground while
+     * flying ends the flight in the tick the player lands, which Grim checks as walking.
+     */
+    private fun land(abilities: FlyAbilities): Boolean {
+        if (!abilities.isFlying && context.body.player.onGround()) {
+            takeOffTicks = 0
+            return false
+        }
+
+        val jump = abilities.isFlying && takeOffTicks++ % 2 == 0
+        context.body.press(Input(false, false, false, false, jump, false, false), true)
+        return true
     }
 
     private fun progress(route: Leg): FollowState {
@@ -258,6 +302,7 @@ internal class Follower(private val context: NavigationContext, private val hand
     private companion object {
         const val LOOKAHEAD_MARGIN = 3.0
         const val SINK_TOLERANCE = 0.8
+        const val LAND_HEIGHT = 1.0
         const val SPRINT_DISTANCE = 3.0
         const val FINAL_REACH = 0.5
         const val REACH_MARGIN = 0.1
