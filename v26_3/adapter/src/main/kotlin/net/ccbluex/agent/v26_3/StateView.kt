@@ -69,6 +69,10 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
 
     override fun canBeReplaced(): Boolean = handle.canBeReplaced()
 
+    override val placedValues: List<Any> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        handle.values.filter { it.property() in PLACED_PROPERTIES }.toList()
+    }
+
     override fun requiresCorrectToolForDrops(): Boolean = handle.requiresCorrectToolForDrops()
 
     override fun hasBlockEntity(): Boolean = handle.hasBlockEntity()
@@ -94,6 +98,13 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
         handle.setValue(property, toGame(value) as V)
 
     private companion object {
+        val PLACED_PROPERTIES: Set<McProperty<*>> = setOf(
+            McProperties.FACING, McProperties.HORIZONTAL_FACING, McProperties.FACING_HOPPER,
+            McProperties.VERTICAL_DIRECTION, McProperties.AXIS, McProperties.HORIZONTAL_AXIS, McProperties.HALF,
+            McProperties.DOUBLE_BLOCK_HALF, McProperties.SLAB_TYPE, McProperties.ROTATION_16,
+            McProperties.ATTACH_FACE, McProperties.DOOR_HINGE, McProperties.ORIENTATION,
+        )
+
         fun Property<*>.toMinecraft(): McProperty<*>? = when (this) {
             BlockStateProperties.OPEN -> McProperties.OPEN
             BlockStateProperties.DOUBLE_BLOCK_HALF -> McProperties.DOUBLE_BLOCK_HALF

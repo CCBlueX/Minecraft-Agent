@@ -13,14 +13,15 @@ builds on.
   - `simulation`: player movement, tick by tick
   - `pathfinder`: route searches
   - `navigation`: follows routes
-  - `skills`: fighting, looting, game modes
+  - `skills`: fighting, looting, building, game modes
 - `adapter`: the libraries on Minecraft 26.3
 
 ## Platforms
 
 ### Client
 
-The local player as a body, for Fabric mods.
+The local player as a body, for Fabric mods. With [Litematica](https://modrinth.com/mod/litematica) installed,
+`fabric` reads its placements as blocks to build.
 
 ```kotlin
 dependencies {

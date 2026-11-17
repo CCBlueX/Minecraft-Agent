@@ -1844,6 +1844,18 @@ public abstract interface class net/ccbluex/agent/skills/AgentListener {
 public final class net/ccbluex/agent/skills/AgentListener$Companion {
 }
 
+public final class net/ccbluex/agent/skills/BlockActionsKt {
+	public static final fun dig (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun dig (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun dig$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun placeBlock (Lnet/ccbluex/agent/skills/Agent;ILnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun reach (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun reach (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun reach (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun reach$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;DLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun useBlock (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/BlockPos;Ljava/util/function/BooleanSupplier;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class net/ccbluex/agent/skills/FightingStyle : java/lang/Enum {
 	public static final field AGGRESSIVE Lnet/ccbluex/agent/skills/FightingStyle;
 	public static final field DEFENSIVE Lnet/ccbluex/agent/skills/FightingStyle;
@@ -2008,6 +2020,20 @@ public final class net/ccbluex/agent/skills/Skills$Companion {
 	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;)Lnet/ccbluex/agent/skills/Skills;
 	public final fun builtIn (Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;Lnet/ccbluex/agent/skills/shop/Counter;)Lnet/ccbluex/agent/skills/Skills;
 	public static synthetic fun builtIn$default (Lnet/ccbluex/agent/skills/Skills$Companion;Lnet/ccbluex/agent/skills/AgentBody;Lnet/ccbluex/agent/skills/SkillLevel;Lnet/ccbluex/agent/skills/Personality;Lnet/ccbluex/agent/skills/fight/Rules;Lnet/ccbluex/agent/skills/loot/Chests;Lnet/ccbluex/agent/skills/shop/Catalogue;Lnet/ccbluex/agent/skills/shop/Counter;ILjava/lang/Object;)Lnet/ccbluex/agent/skills/Skills;
+}
+
+public final class net/ccbluex/agent/skills/build/BuildResult {
+	public fun <init> (Ljava/util/Map;Ljava/util/Set;Z)V
+	public final fun getMissing ()Ljava/util/Map;
+	public final fun getUnbuilt ()Ljava/util/Set;
+	public final fun isDone ()Z
+	public final fun isMissingScaffold ()Z
+}
+
+public final class net/ccbluex/agent/skills/build/BuildingKt {
+	public static final fun build (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun build (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun build$default (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class net/ccbluex/agent/skills/eat/Eat {
@@ -2680,6 +2706,13 @@ public final class net/ccbluex/agent/skills/games/skywars/SkyWars : net/ccbluex/
 	public fun tick (Lnet/ccbluex/agent/skills/Agent;)V
 }
 
+public final class net/ccbluex/agent/skills/gather/DropsKt {
+	public static final fun pickUpItems (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;DILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun pickUpItems (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun pickUpItems (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun pickUpItems$default (Lnet/ccbluex/agent/skills/Agent;Lnet/ccbluex/agent/math/Vec3;DILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public abstract interface class net/ccbluex/agent/skills/gear/Gear {
 	public static final field Companion Lnet/ccbluex/agent/skills/gear/Gear$Companion;
 	public static fun builtIn ()Lnet/ccbluex/agent/skills/gear/Gear;
@@ -3199,6 +3232,7 @@ public abstract interface class net/ccbluex/agent/world/Level : net/ccbluex/agen
 	public fun hasChunkAt (Lnet/ccbluex/agent/math/BlockPos;)Z
 	public fun isLoaded (Lnet/ccbluex/agent/math/BlockPos;)Z
 	public fun noBlockCollision (Lnet/ccbluex/agent/world/entity/Entity;Lnet/ccbluex/agent/math/AABB;)Z
+	public fun placedState (Lnet/ccbluex/agent/world/item/ItemStack;Lnet/ccbluex/agent/world/BlockHitResult;Lnet/ccbluex/agent/math/ViewRotation;)Lnet/ccbluex/agent/world/block/BlockState;
 	public abstract fun players ()Ljava/util/List;
 	public abstract fun signs (II)Ljava/util/Map;
 	public abstract fun snapshot (IIIIII)Lnet/ccbluex/agent/world/LevelBlocks;
@@ -3349,6 +3383,7 @@ public abstract class net/ccbluex/agent/world/block/BlockState {
 	public abstract fun getDestroySpeed (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)F
 	public abstract fun getFluidState ()Lnet/ccbluex/agent/world/block/FluidState;
 	public abstract fun getOptionalValue (Lnet/ccbluex/agent/world/block/Property;)Ljava/lang/Object;
+	public fun getPlacedValues ()Ljava/util/List;
 	public abstract fun getShape (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)Lnet/ccbluex/agent/world/block/VoxelShape;
 	public final fun getValue (Lnet/ccbluex/agent/world/block/Property;)Ljava/lang/Object;
 	public abstract fun hasBlockEntity ()Z
@@ -3951,6 +3986,7 @@ public abstract class net/ccbluex/agent/world/item/ItemStack {
 	public abstract fun getFood ()Lnet/ccbluex/agent/world/item/FoodProperties;
 	public abstract fun getItem ()Lnet/ccbluex/agent/world/item/Item;
 	public abstract fun getMaxDamage ()I
+	public abstract fun getMaxStackSize ()I
 	public abstract fun getPotionEffects ()Ljava/util/List;
 	public abstract fun getUseEffects ()Lnet/ccbluex/agent/world/item/UseEffects;
 	public final fun is (Lnet/ccbluex/agent/world/TagKey;)Z

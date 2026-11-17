@@ -37,6 +37,8 @@ public abstract class ItemStack {
 
     public abstract val count: Int
 
+    public abstract val maxStackSize: Int
+
     public abstract val damageValue: Int
 
     public abstract val maxDamage: Int
@@ -120,6 +122,7 @@ public abstract class ItemStack {
     private object Empty : ItemStack() {
         override val item: Item get() = Item.AIR
         override val count: Int get() = 0
+        override val maxStackSize: Int get() = 64
         override val damageValue: Int get() = 0
         override val maxDamage: Int get() = 0
         override val isDamageableItem: Boolean get() = false

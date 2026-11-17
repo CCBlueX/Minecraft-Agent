@@ -10,7 +10,7 @@ Kotlin library for Minecraft 26.3 (Mojang names, Java 25). Group `net.ccbluex`, 
 
 | Artifact | Use it for |
 |---|---|
-| `minecraft-agent-common` | The game's blocks, entities and items as the libraries see them, on every game version; predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, game modes; server bots as Bukkit sees them: `MinecraftAgent`, `Bots`, `Bot`, `BotBody` |
+| `minecraft-agent-common` | The game's blocks, entities and items as the libraries see them, on every game version; predicting player movement (`PlayerMotion`, `SimulatedPlayer`); route searches without moving anything; `Navigator`: follows routes with a `Body`; `Agent`: fighting, eating, looting, gear, shop, void rescue, building, game modes; server bots as Bukkit sees them: `MinecraftAgent`, `Bots`, `Bot`, `BotBody` |
 | `minecraft-agent-adapter` | The libraries on Minecraft 26.3: `toAgent()`/`toMinecraft()`, `defineGameTypes()` |
 | `minecraft-agent-fabric` | The local player as a body (Fabric mod) |
 | `minecraft-agent-paper` | Server bots on Paper 26.3 (plugin `MinecraftAgent`) |
@@ -59,6 +59,12 @@ movement and aim rotations are turned to (`Turning.linear(degrees)`, `skillLevel
 `Turning.instant()` when a rotation system of the host paces the turns).
 The navigator presses the keys once per tick (`Body.press(input, exact)`); exact keys (jumps, climbs, block
 actions, flight) must reach the player unchanged, plain walks may be changed by host features.
+
+`ClientBody` is an `AgentBody` too: with `navigation.agent = Agent(navigation.body, navigation.navigator, Skills())`
+the agent ticks instead of the walk, and suspend skills run for the local player on a `TickScope` ticked at the start
+of the client tick. `agent.build(blocks, canBreak)` builds a `Map<BlockPos, BlockState>` from the inventory and returns
+what it left and which items ran short. With Litematica installed, `Placements.blocks()` (package
+`net.ccbluex.agent.v26_3.fabric.litematica`) gives the blocks of its enabled placements.
 
 Placed bridges are crossed as players do: `Options.bridging` is `Bridging.AUTO` (Ninja, one-stack up rising bridges,
 Swift Sneak in Swift Sneak III leggings) or one fixed method (`NINJA`, `GODBRIDGE`, `MOONWALK`, `BREEZILY`,

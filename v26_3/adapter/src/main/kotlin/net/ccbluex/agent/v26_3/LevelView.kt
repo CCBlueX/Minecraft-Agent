@@ -22,6 +22,7 @@ package net.ccbluex.agent.v26_3
 import com.google.common.collect.MapMaker
 import net.ccbluex.agent.math.AABB
 import net.ccbluex.agent.math.BlockPos
+import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.pathfinder.level.BlockRegion
 import net.ccbluex.agent.pathfinder.level.SectionCache
 import net.ccbluex.agent.pathfinder.terrain.Terrain
@@ -36,8 +37,12 @@ import net.ccbluex.agent.world.block.FluidState
 import net.ccbluex.agent.world.block.VoxelShape
 import net.ccbluex.agent.world.entity.Entity
 import net.ccbluex.agent.world.entity.Player
+import net.ccbluex.agent.world.item.ItemStack
 import net.minecraft.core.SectionPos
 import net.minecraft.world.Container
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.ChestBlockEntity
@@ -47,8 +52,11 @@ import net.minecraft.world.level.border.BorderStatus
 import net.minecraft.world.level.levelgen.Heightmap
 import net.minecraft.world.phys.shapes.CollisionContext
 import java.util.concurrent.ConcurrentMap
+import net.minecraft.core.Direction as McDirection
+import net.minecraft.world.item.ItemStack as McItemStack
 import net.minecraft.world.level.ClipContext as McClipContext
 import net.minecraft.world.level.Level as McLevel
+import net.minecraft.world.phys.BlockHitResult as McBlockHitResult
 
 /**
  * A level of the game as the agents see it.
@@ -142,12 +150,51 @@ internal class LevelView(val handle: McLevel) : Level, GameBlocks {
         }
     }
 
+    override fun placedState(stack: ItemStack, hit: BlockHitResult, rotation: ViewRotation): BlockState? {
+        val game = stack.toMinecraft()
+        val item = game.item as? BlockItem ?: return null
+        val context = item.updatePlacementContext(LookingContext(handle, game, hit.toMinecraft(), rotation)) ?: return null
+        return item.block.getStateForPlacement(context)?.toAgent()
+    }
+
     override val respawnPos: BlockPos get() = handle.levelData.respawnData.pos().toAgent()
 
     override fun snapshot(minX: Int, minY: Int, minZ: Int, maxX: Int, maxY: Int, maxZ: Int): LevelBlocks =
         SectionCache.capture(handle, BlockRegion(minX, minY, minZ, maxX, maxY, maxZ))
 
     override fun toString(): String = handle.toString()
+}
+
+/**
+ * A placement as a player looking with [rotation] makes it, without moving anyone.
+ *
+ * @agent claude-opus-5-5
+ */
+private class LookingContext(level: McLevel, stack: McItemStack, hit: McBlockHitResult, private val rotation: ViewRotation) :
+    BlockPlaceContext(level, null, InteractionHand.MAIN_HAND, stack, hit) {
+
+    override fun getHorizontalDirection(): McDirection = McDirection.fromYRot(rotation.yRot.toDouble())
+
+    override fun getRotation(): Float = rotation.yRot
+
+    override fun getNearestLookingVerticalDirection(): McDirection =
+        if (rotation.xRot < 0f) McDirection.UP else McDirection.DOWN
+
+    override fun getNearestLookingDirection(): McDirection = nearest()[0]
+
+    override fun getNearestLookingDirections(): Array<McDirection> {
+        val nearest = nearest()
+        if (replacingClickedOnBlock()) return nearest
+        // As in vanilla, the block clicked on comes first
+        val opposite = clickedFace.opposite
+        return arrayOf(opposite) + nearest.filter { it != opposite }
+    }
+
+    private fun nearest(): Array<McDirection> {
+        val view = rotation.viewVector
+        return McDirection.entries.sortedByDescending { view.x * it.stepX + view.y * it.stepY + view.z * it.stepZ }
+            .toTypedArray()
+    }
 }
 
 private fun BlockEntity.type(): BlockEntityType = when (this) {

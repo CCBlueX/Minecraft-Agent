@@ -25,12 +25,14 @@ import net.ccbluex.agent.math.Clip
 import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.world.block.BlockEntityType
 import net.ccbluex.agent.world.block.BlockState
 import net.ccbluex.agent.world.block.Blocks
 import net.ccbluex.agent.world.block.FluidState
 import net.ccbluex.agent.world.block.VoxelShape
 import net.ccbluex.agent.world.entity.Entity
+import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * Blocks by position: a live level, or a copy a background search reads.
@@ -243,6 +245,12 @@ public interface Level : BlockGetter {
      * The text of every sign in the loaded chunk [chunkX] [chunkZ], one string per line, by the sign's position.
      */
     public fun signs(chunkX: Int, chunkZ: Int): Map<BlockPos, List<String>>
+
+    /**
+     * The state [stack] places when clicked on [hit] by a player looking with [rotation], as the game decides it; null
+     * where it places no block or the adapter does not tell.
+     */
+    public fun placedState(stack: ItemStack, hit: BlockHitResult, rotation: ViewRotation): BlockState? = null
 
     /**
      * Where players spawn when they have no bed.

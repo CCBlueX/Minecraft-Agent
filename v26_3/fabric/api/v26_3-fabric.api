@@ -1,9 +1,17 @@
-public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/navigation/Body {
+public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/skills/AgentBody {
 	public fun <init> ()V
 	public fun <init> (Lnet/ccbluex/agent/navigation/Turning;)V
 	public synthetic fun <init> (Lnet/ccbluex/agent/navigation/Turning;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun attack (Lnet/ccbluex/agent/world/entity/Entity;)V
+	public fun clickContainer (IILnet/ccbluex/agent/world/ContainerInput;)V
+	public fun closeContainer ()V
 	public fun continueDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
+	public fun drop (IZ)V
+	public fun getAttackStrength ()F
+	public fun getContainerMenu ()Lnet/ccbluex/agent/world/ContainerMenu;
 	public fun getLatencyMillis ()I
+	public fun getMaxAttackReach ()D
+	public fun getMinAttackReach ()D
 	public fun getMovementYRot ()F
 	public fun getPlayer ()Lnet/ccbluex/agent/world/entity/Player;
 	public fun getSafeWalk ()Z
@@ -12,19 +20,28 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/navig
 	public fun getTraits ()Lnet/ccbluex/agent/navigation/BodyTraits;
 	public final fun getTurning ()Lnet/ccbluex/agent/navigation/Turning;
 	public fun getViewStep ()F
+	public fun isCombat1_8 ()Z
 	public fun isRotationOverridden ()Z
+	public fun isUsingItem ()Z
 	public fun isViewTakenOver ()Z
 	public fun look (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)V
 	protected final fun pace (Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/math/ViewRotation;Lnet/ccbluex/agent/navigation/LookPurpose;)Lnet/ccbluex/agent/math/ViewRotation;
 	public fun press (Lnet/ccbluex/agent/world/Input;Z)V
 	public fun releaseHotbarSlot ()V
+	public fun releaseUsingItem ()V
 	public fun selectHotbarSlot (I)V
 	public fun setSafeWalk (Z)V
 	public final fun setTurning (Lnet/ccbluex/agent/navigation/Turning;)V
 	public fun simulate (Lnet/ccbluex/agent/simulation/SimulatedInput;F)Lnet/ccbluex/agent/simulation/PlayerSimulation$Steered;
+	public fun stab ()V
 	public fun startDestroy (Lnet/ccbluex/agent/math/BlockPos;Lnet/ccbluex/agent/math/Direction;)Z
+	public fun startUsingItem (Lnet/ccbluex/agent/world/InteractionHand;)Z
 	protected final fun stayOnGroundSurface (Lnet/ccbluex/agent/world/Input;)Lnet/ccbluex/agent/world/Input;
 	public fun stopDestroy ()V
+	public fun swapWithHotbar (II)V
+	public fun swapWithOffhand (I)V
+	public fun swing (Lnet/ccbluex/agent/world/InteractionHand;)V
+	public fun takeFromContainer (I)V
 	public fun useItem (Lnet/ccbluex/agent/world/InteractionHand;)Z
 	public fun useItemOn (Lnet/ccbluex/agent/world/InteractionHand;Lnet/ccbluex/agent/world/BlockHitResult;)Z
 }
@@ -35,10 +52,18 @@ public final class net/ccbluex/agent/v26_3/fabric/ClientNavigation {
 	public fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;Lnet/ccbluex/agent/navigation/Options;)V
 	public fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;Lnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/navigation/Listener;)V
 	public synthetic fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;Lnet/ccbluex/agent/navigation/Options;Lnet/ccbluex/agent/navigation/Listener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAgent ()Lnet/ccbluex/agent/skills/Agent;
 	public final fun getBody ()Lnet/ccbluex/agent/v26_3/fabric/ClientBody;
 	public final fun getNavigator ()Lnet/ccbluex/agent/navigation/Navigator;
 	public final fun getOptions ()Lnet/ccbluex/agent/navigation/Options;
+	public final fun setAgent (Lnet/ccbluex/agent/skills/Agent;)V
 	public final fun setOptions (Lnet/ccbluex/agent/navigation/Options;)V
+}
+
+public final class net/ccbluex/agent/v26_3/fabric/litematica/Placements {
+	public static final field INSTANCE Lnet/ccbluex/agent/v26_3/fabric/litematica/Placements;
+	public static final fun blocks ()Ljava/util/Map;
+	public static final fun isAvailable ()Z
 }
 
 public abstract interface class net/ccbluex/agent/v26_3/fabric/mixin/ClientInputAccessor {

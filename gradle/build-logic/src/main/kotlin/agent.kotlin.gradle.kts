@@ -32,6 +32,11 @@ repositories {
             includeModule("org.spigotmc", "spigot-parent")
         }
     }
+    // Litematica and malilib for the optional Litematica support of the Fabric client
+    exclusiveContent {
+        forRepository { maven("https://api.modrinth.com/maven") }
+        filter { includeGroup("maven.modrinth") }
+    }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(jdk)

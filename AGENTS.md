@@ -61,6 +61,7 @@ timeout 900 flock /tmp/minecraft-agent-gradle.lock ./gradlew -Dorg.gradle.jvmarg
   `net.ccbluex.gametest.harness.ResultsGameTest` last. `-PgameTestOnly=WalkSneak,WalkSwim` runs only those. Server
   tests run with `GAMETEST_SERVER_ADDRESS` and `GAMETEST_SERVER_ANTICHEAT`. Count the `✓`/`✗` lines or read the
   `N passed, M failed` summary (`ResultsGameTest` prints them); the exit status alone proves nothing.
+  `-PgameTestLitematica` runs them with Litematica installed (it is `compileOnly` otherwise, loaded only when present).
 - Kotlin and Fabric Language Kotlin follow LiquidBounce's `gradle/libs.versions.toml`; LiquidBounce consumes the
   published modules. `publish` takes `-PmavenUrl`, `-PmavenUsername`, `-PmavenPassword`; `publishToMavenLocal`
   serves local builds of projects using the library.

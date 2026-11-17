@@ -20,5 +20,8 @@
     "minecraft": "26.3",
     "fabricloader": ">=0.19.5",
     "fabric-language-kotlin": "*"
+  },
+  "suggests": {
+    "litematica": ">=0.29.1"
   }
 }

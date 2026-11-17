@@ -19,13 +19,11 @@
 
 package net.ccbluex.agent.v26_3.fabric
 
-import net.ccbluex.agent.v26_3.fabric.mixin.ClientInputAccessor
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.copy
 import net.ccbluex.agent.math.turned
-import net.ccbluex.agent.navigation.Body
 import net.ccbluex.agent.navigation.BodyTraits
 import net.ccbluex.agent.navigation.LedgeSneak
 import net.ccbluex.agent.navigation.LookPurpose
@@ -34,24 +32,34 @@ import net.ccbluex.agent.navigation.Turning
 import net.ccbluex.agent.simulation.PlayerSimulation
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.simulation.SimulatedPlayer
+import net.ccbluex.agent.skills.AgentBody
+import net.ccbluex.agent.v26_3.fabric.mixin.ClientInputAccessor
 import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.v26_3.toMinecraft
 import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.ContainerInput
+import net.ccbluex.agent.world.ContainerMenu
 import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.entity.Entity
 import net.ccbluex.agent.world.entity.Player
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.ClientInput
 import net.minecraft.client.player.LocalPlayer
+import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ServerboundPunchPacket
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.inventory.InventoryMenu
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import net.minecraft.world.inventory.ContainerInput as McContainerInput
 
 /**
- * The local player as a [Body], moved with vanilla means only: the movement keys of the tick, the player's own
- * rotation, the hotbar and [net.minecraft.client.multiplayer.MultiPlayerGameMode] for digging and using items.
+ * The local player as an [AgentBody], moved with vanilla means only: the movement keys of the tick, the player's own
+ * rotation, the hotbar, and [net.minecraft.client.multiplayer.MultiPlayerGameMode] for digging, using items,
+ * attacking and clicking in menus.
  *
  * The rotation the walk faces ([LookPurpose.MOVEMENT]), aims with ([LookPurpose.AIM]) or flicks to
  * ([LookPurpose.STEER]) is turned to as [turning] paces it, never faster than a person turns
@@ -71,7 +79,7 @@ import kotlin.math.roundToInt
  *
  * @agent claude-opus-5-5
  */
-public open class ClientBody @JvmOverloads constructor(turning: Turning = Turning.eased()) : Body {
+public open class ClientBody @JvmOverloads constructor(turning: Turning = Turning.eased()) : AgentBody {
 
     /**
      * How movement, aim and steering rotations are turned to; the default eases in as a hand does, and
@@ -275,7 +283,8 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
         val hand = hand.toMinecraft()
         val stack = player.getItemInHand(hand)
         val count = stack.count
-        val result = gameMode.useItemOn(player, hand, hit.toMinecraft())
+        // The server places facing the rotation of the last movement packet; the client predicts the same block
+        val result = facing(player, sentRotation) { gameMode.useItemOn(player, hand, hit.toMinecraft()) }
         if (result !is InteractionResult.Success) {
             return false
         }
@@ -314,6 +323,91 @@ public open class ClientBody @JvmOverloads constructor(turning: Turning = Turnin
         // Vanilla lets go of a use whose key is up the next tick; an eat or a raised shield has to last
         keepUsing(this, player.isUsingItem)
         return true
+    }
+
+    override fun attack(target: Entity) {
+        val gameMode = minecraft.gameMode ?: return
+        gameMode.attack(localPlayer, target.toMinecraft())
+        swingAttack()
+    }
+
+    override fun stab() {
+        val player = localPlayer
+        val stack = player.mainHandItem
+        val weapon = stack.get(DataComponents.PIERCING_WEAPON) ?: return
+        minecraft.gameMode?.piercingAttack(stack.attackAnimation, weapon)
+    }
+
+    override fun swing(hand: InteractionHand) {
+        val player = localPlayer
+        val hand = hand.toMinecraft()
+        player.swing(hand, player.getItemInHand(hand).attackAnimation, false)
+    }
+
+    override fun startUsingItem(hand: InteractionHand): Boolean = useItem(hand)
+
+    override fun releaseUsingItem() {
+        keepUsing(this, false)
+        minecraft.gameMode?.releaseUsingItem(localPlayer)
+    }
+
+    override val isUsingItem: Boolean
+        get() = localPlayer.isUsingItem
+
+    override val attackStrength: Float
+        get() = localPlayer.getAttackStrengthScale(0.5f)
+
+    override val minAttackReach: Double
+        get() = 0.0
+
+    override val maxAttackReach: Double
+        get() = localPlayer.entityInteractionRange()
+
+    override val isCombat1_8: Boolean
+        get() = false
+
+    override fun swapWithHotbar(inventorySlot: Int, hotbarSlot: Int) {
+        clickInventory(menuSlot(inventorySlot), hotbarSlot, McContainerInput.SWAP)
+    }
+
+    override fun swapWithOffhand(inventorySlot: Int) {
+        clickInventory(menuSlot(inventorySlot), Inventory.SLOT_OFFHAND, McContainerInput.SWAP)
+    }
+
+    override fun drop(inventorySlot: Int, wholeStack: Boolean) {
+        clickInventory(menuSlot(inventorySlot), if (wholeStack) 1 else 0, McContainerInput.THROW)
+    }
+
+    override val containerMenu: ContainerMenu?
+        get() = localPlayer.containerMenu.takeIf { it !is InventoryMenu }?.toAgent()
+
+    override fun takeFromContainer(containerSlot: Int) {
+        clickContainer(containerSlot, 0, ContainerInput.QUICK_MOVE)
+    }
+
+    override fun clickContainer(containerSlot: Int, button: Int, type: ContainerInput) {
+        val player = localPlayer
+        val menu = player.containerMenu.takeIf { it !is InventoryMenu } ?: return
+        minecraft.gameMode?.handleContainerInput(menu.containerId, containerSlot, button, type.toMinecraft(), player)
+    }
+
+    private fun clickInventory(menuSlot: Int, button: Int, type: McContainerInput) {
+        val player = localPlayer
+        minecraft.gameMode?.handleContainerInput(player.inventoryMenu.containerId, menuSlot, button, type, player)
+    }
+
+    override fun closeContainer() {
+        localPlayer.closeContainer()
+    }
+
+    /**
+     * The [InventoryMenu] slot of [inventorySlot]: hotbar 36 to 44, armor 8 (feet) to 5 (head), offhand 45.
+     */
+    private fun menuSlot(inventorySlot: Int): Int = when (inventorySlot) {
+        in 0..8 -> InventoryMenu.USE_ROW_SLOT_START + inventorySlot
+        in 9..35 -> inventorySlot
+        in 36..39 -> InventoryMenu.ARMOR_SLOT_END - 1 - (inventorySlot - 36)
+        else -> InventoryMenu.SHIELD_SLOT
     }
 
     /**

@@ -22,6 +22,7 @@ package net.ccbluex.agent.v26_3.fabric
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Navigator
 import net.ccbluex.agent.navigation.Options
+import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.v26_3.defineGameTypes
 
 /**
@@ -54,6 +55,13 @@ public class ClientNavigation @JvmOverloads constructor(
      */
     public var options: Options by navigator::options
 
+    /**
+     * Ticked every player tick instead of the held walk while set, as it drives [navigator] itself; make it with
+     * [body] and [navigator]. The suspend skills it runs wait on a [net.ccbluex.agent.tick.TickScope] the host ticks
+     * before the player, as at the start of the client tick.
+     */
+    public var agent: Agent? = null
+
     private var walked = false
 
     /**
@@ -65,19 +73,20 @@ public class ClientNavigation @JvmOverloads constructor(
      * Neither walking nor about to let go of the player after a walk.
      */
     internal val isIdle: Boolean
-        get() = !walked && !navigator.isInProgress
+        get() = !walked && !navigator.isInProgress && agent == null
 
     init {
         register(this)
     }
 
     /**
-     * Goes on with the held walk; true if it ticked, so the body has a tick to apply.
+     * Goes on with the agent or the held walk; true if it ticked, so the body has a tick to apply.
      */
     internal fun tick(): Boolean {
-        if (navigator.isInProgress) {
+        val agent = agent
+        if (agent != null || navigator.isInProgress) {
             walked = true
-            navigator.tick()
+            if (agent != null) agent.tick() else navigator.tick()
             return true
         }
         if (walked) {

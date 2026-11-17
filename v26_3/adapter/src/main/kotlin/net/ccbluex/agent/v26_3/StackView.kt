@@ -47,6 +47,7 @@ internal class StackView(val handle: McItemStack) : ItemStack() {
 
     override val item: Item get() = handle.item.toAgent()
     override val count: Int get() = handle.count
+    override val maxStackSize: Int get() = handle.maxStackSize
     override val damageValue: Int get() = handle.damageValue
     override val maxDamage: Int get() = handle.maxDamage
     override val isDamageableItem: Boolean get() = handle.isDamageableItem

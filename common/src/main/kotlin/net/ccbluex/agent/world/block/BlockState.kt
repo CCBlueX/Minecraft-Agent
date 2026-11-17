@@ -91,6 +91,13 @@ public abstract class BlockState(public val block: Block) {
 
     public fun hasProperty(property: Property<*>): Boolean = getOptionalValue(property) != null
 
+    /**
+     * What a click and the look decide when this block is placed, such as facing, axis, half and hinge; the rest, such
+     * as the shape of stairs or the sides a fence joins, follows from the neighbours. Two states of one block were
+     * placed the same way when these are equal; empty where an adapter does not tell.
+     */
+    public open val placedValues: List<Any> get() = emptyList()
+
     public fun `is`(block: Block): Boolean = this.block === block
 
     public fun `is`(tag: TagKey<Block>): Boolean = block.`is`(tag)
