@@ -19,10 +19,11 @@
 
 package net.ccbluex.agent.v26_3.fabric.gametest
 
-import net.ccbluex.agent.v26_3.fabric.ClientNavigation
+import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.DestinationSource
 import net.ccbluex.agent.navigation.Listener
 import net.ccbluex.agent.navigation.Options
+import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.v26_3.toAgent
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext
 import net.minecraft.client.player.LocalPlayer
@@ -42,11 +43,12 @@ internal class TestWalker(
     build: Boolean = false,
     riskyJumps: Boolean = false,
     listener: Listener = Listener.NONE,
+    options: Options = Options(canBreak = build, canPlace = build, riskyJumps = riskyJumps),
 ) {
 
     private val navigation = ClientNavigation(
         body = KeyTiming.body(),
-        options = KeyTiming.options(Options(canBreak = build, canPlace = build, riskyJumps = riskyJumps)),
+        options = KeyTiming.options(options),
         listener = listener,
     )
 
@@ -61,6 +63,12 @@ internal class TestWalker(
      */
     val isSafeWalking: Boolean
         get() = navigation.body.safeWalk
+
+    /**
+     * The rotation the server has from the last movement packet.
+     */
+    val sentRotation: ViewRotation
+        get() = navigation.body.sentRotation
 
     private val source = object : DestinationSource {
         override fun goal() = this@TestWalker.goal?.toAgent()

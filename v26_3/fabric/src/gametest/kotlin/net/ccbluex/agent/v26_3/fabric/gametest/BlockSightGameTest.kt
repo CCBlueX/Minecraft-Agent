@@ -17,12 +17,17 @@
  * along with Minecraft Agent. If not, see <https://www.gnu.org/licenses/>.
  */
 
+@file:OptIn(InternalAgentApi::class)
+
 package net.ccbluex.agent.v26_3.fabric.gametest
 
+import net.ccbluex.agent.InternalAgentApi
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.Options
+import net.ccbluex.agent.navigation.seenPoint
 import net.ccbluex.agent.v26_3.fabric.ClientNavigation
 import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.v26_3.toMinecraft
 import net.ccbluex.gametest.harness.GameTestScope
 import net.ccbluex.gametest.harness.ServerGameTest
 import net.ccbluex.gametest.harness.action.awaitServer
@@ -45,7 +50,9 @@ private const val ANSWER_TICKS = 10
  * never sent, unless the options allow clicking through blocks (only without an anticheat, which would flag them).
  * With the wall gone the same clicks go through, so the wall is what refused them. Past stairs, a dig through the
  * step is refused and one over their low half breaks the block. A look grazing the top edge of a south face clicks
- * the top face.
+ * the top face. From a pond, a grass block between farmland, which lies lower and bares a sliver of the grass block's
+ * sides, is aimed at where looks half a turn step off still meet its top, as a body turning in whole steps lands
+ * there, and tilled.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -176,6 +183,44 @@ internal val blockSight: GameTestScope.() -> Unit = {
     }
     check(!south && top) { "A look grazing the top edge clicks the south face" }
     run("attribute $playerName minecraft:gravity base reset")
+
+    val pond = BlockPos(6, y - 1, 3)
+    val grass = pond.offset(1, 0, 1)
+    fill(pond.offset(-1, -1, -1), pond.offset(1, -1, 1), "minecraft:stone")
+    fill(pond.offset(-1, 0, -1), pond.offset(1, 0, 1), "minecraft:grass_block")
+    for ((x, z) in listOf(0 to -1, 1 to 0, -1 to 0, 0 to 1, 1 to -1, -1 to -1)) {
+        run("setblock ${pond.x + x} ${pond.y} ${pond.z + z} minecraft:farmland")
+    }
+    run("setblock ${pond.x} ${pond.y} ${pond.z} minecraft:water")
+    run("item replace entity $playerName hotbar.1 with minecraft:wooden_hoe")
+    run("tp $playerName ${pond.x + 0.5156} ${pond.y} ${pond.z + 0.3807}")
+    awaitClient("the player to stand in the pond") { checkNotNull(it.player).isInWater }
+    context.onClient { checkNotNull(it.player).inventory.selectedSlot = 1 }
+    val (eye, point) = context.fromClient { mc ->
+        val player = checkNotNull(mc.player)
+        val body = navigation.body
+        val reach = player.blockInteractionRange()
+        player.eyePosition to checkNotNull(mc.level).toAgent().seenPoint(
+            player.eyePosition.toAgent(), grass.toAgent(), reach, Direction.UP.toAgent(), body.sentRotation,
+            player.toAgent(), body.viewStep,
+        )
+    }
+    checkNotNull(point) { "The grass between the farmland shows no point of its top from the pond" }
+    val step = context.fromClient { navigation.body.viewStep }
+    val aim = ViewRotation.fromVector(point.subtract(eye.toAgent()))
+    for ((yRot, xRot) in listOf(step / 2 to 0f, -step / 2 to 0f, 0f to step / 2, 0f to -step / 2)) {
+        context.onClient {
+            val player = checkNotNull(it.player)
+            player.yRot = aim.yRot + yRot
+            player.xRot = aim.xRot + xRot
+        }
+        ticks(3)
+        check(context.fromClient { navigation.navigator.canClick(grass.toAgent(), Direction.UP.toAgent()) }) {
+            "A look ${yRot}/${xRot} degrees beside the point aimed at missed the top of the grass"
+        }
+    }
+    check(click(BlockHitResult(point.toMinecraft(), Direction.UP, grass, false))) { "Tilling the grass from the pond was refused" }
+    awaitServer("block ${grass.x} ${grass.y} ${grass.z} minecraft:farmland")
 }
 
 /**

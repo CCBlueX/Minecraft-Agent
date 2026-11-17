@@ -44,7 +44,12 @@ internal class Nodes(private val terrain: Terrain, private val abilities: WalkAb
     val water = Water(terrain, abilities.canSprint)
 
     private val canPlace = abilities.canPlace && abilities.placeableBlocks > 0
-    private val maxDrop = max(abilities.safeFall, abilities.waterFall) + 1
+
+    /**
+     * Most fall damage one fall may deal: it must leave more than half a full health bar.
+     */
+    private val maxDamage = max(0, Mth.ceil(abilities.health - HALF_HEALTH) - 1)
+    private val maxDrop = max(abilities.safeFall + maxDamage, abilities.waterFall) + 1
     private val halfWidth = terrain.width / 2.0
 
     fun isNode(x: Int, y: Int, z: Int) = stands(x, y, z) || swims(x, y, z) || climbs(x, y, z) || crouches(x, y, z)
@@ -121,14 +126,19 @@ internal class Nodes(private val terrain: Terrain, private val abilities: WalkAb
         terrain.state(x, Mth.floor(height - DELTA_AFFECTED_BY_BLOCKS_BELOW_0_5), z).block
 
     /**
-     * Where a fall down column [x] [z] from block [top] with the feet at [height] ends, null unless safely.
+     * Where a fall down column [x] [z] from block [top] with the feet at [height] ends, null unless it is survived
+     * with more than half a full health bar left.
      */
     fun landing(x: Int, top: Int, z: Int, height: Double): Landing? {
         for (y in top downTo max(top - maxDrop, terrain.minY)) {
             val stand = terrain.standHeight(x, y, z)
             return when {
                 swims(x, y, z) -> Landing(y, height - y).takeIf { it.drop <= abilities.waterFall }
-                !stand.isNaN() -> Landing(y, height - stand).takeIf { it.drop <= abilities.safeFall }
+                !stand.isNaN() -> {
+                    val drop = height - stand
+                    // Vanilla deals the floor of the fall past the safe distance; the ceiling covers a longer fall.
+                    Landing(y, drop, max(0, Mth.ceil(drop - abilities.safeFall))).takeIf { it.damage <= maxDamage }
+                }
                 climbs(x, y, z) -> Landing(y, height - y)
                 terrain.isPassable(x, y, z) -> continue
                 else -> null
@@ -150,7 +160,7 @@ internal class Nodes(private val terrain: Terrain, private val abilities: WalkAb
                 return true
             }
             val open = terrain.isOpen(nx, y, nz) && floorTop(nx, y, nz).isNaN() && !terrain.isWater(nx, y, nz)
-            if (open && landing(nx, y - 1, nz, height) == null) {
+            if (open && (landing(nx, y - 1, nz, height)?.damage ?: 1) > 0) {
                 return true
             }
         }
@@ -176,11 +186,13 @@ internal class Nodes(private val terrain: Terrain, private val abilities: WalkAb
         return true
     }
 
-    class Landing(val y: Int, val drop: Double)
+    class Landing(val y: Int, val drop: Double, val damage: Int = 0)
 
     companion object {
         val DX = intArrayOf(1, -1, 0, 0)
         val DZ = intArrayOf(0, 0, 1, -1)
+
+        private const val HALF_HEALTH = 10f
     }
 
 }

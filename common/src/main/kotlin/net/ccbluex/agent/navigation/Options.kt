@@ -100,6 +100,17 @@ public data class Options(
      * Fewest ticks a movement key stays up on a plain walk before it is pressed again; 0 for no minimum.
      */
     public val minReleaseTicks: Int = 0,
+
+    /**
+     * How the walk crosses the bridges it places: one method, Ninja where that one cannot, or [Bridging.AUTO].
+     */
+    public val bridging: Bridging = Bridging.AUTO,
+
+    /**
+     * Whether the walk steps onto bridge blocks before the server keeps them, and [Bridging.AUTO] may pick methods
+     * that fall on one slip, such as godbridging.
+     */
+    public val riskyBridges: Boolean = false,
 ) {
 
     /**

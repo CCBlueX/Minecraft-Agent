@@ -42,6 +42,12 @@ internal class Stride {
     var factor = 1.0
         private set
 
+    /**
+     * The move the player made in the last tick, zero when that tick was not measured.
+     */
+    var moved: Vec3 = Vec3.ZERO
+        private set
+
     private var lastPosition: Vec3? = null
     private var carried = Vec3.ZERO
     private var wasOnGround = false
@@ -53,6 +59,7 @@ internal class Stride {
     fun tick(player: Player) {
         val position = player.position()
         val last = lastPosition
+        moved = if (last != null && player.tickCount == lastTick + 1) position.subtract(last) else Vec3.ZERO
         if (last != null && player.tickCount == lastTick + 1 && wasOnGround && walksPlainly(player)) {
             val pushed = Mth.length(position.x - last.x - carried.x, position.z - last.z - carried.z)
             val vanilla = player.getAttributeValue(Attributes.MOVEMENT_SPEED) * INPUT_SCALE

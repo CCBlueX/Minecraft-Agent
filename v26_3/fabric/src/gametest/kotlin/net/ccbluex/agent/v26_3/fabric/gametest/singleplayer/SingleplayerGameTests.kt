@@ -34,6 +34,7 @@ import net.ccbluex.agent.v26_3.fabric.gametest.rideNavigation
 import net.ccbluex.agent.v26_3.fabric.gametest.tunnelGlide
 import net.ccbluex.agent.v26_3.fabric.gametest.turning
 import net.ccbluex.agent.v26_3.fabric.gametest.walkBlocked
+import net.ccbluex.agent.v26_3.fabric.gametest.walkBridge
 import net.ccbluex.agent.v26_3.fabric.gametest.walkClimb
 import net.ccbluex.agent.v26_3.fabric.gametest.walkEnding
 import net.ccbluex.agent.v26_3.fabric.gametest.walkNavigation
@@ -66,6 +67,11 @@ public class WalkClimbGameTest : SingleplayerGameTest(walkClimb)
  * @agent claude-opus-5-5
  */
 public class WalkSneakGameTest : SingleplayerGameTest(walkSneak)
+
+/**
+ * @agent claude-opus-5-5
+ */
+public class WalkBridgeGameTest : SingleplayerGameTest(walkBridge)
 
 /**
  * @agent claude-opus-5-5

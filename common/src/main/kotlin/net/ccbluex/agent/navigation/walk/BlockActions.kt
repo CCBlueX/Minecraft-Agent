@@ -20,10 +20,12 @@
 package net.ccbluex.agent.navigation.walk
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
+import net.ccbluex.agent.math.AABB
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.navigation.LookPurpose
 import net.ccbluex.agent.navigation.NavigationContext
+import net.ccbluex.agent.navigation.pick
 import net.ccbluex.agent.world.HitResult
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.block.BlockState
@@ -89,6 +91,12 @@ internal class BlockActions(private val context: NavigationContext) {
     var rejectedInRow = 0
         private set
 
+    /**
+     * Placements the server refused, ever; a crossing tells a new refusal by it.
+     */
+    var rejections = 0
+        private set
+
     val isActive: Boolean
         get() = action != null
 
@@ -111,12 +119,16 @@ internal class BlockActions(private val context: NavigationContext) {
     }
 
     /**
-     * Places a block at [pos] once [ready]; until then only aims.
+     * Places a block at [pos] once [ready]; until then only aims. With [held], the view stays there and the block
+     * is placed once the crosshair is on a face that places it, as a player holding still for the click does.
+     *
+     * @agent claude-opus-5-5
      */
-    fun place(pos: BlockPos, ready: Boolean) {
+    fun place(pos: BlockPos, ready: Boolean, held: ViewRotation? = null) {
         val placing = action as? Action.Place
         if (placing?.pos == pos) {
             placing.ready = ready
+            placing.held = held
             return
         }
 
@@ -124,7 +136,7 @@ internal class BlockActions(private val context: NavigationContext) {
         if (placing == null) {
             idle()
         }
-        action = Action.Place(pos, ready)
+        action = Action.Place(pos, ready).also { it.held = held }
     }
 
     /**
@@ -155,12 +167,12 @@ internal class BlockActions(private val context: NavigationContext) {
         rotation = null
         val action = action ?: return
         val aim = when (action) {
-            is Action.Place -> {
+            is Action.Place -> action.held ?: run {
                 action.plan = targets.placeableSlot()?.let { targets.planPlacement(action.pos, it) }
                 action.plan?.rotation
             }
 
-            else -> targets.aimAt(action.pos, level.getBlockState(action.pos))
+            else -> targets.aimAt(action.pos)
         } ?: return
 
         rotation = aim
@@ -180,7 +192,10 @@ internal class BlockActions(private val context: NavigationContext) {
         when (val action = action) {
             is Action.Mine -> breakTick(action.pos)
             is Action.Open -> openTick(action.pos)
-            is Action.Place -> action.plan?.takeIf { action.ready }?.let(::placeTick)
+            is Action.Place -> if (action.ready) {
+                val plan = if (action.held != null) targets.heldClick(action.pos, body.sentRotation) else action.plan
+                plan?.let(::placeTick)
+            }
             null -> Unit
         }
     }
@@ -229,7 +244,12 @@ internal class BlockActions(private val context: NavigationContext) {
     }
 
     private fun placeTick(plan: BlockTargets.Plan) {
-        val hit = targets.verifyClick(plan, body.sentRotation) ?: return
+        // The game refuses a block in the player's own box, yet sends the click; the server's answer to it would
+        // arrive after a later click placed the block and judge that one refused.
+        if (body.player.boundingBox.intersects(AABB(plan.pos))) {
+            return
+        }
+        val hit = body.pick(plan.against, plan.face) ?: return
         if (plan.slot >= 0) {
             body.selectHotbarSlot(plan.slot)
         }
@@ -286,6 +306,7 @@ internal class BlockActions(private val context: NavigationContext) {
         if (kept) {
             context.listener.blockKept(placed)
         } else {
+            rejections++
             context.logger.warn("The server took back the block placed at {}", placed.pos)
             context.listener.blockRejected(placed)
         }
@@ -313,6 +334,7 @@ internal class BlockActions(private val context: NavigationContext) {
         class Open(pos: BlockPos) : Action(pos)
         class Place(pos: BlockPos, var ready: Boolean) : Action(pos) {
             var plan: BlockTargets.Plan? = null
+            var held: ViewRotation? = null
         }
     }
 

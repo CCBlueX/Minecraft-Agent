@@ -222,13 +222,35 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
             return
         }
 
-        val floor = floorOrPlace(tx, ty, tz) { nodes.isSolid(tx, y - 1, tz) }
+        // Over a gap, the floor below the new one is placed first against the floor stood on, as a one-stack does.
+        var stacked = false
+        val floor = floorOrPlace(tx, ty, tz) {
+            nodes.isSolid(tx, y - 1, tz) || stacks(tx, y - 1, tz, headBreaks).also { stacked = it }
+        }
         val jump = jumpCost(floor - fromHeight)
         if (jump.isNaN() || changes.breaks.size == headBreaks && changes.places.isEmpty()) {
             return
         }
-        val cost = walkCost(tx, tz, floor) + jump + changes.breakCost + changes.places.size * Costs.PLACE
+        val placeCost = if (stacked) abilities.bridgeTicks else Costs.PLACE
+        val cost = walkCost(tx, tz, floor) + jump + changes.breakCost + changes.places.size * placeCost
         emit(tx, ty, tz, Move.ASCEND, cost)
+    }
+
+    /**
+     * Plans a block at [x] [y] [z] beside the floor stood on, when nothing is broken for the rise.
+     *
+     * @agent claude-opus-5-5
+     */
+    private fun stacks(x: Int, y: Int, z: Int, headBreaks: Int): Boolean {
+        // The floor stood on may be one placed on the way, as on a staircase of one-stacks.
+        val (fx, fy, fz) = from
+        if (headBreaks > 0 || changes.breaks.isNotEmpty() || nodes.swims(fx, fy, fz) || nodes.climbs(fx, fy, fz) ||
+            fromHeight > y + 1 + EPSILON || !nodes.isPlaceable(x, y, z)
+        ) {
+            return false
+        }
+        changes.places += BlockPos(x, y, z)
+        return true
     }
 
     private fun fall(tx: Int, tz: Int) {
@@ -248,7 +270,7 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
         val landing = nodes.landing(tx, y - 1, tz, fromHeight) ?: return
         val blocks = ceil(landing.drop).toInt()
         val bounce = Costs.bounce(nodes.floorBlock(tx, tz, fromHeight - landing.drop), blocks)
-        val cost = walk * fromFloorFactor + Costs.fall(blocks) + bounce + changes.breakCost
+        val cost = walk * fromFloorFactor + Costs.fall(blocks) + bounce + landing.damage * Costs.HURT + changes.breakCost
         emit(tx, landing.y, tz, Move.FALL, cost)
     }
 
@@ -337,7 +359,7 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
             val landing = nodes.landing(x, y - 1, z, fromHeight) ?: return
             val blocks = ceil(landing.drop).toInt()
             val bounce = Costs.bounce(nodes.floorBlock(x, z, fromHeight - landing.drop), blocks)
-            emit(x, landing.y, z, Move.FALL, Costs.fall(blocks) + bounce)
+            emit(x, landing.y, z, Move.FALL, Costs.fall(blocks) + bounce + landing.damage * Costs.HURT)
         }
     }
 

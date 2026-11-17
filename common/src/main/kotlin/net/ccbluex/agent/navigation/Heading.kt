@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.navigation
 
+import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.ViewRotation
@@ -59,6 +60,7 @@ internal class Heading(
      */
     fun rotation(lastInput: Input): ViewRotation {
         actions.rotation?.let { return it }
+        follower.view?.let { return it }
 
         val target = target
         val yRot = target?.let(::lookYRot)
@@ -74,6 +76,11 @@ internal class Heading(
             lastLookYRot = aim.yRot
             return
         }
+        follower.view?.let { view ->
+            lastLookYRot = view.yRot
+            body.look(view, LookPurpose.MOVEMENT)
+            return
+        }
 
         val target = target
         val yRot = if (target == null) lastLookYRot else lookYRot(target)
@@ -84,11 +91,14 @@ internal class Heading(
         val xRot = when {
             target == null -> player.xRot
             follower.dive -> diveXRot(target)
-            // Near the horizon a few blocks ahead, so a look down at a block just worked on comes back up.
-            else -> lookAhead.xRot(follower.pointAhead(player.position(), lookAhead.distance.toDouble()) ?: target)
+            // Between block actions the view stays on the next block rather than coming up to the horizon.
+            else -> follower.nextBlock?.let(::xRotAt)
+                ?: lookAhead.xRot(follower.pointAhead(player.position(), lookAhead.distance.toDouble()) ?: target)
         }
         body.look(ViewRotation(yRot, xRot), LookPurpose.MOVEMENT)
     }
+
+    private fun xRotAt(pos: BlockPos) = ViewRotation.fromVector(Vec3.atCenterOf(pos).subtract(player.eyePosition)).xRot
 
     /**
      * NaN with nothing to look at yet. A target the player is about to pass would turn the look around, so the path

@@ -21,6 +21,7 @@ package net.ccbluex.agent.navigation.walk
 
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Vec3
+import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.navigation.FollowState
@@ -35,8 +36,9 @@ import net.ccbluex.agent.world.Input
 import kotlin.math.min
 
 /**
- * Walks a [Route] step by step through movement keys, mining, placing and opening with [actions] on the way. While
- * another feature places bridge floors, level bridges are run across at full speed and the floor is left to it.
+ * Walks a [Route] step by step through movement keys, mining, placing and opening with [actions] on the way, and
+ * crosses the bridges it places with a [Crossing]. While another feature places bridge floors, level bridges
+ * are run across at full speed and the floor is left to it.
  *
  * From LiquidBounce: [Follower.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/walk/Follower.kt#L175-L397)
  *
@@ -59,6 +61,7 @@ internal class Follower(
     private val hops = Hops(context, stride)
     private val check = StepCheck(context, actions)
     private val overshoot = Overshoot(context)
+    private val crossing = Crossing(context, actions, check, stride)
 
     var path: Route? = null
         private set
@@ -89,6 +92,30 @@ internal class Follower(
      */
     val building: Boolean
         get() = step?.builds == true || path?.steps?.getOrNull(index + 1)?.builds == true
+
+    /**
+     * The block this step or the next mines or places first, which the view turns to in between.
+     *
+     * @agent claude-opus-5-5
+     */
+    val nextBlock: BlockPos?
+        get() {
+            val steps = path?.steps ?: return null
+            for (step in steps.subList(min(index, steps.size), min(index + 2, steps.size))) {
+                val pending = step.breaks.firstOrNull { !check.isCleared(it) }
+                    ?: step.places.firstOrNull { !check.isPlaced(it) }
+                if (pending != null) {
+                    return pending
+                }
+            }
+            return null
+        }
+
+    /**
+     * The view held while crossing a bridge with a bridging method, null otherwise.
+     */
+    val view: ViewRotation?
+        get() = crossing.view
 
     /**
      * The bridge steps in a row from this step or the next, 0 without.
@@ -142,6 +169,7 @@ internal class Follower(
         movement = Movement.NONE
         hops.clear()
         bridgeLine = null
+        crossing.clear()
         stepChanged()
     }
 
@@ -171,6 +199,7 @@ internal class Follower(
             return FollowState.FINISHED
         }
         if (step.isBridge && context.options().placesBridgeFloors) {
+            crossing.clear()
             return crossBridge(keys, frameYRot)
         }
         bridgeLine = null
@@ -181,6 +210,26 @@ internal class Follower(
             actions.idle()
             standStill(keys)
             return giveUp(step)
+        }
+
+        // Fallen off the bridge, as when the server took back a block stood on: once down, given up at once, so the
+        // way is searched again from there rather than the bridge being crossed from below.
+        if ((step.isBridge || step.isRisingBridge) && player.y < step.from.y - 1.0) {
+            crossing.clear()
+            actions.idle()
+            standStill(keys)
+            if (!player.onGround() || stuckAt == step.to) {
+                return FollowState.WALKING
+            }
+            context.logger.info("Fell off the bridge before {}", step.to)
+            return giveUp(step)
+        }
+
+        val steps = checkNotNull(path).steps
+        if (crossing.takes(steps, index)) {
+            movement = crossing.tick(keys, frameYRot, steps, index)
+            val acting = crossing.acting ?: return walked(step)
+            return act(acting, step)
         }
 
         val pendingBreak = step.breaks.firstOrNull { !check.isCleared(it) }
@@ -203,6 +252,9 @@ internal class Follower(
             unconfirmedPlace != null -> {
                 actions.idle()
                 standStill(keys)
+                if (unconfirmedPlace.y < step.from.y) {
+                    keys.directionalInput = step.holdBack(player.position(), player.deltaMovement, frameYRot)
+                }
                 holdAtEdge(keys, step, unconfirmedPlace)
                 act(unconfirmedPlace, step)
             }
@@ -234,6 +286,17 @@ internal class Follower(
         return if (stuck) giveUp(step) else FollowState.WALKING
     }
 
+    /**
+     * A tick a bridge crossing only walked.
+     *
+     * @agent claude-opus-5-5
+     */
+    private fun walked(step: Step): FollowState {
+        progress.acting = null
+        val stalls = progress.watch.stalls(player.position().distanceTo(step.feet))
+        return if (stalls) giveUp(step) else FollowState.WALKING
+    }
+
     private fun place(keys: MovementKeys, frameYRot: Float, step: Step, pos: BlockPos) {
         val position = player.position()
         val pillars = step.move == Move.PILLAR
@@ -250,7 +313,10 @@ internal class Follower(
                 holdAtEdge(keys, step, pos, step.feet)
             }
         }
-        actions.place(pos, ready = !pillars || position.y >= pos.y + 1.0)
+        // A floor below is clicked once the player would not glide onto it before the server keeps it; a pillar's
+        // block waits for the jump to lift the player out of it, as [BlockActions] does not click into the player.
+        val ready = pos.y >= step.from.y || step.canClickFloor(context.body, keys, frameYRot, sneaks = true)
+        actions.place(pos, ready)
     }
 
     /**

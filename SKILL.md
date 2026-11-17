@@ -60,6 +60,12 @@ movement and aim rotations are turned to (`Turning.linear(degrees)`, `skillLevel
 The navigator presses the keys once per tick (`Body.press(input, exact)`); exact keys (jumps, climbs, block
 actions, flight) must reach the player unchanged, plain walks may be changed by host features.
 
+Placed bridges are crossed as players do: `Options.bridging` is `Bridging.AUTO` (Ninja, one-stack up rising bridges,
+Swift Sneak in Swift Sneak III leggings) or one fixed method (`NINJA`, `GODBRIDGE`, `MOONWALK`, `BREEZILY`,
+`ONE_STACK`, `SWIFT_SNEAK`, `TELLY`). `riskyBridges` lets `AUTO` pick the methods that fall on one slip and steps
+onto blocks before the server keeps them. Clicks reach no block through another: `Navigator.canClick` and `useItemOn`
+refuse a click whose face the rotation the server has does not hit first, unless `Options.canClickThroughBlocks`.
+
 ## Server plugin
 
 Install the `MinecraftAgent` plugin jar on the server (`minecraft-agent-paper-<version>-plugin.jar` on Paper

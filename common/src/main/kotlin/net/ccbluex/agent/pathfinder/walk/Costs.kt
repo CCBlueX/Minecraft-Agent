@@ -46,10 +46,26 @@ public object Costs {
      * On top of walking: a Scaffold bridge crossed at about 3 blocks per second.
      */
     public const val RUN_BRIDGE: Double = 3.0
+
+    /**
+     * On top of sprinting: a bridge the walker places itself, Ninja bridged at about 2.7 blocks per second, waiting
+     * for the server to keep each block.
+     */
+    public const val NINJA_BRIDGE: Double = 20.0 / 2.7 - SPRINT
+
+    /**
+     * On top of sprinting: a bridge the walker places itself, godbridged at about 3.5 blocks per second.
+     */
+    public const val GODBRIDGE: Double = 20.0 / 3.5 - SPRINT
     public const val BREAK_OVERHEAD: Double = 2.0
     public const val AVOID: Double = 50.0
     public const val JUMP_PENALTY: Double = 20.0
     public const val OPEN: Double = 10.0
+
+    /**
+     * On top of falling: each point of fall damage, so a hurting fall is only taken without a way around it.
+     */
+    public const val HURT: Double = 100.0
 
     private const val SLIME_BOUNCES = 2
     private const val SLIME_SLOWDOWN = 0.4

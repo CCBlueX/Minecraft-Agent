@@ -68,6 +68,11 @@ public class WalkAbilities(
      * Blocks the server put back after the walker broke them, which are never planned to break again.
      */
     public val unbreakable: LongSet = LongSets.EMPTY_SET,
+
+    /**
+     * Health the walker has; a fall deeper than [safeFall] is taken only while it leaves more than half a full bar.
+     */
+    public val health: Float = 0f,
 ) {
 
     /**
@@ -75,6 +80,6 @@ public class WalkAbilities(
      */
     public fun withMotion(motion: MotionTraits): WalkAbilities = WalkAbilities(
         canBreak, canPlace, placeableBlocks, canParkour, riskyJumps, canSprint, safeFall, waterFall, breakTicks, avoid,
-        air, motion, jumpClimbs, bridgeTicks, unbreakable,
+        air, motion, jumpClimbs, bridgeTicks, unbreakable, health,
     )
 }

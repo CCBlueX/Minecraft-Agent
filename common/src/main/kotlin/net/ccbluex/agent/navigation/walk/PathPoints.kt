@@ -22,12 +22,19 @@ package net.ccbluex.agent.navigation.walk
 import net.ccbluex.agent.math.Mth
 import net.ccbluex.agent.math.Vec3
 import net.ccbluex.agent.math.distanceToSegment
+import net.ccbluex.agent.math.getDirectionalInputTowards
 import net.ccbluex.agent.math.horizontalDistanceTo
 import net.ccbluex.agent.math.horizontalDistanceToSqr
 import net.ccbluex.agent.math.yRot
+import net.ccbluex.agent.navigation.Body
+import net.ccbluex.agent.navigation.MovementKeys
+import net.ccbluex.agent.navigation.simulateTick
+import net.ccbluex.agent.navigation.withKeys
 import net.ccbluex.agent.pathfinder.walk.Move
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.Step
+import net.ccbluex.agent.simulation.SimulatedInput
+import net.ccbluex.agent.world.Input
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -68,6 +75,84 @@ internal val Step.builds: Boolean
  */
 internal val Step.isLevelWalk: Boolean
     get() = (move == Move.TRAVERSE || move == Move.DIAGONAL) && !shift && !edge
+
+/**
+ * A step one block up over a gap: its floor is placed beside the one stood on and a block on top of that, as a
+ * one-stack does.
+ *
+ * @agent claude-opus-5-5
+ */
+internal val Step.isRisingBridge: Boolean
+    get() = move == Move.ASCEND && breaks.isEmpty() && opens.isEmpty() && jump == null && places.size == 2 &&
+        places[0] == to.below(2) && places[1] == to.below()
+
+/**
+ * How far [position] stands past the far edge of the floor this step starts on, along the step; below 0 short of it.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Step.pastEdge(position: Vec3): Double {
+    val dx = to.x - from.x
+    val dz = to.z - from.z
+    val edge = Vec3.atBottomCenterOf(from).add(dx * 0.5, 0.0, dz * 0.5)
+    return (position.x - edge.x) * dx + (position.z - edge.z) * dz
+}
+
+/**
+ * The keys bringing [position] back over the floor this step starts on once it leans past the far edge with
+ * [velocity] still outwards, else none: the client stands on a block placed past that edge at once, and while the
+ * server has yet to keep it, the player would fall with it. Stopped with the box still over the floor, the player
+ * stays there without keys, rather than stepping back and having to start again.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Step.holdBack(position: Vec3, velocity: Vec3, frameYRot: Float): Input {
+    val past = pastEdge(position)
+    if (past <= 0.0 || outward(velocity) <= 0.0 && past < 0.3) {
+        return Input.EMPTY
+    }
+    return getDirectionalInputTowards(Vec3.atLowerCornerOf(from.subtract(to)), frameYRot)
+}
+
+/**
+ * Whether a floor past the far edge of this step's floor can be clicked next tick: pressing [keys] this tick, then
+ * braking with [holdBack], sneaking if [sneaks], keeps the box of [body] over the floor it stands on until it stops,
+ * so it is not carried onto the new block before the server keeps it. Pressing on at an edge a sneak holds the player
+ * at keeps a speed that carries it on once the block is there, so a sneak there lets go of the movement keys until
+ * the speed died down.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Step.canClickFloor(body: Body, keys: MovementKeys, frameYRot: Float, sneaks: Boolean): Boolean {
+    if (staysOverFloor(body, keys.toInput(sprint = false), frameYRot, sneaks)) {
+        return true
+    }
+    if (!keys.sneak) {
+        return false
+    }
+    keys.directionalInput = Input.EMPTY
+    return staysOverFloor(body, keys.toInput(sprint = false), frameYRot, sneaks)
+}
+
+private fun Step.staysOverFloor(body: Body, input: Input, frameYRot: Float, sneaks: Boolean): Boolean {
+    val simulated = body.simulateTick(input)
+    repeat(4) {
+        // A box 0.6 wide stands on the floor while less than 0.3 past its edge.
+        if (pastEdge(simulated.player.position()) >= 0.3) {
+            return false
+        }
+        if (outward(simulated.player.deltaMovement) <= 0.0) {
+            return true
+        }
+        val brake = holdBack(simulated.player.position(), simulated.player.deltaMovement, frameYRot)
+            .withKeys(jump = false, sneak = sneaks, sprint = false)
+        simulated.input = SimulatedInput(brake, ignoresEdgeBackOff = true)
+        simulated.tick()
+    }
+    return pastEdge(simulated.player.position()) < 0.3
+}
+
+private fun Step.outward(velocity: Vec3) = velocity.x * (to.x - from.x) + velocity.z * (to.z - from.z)
 
 /**
  * From LiquidBounce: [Follower.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/walk/Follower.kt#L727-L728)

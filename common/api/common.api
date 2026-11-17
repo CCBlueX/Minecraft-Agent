@@ -378,6 +378,7 @@ public final class net/ccbluex/agent/math/Mth {
 	public static final field PI F
 	public static final field RAD_TO_DEG F
 	public static final fun ceil (D)I
+	public static final fun ceil (F)I
 	public static final fun clamp (DDD)D
 	public static final fun clamp (FFF)F
 	public static final fun clamp (III)I
@@ -508,6 +509,7 @@ public class net/ccbluex/agent/math/Vec3i : java/lang/Comparable {
 	protected final fun setX (I)V
 	protected final fun setY (I)V
 	protected final fun setZ (I)V
+	public final fun subtract (Lnet/ccbluex/agent/math/Vec3i;)Lnet/ccbluex/agent/math/Vec3i;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -586,6 +588,20 @@ public final class net/ccbluex/agent/navigation/BodyTraits {
 	public final fun getExactSimulation ()Z
 	public final fun getJumpClimbsLadders ()Z
 	public final fun getNavigatesInMovementTick ()Z
+}
+
+public class net/ccbluex/agent/navigation/Bridging : java/lang/Enum {
+	public static final field AUTO Lnet/ccbluex/agent/navigation/Bridging;
+	public static final field BREEZILY Lnet/ccbluex/agent/navigation/Bridging;
+	public static final field GODBRIDGE Lnet/ccbluex/agent/navigation/Bridging;
+	public static final field MOONWALK Lnet/ccbluex/agent/navigation/Bridging;
+	public static final field NINJA Lnet/ccbluex/agent/navigation/Bridging;
+	public static final field ONE_STACK Lnet/ccbluex/agent/navigation/Bridging;
+	public static final field SWIFT_SNEAK Lnet/ccbluex/agent/navigation/Bridging;
+	public static final field TELLY Lnet/ccbluex/agent/navigation/Bridging;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/navigation/Bridging;
+	public static fun values ()[Lnet/ccbluex/agent/navigation/Bridging;
 }
 
 public abstract interface class net/ccbluex/agent/navigation/DestinationSource {
@@ -698,8 +714,8 @@ public final class net/ccbluex/agent/navigation/NavigatorKt {
 
 public final class net/ccbluex/agent/navigation/Options {
 	public fun <init> ()V
-	public fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDII)V
-	public synthetic fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;Z)V
+	public synthetic fun <init> (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
 	public final fun component10 ()Z
 	public final fun component11 ()F
@@ -713,6 +729,8 @@ public final class net/ccbluex/agent/navigation/Options {
 	public final fun component19 ()I
 	public final fun component2 ()Z
 	public final fun component20 ()I
+	public final fun component21 ()Lnet/ccbluex/agent/navigation/Bridging;
+	public final fun component22 ()Z
 	public final fun component3 ()Z
 	public final fun component4 ()Z
 	public final fun component5 ()I
@@ -720,9 +738,10 @@ public final class net/ccbluex/agent/navigation/Options {
 	public final fun component7 ()Z
 	public final fun component8 ()Z
 	public final fun component9 ()Z
-	public final fun copy (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDII)Lnet/ccbluex/agent/navigation/Options;
-	public static synthetic fun copy$default (Lnet/ccbluex/agent/navigation/Options;ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIIILjava/lang/Object;)Lnet/ccbluex/agent/navigation/Options;
+	public final fun copy (ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;Z)Lnet/ccbluex/agent/navigation/Options;
+	public static synthetic fun copy$default (Lnet/ccbluex/agent/navigation/Options;ZZZZIIZZZZFFFZZLnet/ccbluex/agent/navigation/PlaceableBlocks;ZDIILnet/ccbluex/agent/navigation/Bridging;ZILjava/lang/Object;)Lnet/ccbluex/agent/navigation/Options;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBridging ()Lnet/ccbluex/agent/navigation/Bridging;
 	public final fun getCanBreak ()Z
 	public final fun getCanClickThroughBlocks ()Z
 	public final fun getCanElytra ()Z
@@ -742,6 +761,7 @@ public final class net/ccbluex/agent/navigation/Options {
 	public final fun getPathRange ()I
 	public final fun getPlaceableBlocks ()Lnet/ccbluex/agent/navigation/PlaceableBlocks;
 	public final fun getPlacesBridgeFloors ()Z
+	public final fun getRiskyBridges ()Z
 	public final fun getRiskyJumps ()Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -1451,8 +1471,11 @@ public final class net/ccbluex/agent/pathfinder/walk/Costs {
 	public static final field BREAK_OVERHEAD D
 	public static final field CLIMB_DOWN D
 	public static final field CLIMB_UP D
+	public static final field GODBRIDGE D
+	public static final field HURT D
 	public static final field INSTANCE Lnet/ccbluex/agent/pathfinder/walk/Costs;
 	public static final field JUMP_PENALTY D
+	public static final field NINJA_BRIDGE D
 	public static final field OPEN D
 	public static final field PLACE D
 	public static final field RUN_BRIDGE D
@@ -1598,8 +1621,8 @@ public final class net/ccbluex/agent/pathfinder/walk/StraightWalkKt {
 }
 
 public final class net/ccbluex/agent/pathfinder/walk/WalkAbilities {
-	public fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDLit/unimi/dsi/fastutil/longs/LongSet;)V
-	public synthetic fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDLit/unimi/dsi/fastutil/longs/LongSet;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDLit/unimi/dsi/fastutil/longs/LongSet;F)V
+	public synthetic fun <init> (ZZIZZZIILjava/util/function/ToDoubleFunction;Lit/unimi/dsi/fastutil/longs/LongSet;ILnet/ccbluex/agent/simulation/MotionTraits;ZDLit/unimi/dsi/fastutil/longs/LongSet;FILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAir ()I
 	public final fun getAvoid ()Lit/unimi/dsi/fastutil/longs/LongSet;
 	public final fun getBreakTicks ()Ljava/util/function/ToDoubleFunction;
@@ -1608,6 +1631,7 @@ public final class net/ccbluex/agent/pathfinder/walk/WalkAbilities {
 	public final fun getCanParkour ()Z
 	public final fun getCanPlace ()Z
 	public final fun getCanSprint ()Z
+	public final fun getHealth ()F
 	public final fun getJumpClimbs ()Z
 	public final fun getMotion ()Lnet/ccbluex/agent/simulation/MotionTraits;
 	public final fun getPlaceableBlocks ()I

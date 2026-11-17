@@ -20,6 +20,7 @@
 package net.ccbluex.agent.navigation
 
 import net.ccbluex.agent.InternalAgentApi
+import net.ccbluex.agent.simulation.PlayerSimulation
 import net.ccbluex.agent.simulation.SimulatedInput
 import net.ccbluex.agent.world.Input
 
@@ -62,9 +63,7 @@ public class LedgeSneak {
         if (!player.onGround() || input.jump || input.shift) {
             return false
         }
-        val simulated = body.simulate(SimulatedInput(input), body.inputYRot)
-        simulated.tick()
-        return simulated.hasBackedOffEdge
+        return body.simulateTick(input).hasBackedOffEdge
     }
 
     private companion object {
@@ -73,4 +72,15 @@ public class LedgeSneak {
          */
         const val HOLD_TICKS = 3
     }
+}
+
+/**
+ * The player after one more tick holding [input], moved as the game moves it.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Body.simulateTick(input: Input): PlayerSimulation.Steered {
+    val simulated = simulate(SimulatedInput(input), inputYRot)
+    simulated.tick()
+    return simulated
 }

@@ -65,6 +65,9 @@ public object Mth {
     public fun ceil(value: Double): Int = Math.ceil(value).toInt()
 
     @JvmStatic
+    public fun ceil(value: Float): Int = Math.ceil(value.toDouble()).toInt()
+
+    @JvmStatic
     public fun equal(a: Double, b: Double): Boolean = Math.abs(b - a) < 1.0E-5f
 
     @JvmStatic

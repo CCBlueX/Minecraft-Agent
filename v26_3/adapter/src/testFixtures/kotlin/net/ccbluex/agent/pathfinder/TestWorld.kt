@@ -151,7 +151,8 @@ public fun completePath(result: Outcome<Route>, message: String? = "path should 
     found(result).also { assertTrue(it.canReach, message) }
 
 /**
- * A sprinting walker that takes falls of [safeFall] blocks and mines every block in [breakTicks].
+ * A sprinting walker that takes falls of [safeFall] blocks, deeper ones with [health] to spare, and mines every block in
+ * [breakTicks].
  *
  * From LiquidBounce: [TestWorld.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/test/kotlin/net/ccbluex/liquidbounce/utils/navigation/TestWorld.kt#L103-L124), [WalkRoutingTest.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/test/kotlin/net/ccbluex/liquidbounce/utils/navigation/WalkRoutingTest.kt#L66-L71)
  *
@@ -167,6 +168,7 @@ public fun walkAbilities(
     avoid: LongSet = LongOpenHashSet(),
     jumpClimbs: Boolean = true,
     unbreakable: LongSet = LongOpenHashSet(),
+    health: Float = 0f,
 ): WalkAbilities = WalkAbilities(
     canBreak = canBreak,
     canPlace = canPlace,
@@ -180,4 +182,5 @@ public fun walkAbilities(
     avoid = avoid,
     jumpClimbs = jumpClimbs,
     unbreakable = unbreakable,
+    health = health,
 )

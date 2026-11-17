@@ -19,7 +19,6 @@
 
 package net.ccbluex.agent.navigation.walk
 
-import net.ccbluex.agent.math.AABB
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
 import net.ccbluex.agent.math.Mth
@@ -28,13 +27,14 @@ import net.ccbluex.agent.math.ViewRotation
 import net.ccbluex.agent.math.clickPoint
 import net.ccbluex.agent.navigation.NavigationContext
 import net.ccbluex.agent.navigation.hotbar
+import net.ccbluex.agent.navigation.isSeen
 import net.ccbluex.agent.navigation.pick
-import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.navigation.seenPoint
 import net.ccbluex.agent.world.BlockHitResult
-import net.ccbluex.agent.world.ClipContext
-import net.ccbluex.agent.world.entity.Inventory
 import net.ccbluex.agent.world.HitResult
 import net.ccbluex.agent.world.InteractionHand
+import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.entity.Inventory
 import net.ccbluex.agent.world.item.Enchantments
 import net.ccbluex.agent.world.item.ItemStack
 import kotlin.math.abs
@@ -66,34 +66,14 @@ internal class BlockTargets(private val context: NavigationContext) {
     private val level get() = context.body.level
 
     /**
-     * A rotation that sees a point of [state] at [pos] within reach, turning least from the rotation sent last.
+     * A rotation that sees a point of the block at [pos] within reach, turning least from the rotation sent last.
      */
-    fun aimAt(pos: BlockPos, state: BlockState): ViewRotation? {
+    fun aimAt(pos: BlockPos): ViewRotation? {
         val eye = player.eyePosition
+        val body = context.body
         val reach = player.blockInteractionRange()
-        val shape = state.getShape(level, pos)
-        val boxes = if (shape.isEmpty) listOf(FULL_BLOCK) else shape.toAabbs()
-        var best: ViewRotation? = null
-        var bestTurn = Float.MAX_VALUE
-        for (box in boxes) {
-            for (i in 0 until GRID) for (j in 0 until GRID) for (k in 0 until GRID) {
-                val point = Vec3(
-                    pos.x + Mth.lerp(fraction(i), box.minX, box.maxX),
-                    pos.y + Mth.lerp(fraction(j), box.minY, box.maxY),
-                    pos.z + Mth.lerp(fraction(k), box.minZ, box.maxZ),
-                )
-                if (eye.distanceToSqr(point) > reach * reach || !sees(eye, point, pos, null)) {
-                    continue
-                }
-                val rotation = ViewRotation.fromVector(point.subtract(eye))
-                val turn = turn(rotation)
-                if (turn < bestTurn) {
-                    best = rotation
-                    bestTurn = turn
-                }
-            }
-        }
-        return best
+        val point = level.seenPoint(eye, pos, reach, null, body.sentRotation, player, body.viewStep)
+        return point?.let { ViewRotation.fromVector(it.subtract(eye)) }
     }
 
     /**
@@ -103,17 +83,17 @@ internal class BlockTargets(private val context: NavigationContext) {
 
     /**
      * The click that places a block at [pos] against a neighbour, turning least from the rotation sent last. Below
-     * the feet, where no way is better than another, the point on the face nearest to the current look; else the
-     * [clickPoint] of the face, its middle when that point cannot be seen.
+     * the feet, where no way is better than another, and when [nearest], the point on the face nearest to the current
+     * look; else the [clickPoint] of the face, its middle when that point cannot be seen.
      */
-    fun planPlacement(pos: BlockPos, slot: Int): Plan? {
+    fun planPlacement(pos: BlockPos, slot: Int, nearest: Boolean = false): Plan? {
         if (!level.getBlockState(pos).canBeReplaced()) {
             return null
         }
         val eye = player.eyePosition
         val reach = player.blockInteractionRange()
         val feet = player.blockPosition()
-        val underFeet = pos.x == feet.x && pos.z == feet.z && pos.y <= feet.y
+        val underFeet = nearest || pos.x == feet.x && pos.z == feet.z && pos.y <= feet.y
 
         var best: Plan? = null
         var bestTurn = Float.MAX_VALUE
@@ -149,12 +129,29 @@ internal class BlockTargets(private val context: NavigationContext) {
     }
 
     /**
-     * The hit [plan] clicks with [rotation], null when that rotation does not click its face.
+     * The click [rotation] makes from the eye as it is, when the face it hits first places a block at [pos].
+     *
+     * @agent claude-opus-5-5
      */
-    fun verifyClick(plan: Plan, rotation: ViewRotation): BlockHitResult? {
+    fun heldClick(pos: BlockPos, rotation: ViewRotation): Plan? {
+        val slot = placeableSlot() ?: return null
         val hit = raycast(rotation, player.blockInteractionRange())
-        val clicks = hit.type == HitResult.Type.BLOCK && hit.blockPos == plan.against && hit.direction == plan.face
-        return hit.takeIf { clicks }
+        if (hit.type != HitResult.Type.BLOCK || hit.blockPos.relative(hit.direction) != pos ||
+            !level.getBlockState(pos).canBeReplaced()
+        ) {
+            return null
+        }
+        return Plan(pos, hit.blockPos, hit.direction, hit.location, rotation, slot)
+    }
+
+    /**
+     * Whether [rotation] from [eye] hits first a face that places a block at [pos].
+     *
+     * @agent claude-opus-5-5
+     */
+    fun clicksFrom(eye: Vec3, rotation: ViewRotation, pos: BlockPos): Boolean {
+        val hit = player.pick(rotation, player.blockInteractionRange(), eye)
+        return hit.type == HitResult.Type.BLOCK && hit.blockPos.relative(hit.direction) == pos
     }
 
     /**
@@ -221,27 +218,17 @@ internal class BlockTargets(private val context: NavigationContext) {
         )
     }
 
-    /**
-     * Whether a look from [eye] at [point] hits [pos] first, on [face] when given.
-     */
-    private fun sees(eye: Vec3, point: Vec3, pos: BlockPos, face: Direction?): Boolean {
-        val past = eye.add(point.subtract(eye).scale(1.0 + EPSILON))
-        val hit = level.clip(ClipContext(eye, past, ClipContext.Block.OUTLINE, player))
-        return hit.type == HitResult.Type.BLOCK && hit.blockPos == pos && (face == null || hit.direction == face)
-    }
+    private fun sees(eye: Vec3, point: Vec3, pos: BlockPos, face: Direction?): Boolean =
+        level.isSeen(eye, point, pos, face, player)
 
     private fun turn(rotation: ViewRotation): Float {
         val sent = context.body.sentRotation
         return abs(Mth.wrapDegrees(rotation.yRot - sent.yRot)) + abs(rotation.xRot - sent.xRot)
     }
 
-    private fun fraction(index: Int) = (index + 0.5) / GRID
-
     private companion object {
-        const val GRID = 5
         const val HALF = 0.5
         const val EDGE = 0.05
         const val EPSILON = 1.0E-3
-        val FULL_BLOCK = AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
     }
 }

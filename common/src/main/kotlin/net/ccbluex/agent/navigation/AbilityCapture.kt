@@ -34,7 +34,7 @@ import kotlin.math.floor
 import kotlin.math.max
 
 private const val WATER_FALL = 23
-private const val MIN_SPRINT_FOOD = 6
+internal const val MIN_SPRINT_FOOD = 6
 
 /**
  * The walking abilities for one search, safe to read from any thread; [avoid] are feet blocks to keep away from,
@@ -67,8 +67,14 @@ internal fun NavigationContext.captureWalk(avoid: LongSet, unbreakable: LongSet)
         air = player.airSupply,
         motion = MotionTraits.capture(player),
         jumpClimbs = body.traits.jumpClimbsLadders,
-        bridgeTicks = if (options.fastBridges) Costs.RUN_BRIDGE else Costs.PLACE,
+        bridgeTicks = when {
+            options.fastBridges -> Costs.RUN_BRIDGE
+            options.bridging == Bridging.GODBRIDGE || options.bridging == Bridging.TELLY -> Costs.GODBRIDGE
+            options.bridging == Bridging.AUTO && options.riskyBridges -> Costs.GODBRIDGE
+            else -> Costs.NINJA_BRIDGE
+        },
         unbreakable = LongOpenHashSet(unbreakable),
+        health = player.health,
     )
 }
 

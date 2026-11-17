@@ -66,8 +66,8 @@ internal class StepCheck(private val context: NavigationContext, private val act
             return true
         }
 
-        // Fast or in the air, the feet point is rarely hit; a plain step passed along its way is done.
-        if (step.isPlain && hasPassed(step, position)) {
+        // Fast or in the air, the feet point is rarely hit; a plain or built bridge step passed along its way is done.
+        if ((step.isPlain || step.isBridge) && hasPassed(step, position)) {
             return true
         }
 

@@ -131,6 +131,8 @@ without a usage file, and on an edited or deleted usage file.
   servers, times, runs or accounts.
 - Game and network specific code (minigame plugins, servers) stays in the host; this repo is the base library.
 - No anticheat bypasses in this repo.
+- The bot never clicks, digs or hits through blocks unless `Options.canClickThroughBlocks`: `NavigationContext` is the
+  one place that checks (`BlockSight.pick`), so new block actions go through it.
 - Every change by an AI model adds its own file to `.agent-usage/`. Never edit an existing one.
 - Every source file starts with the Minecraft Agent license header (copy it from any file; `checkLicenseHeaders`
   fails without it). Code taken from LiquidBounce links its original in its KDoc with a GitHub permalink:

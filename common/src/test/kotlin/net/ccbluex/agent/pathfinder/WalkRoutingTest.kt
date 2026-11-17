@@ -31,6 +31,7 @@ import net.ccbluex.agent.pathfinder.route.BlockDestination
 import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
+import net.ccbluex.agent.pathfinder.walk.Costs
 import net.ccbluex.agent.pathfinder.walk.Move
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.RouteSearch
@@ -117,6 +118,23 @@ class WalkRoutingTest {
         assertTrue(path.steps.any { it.move == Move.FALL && it.from.y - it.to.y == 3 })
 
         assertFalse(isComplete(search(cliff(5), feet(-2, 6, 0), BlockPos(5, 1, 0))))
+    }
+
+    @Test
+    fun `a drop of four blocks is taken only while it leaves more than half the health`() {
+        val world = TestWorld.flat().fill(-40, 1, -40, 0, 4, 40)
+        val path = completePath(search(world, feet(-2, 5, 0), BlockPos(5, 1, 0), walkAbilities(health = 12f)))
+        assertTrue(path.steps.any { it.move == Move.FALL && it.from.y - it.to.y == 4 })
+
+        assertFalse(isComplete(search(world, feet(-2, 5, 0), BlockPos(5, 1, 0), walkAbilities(health = 11f))))
+    }
+
+    @Test
+    fun `a hurting drop is walked around by stairs`() {
+        val world = TestWorld.flat().fill(-40, 1, -40, 0, 4, 40)
+            .fill(1, 1, 3, 1, 3, 3).fill(2, 1, 3, 2, 2, 3).fill(3, 1, 3, 3, 1, 3)
+        val path = completePath(search(world, feet(-2, 5, 0), BlockPos(5, 1, 0), walkAbilities(health = 20f)))
+        assertTrue(path.steps.none { it.move == Move.FALL && it.from.y - it.to.y > 3 })
     }
 
     @Test
@@ -223,6 +241,30 @@ class WalkRoutingTest {
 
         assertTrue(Move.PILLAR in path.moves())
         assertTrue(path.steps.flatMap { it.places }.isNotEmpty())
+    }
+
+    @Test
+    fun `rises over a gap are one-stacked, the floor beside first and a block on top`() {
+        // A pad eight blocks up, and past a gap of five one three blocks higher.
+        val world = TestWorld.flat().fill(0, 8, -1, 2, 8, 1).fill(8, 11, -1, 10, 11, 1)
+        val abilities = WalkAbilities(
+            canBreak = false,
+            canPlace = true,
+            placeableBlocks = 64,
+            canParkour = false,
+            canSprint = true,
+            safeFall = 3,
+            waterFall = 20,
+            breakTicks = { Double.POSITIVE_INFINITY },
+            avoid = LongOpenHashSet(),
+            bridgeTicks = Costs.NINJA_BRIDGE,
+        )
+        val path = completePath(search(world, feet(1, 9, 0), BlockPos(9, 12, 0), abilities))
+
+        // Two rises over the gap, the third up onto the pad already there.
+        val rises = path.steps.filter { it.move == Move.ASCEND }
+        val stacked = rises.count { it.places == listOf(it.to.below(2), it.to.below()) }
+        assertEquals(listOf(2, 1), listOf(stacked, rises.count { it.places.isEmpty() }), "${path.steps.map { it.move }}")
     }
 
     @Test

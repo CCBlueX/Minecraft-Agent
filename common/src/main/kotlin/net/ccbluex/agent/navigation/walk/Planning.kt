@@ -195,7 +195,8 @@ internal class Planning(
         wasOffPath = offPath
 
         val finishedShort = path != null && follower.isFinished
-        val nearStage = path != null && routes.endsAtStage &&
+        // A search from the air starts in the air block, so a stage is searched on from the ground.
+        val nearStage = path != null && routes.endsAtStage && context.body.player.onGround() &&
             position.horizontalDistanceTo(path.end) < Replanner.STAGE_LEAD
         val settled = settledAt.let { it != null && routes.ticks - it < SETTLE_TICKS }
 
@@ -215,11 +216,18 @@ internal class Planning(
         // After searches that found nothing, the next ones look further around for a detour.
         val maxLength = context.options().maxLength * (1 shl min(failures, MAX_WIDENING))
         val abilities = context.captureWalk(stuckSpots.blocks, unbreakable)
-        // Every jump considered is simulated, which makes routes with them slower to work out.
+        // Every jump considered is simulated, which makes routes with them slower to work out. A slice runs off the
+        // game thread, one a tick, so a search that finds nothing ends in a few ticks rather than standing the player
+        // still for seconds at the end of a route that stopped short.
         val limits = if (abilities.canParkour) {
-            Limits(maxLength, maxVisitedNodes = PARKOUR_EXPANSIONS, maxComputeNanos = PARKOUR_COMPUTE_NANOS)
+            Limits(
+                maxLength,
+                maxVisitedNodes = PARKOUR_EXPANSIONS,
+                visitedNodesPerSlice = SLICE_EXPANSIONS,
+                maxComputeNanos = PARKOUR_COMPUTE_NANOS,
+            )
         } else {
-            Limits(maxLength)
+            Limits(maxLength, visitedNodesPerSlice = SLICE_EXPANSIONS)
         }
 
         routes.request(start, NearDestination(goal, radius), maxLength, stuckSpots.version) { terrain, searchGoal ->
@@ -237,6 +245,7 @@ internal class Planning(
         const val JOIN_POINTS = 8
         const val JOIN_DISTANCE = 1.0
         const val PARKOUR_EXPANSIONS = 40_000
+        const val SLICE_EXPANSIONS = 5_000
         const val MAX_WIDENING = 2
         val PARKOUR_COMPUTE_NANOS = TimeUnit.SECONDS.toNanos(2)
     }

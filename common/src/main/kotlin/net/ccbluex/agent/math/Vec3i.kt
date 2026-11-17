@@ -33,6 +33,8 @@ public open class Vec3i(x: Int, y: Int, z: Int) : Comparable<Vec3i> {
     public var z: Int = z
         protected set
 
+    public fun subtract(other: Vec3i): Vec3i = Vec3i(x - other.x, y - other.y, z - other.z)
+
     public fun distSqr(other: Vec3i): Double {
         val dx = (x - other.x).toDouble()
         val dy = (y - other.y).toDouble()
