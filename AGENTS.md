@@ -113,13 +113,13 @@ its own model.
 - Code taken from elsewhere keeps the tags of who wrote it there: people's code none, an agent's code that
   agent's model. Rewriting its logic adds your own model.
 
-[agent-usage](https://github.com/1zun4/agent-usage) (v1.0.0, run in CI) checks the tags and `.agent-usage/`. Every
-commit made with an AI model records its usage, and the README totals follow:
+[agent-usage](https://github.com/1zun4/agent-usage) (v1.1.0, run in CI) checks the tags and `.agent-usage/`. Every
+commit made with an AI model records its usage. The README card comes from the Pages workflow, which also counts the
+related private repositories named in the `AGENT_USAGE_RELATED` secret; never name them in this repository.
 
 ```sh
-curl -fsSLo /tmp/agent-usage https://raw.githubusercontent.com/1zun4/agent-usage/v1.0.0/agent-usage
+curl -fsSLo /tmp/agent-usage https://raw.githubusercontent.com/1zun4/agent-usage/v1.1.0/agent-usage
 python3 /tmp/agent-usage record <session log or folder> --from <first call of the change> --change "<commit subject>"
-python3 /tmp/agent-usage summary --update README.md
 python3 /tmp/agent-usage check
 ```
 
