@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-19",
+  "change": "fix(build): keep the pillar, stand off the build",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 76, "cachedInput": 16202989, "cacheWrite": 30130, "output": 12784 },
+      "usd": 3.74
+    }
+  ]
+}
