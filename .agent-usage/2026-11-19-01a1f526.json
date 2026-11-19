@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-19",
+  "change": "fix(build): place, pour and order farm parts",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 446, "cachedInput": 58770958, "cacheWrite": 387821, "output": 135378 },
+      "usd": 17.57
+    }
+  ]
+}

@@ -63,6 +63,13 @@ public suspend fun Agent.build(
     val scaffold = Scaffold(this, blocks)
     val stock = Supplies(this, supplies, scaffold)
     val wanted = blocks.filterValues { !follows(it) }
+    // Blocks that would leave the neighbour named no spot to be placed from; they go after it
+    val shutting = HashMap<BlockPos, BlockPos>()
+    fun isShutting(pos: BlockPos) = shutting[pos]?.let { other ->
+        tries.getOrDefault(other, 0) < 3 && wanted[other]?.let { !isBuilt(level, other, it) } == true
+    } == true
+    // Blocks that had a spare block put up beside them to go against
+    val propped = HashSet<BlockPos>()
     while (body.player.isAlive) {
         // A click of the walk's own scaffold on a hopper or chest opens it, and an open menu stops every inventory click
         if (body.containerMenu != null) body.closeContainer()
@@ -79,8 +86,23 @@ public suspend fun Agent.build(
                 pos !in waiting && tries.getOrDefault(pos, 0) < 3 && canBuild(pos, state, canBreak || pos in scaffold.placed)
             }
             .filter { (pos, state) -> itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false }
-        val ready = open.filter { (pos, state) -> isReady(level, wanted, pos, state) }.ifEmpty { open }
-        val (pos, state) = ready.minWithOrNull(order) ?: break
+        val free = open.filter { !isShutting(it.key) }.ifEmpty { open }
+        val ready = free.filter { (pos, state) -> isReady(level, wanted, pos, state) }.ifEmpty { free }
+        val next = ready.minWithOrNull(order)
+        if (next == null) {
+            // What is left has nothing to go against: a spare block beside the lowest gives it a face
+            val held = wanted.entries
+                .filter { (pos, state) ->
+                    pos !in propped && !isLiquid(state) && !state.isAir && level.getBlockState(pos).canBeReplaced() &&
+                        tries.getOrDefault(pos, 0) < 3 && itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false
+                }
+                .sortedWith(order)
+                .firstOrNull { propped += it.key; scaffold.prop(it.key) }
+            if (held == null) break
+            waiting.clear()
+            continue
+        }
+        val (pos, state) = next
         val item = itemFor(pos, state)
         if (item != null && !isCarried(item)) {
             val left = wanted.entries.filter { !isBuilt(level, it.key, it.value) }.sortedWith(order)
@@ -89,23 +111,45 @@ public suspend fun Agent.build(
         }
         val actual = level.getBlockState(pos)
         val isLiquid = isLiquid(state)
-        if (!isLiquid && !state.isAir && !isPlaced(level, pos, actual, state) && !hasClick(pos, state, scaffold)) {
+        // A wrong block in the cell, such as one the walk stood on, is dug out first; clicks are judged once it is free
+        val toPlace = !isLiquid && !state.isAir && actual.canBeReplaced() && !isPlaced(level, pos, actual, state)
+        if (toPlace && !hasClick(pos, state, scaffold)) {
             waiting += pos
             continue
         }
+        if (toPlace && pos !in shutting) {
+            val shut = around(pos).firstOrNull { other ->
+                val wants = wanted[other] ?: return@firstOrNull false
+                !isLiquid(wants) && !wants.isAir && !isPlaced(level, other, level.getBlockState(other), wants) &&
+                    wouldShut(pos, other, wants, scaffold)
+            }
+            if (shut != null) {
+                shutting[pos] = shut
+                continue
+            }
+        }
         tries.merge(pos, 1, Int::plus)
         val done = when {
-            isLiquid -> (actual.canBeReplaced() || dig(pos, forDrops = false)) && pour(pos, state)
-            isPlaced(level, pos, actual, state) -> if (actual.usedValues != state.usedValues) use(pos, state) else pour(pos, state)
+            isLiquid -> (actual.canBeReplaced() || dig(pos, forDrops = false)) && pour(pos, state, scaffold)
+            isPlaced(level, pos, actual, state) -> if (actual.usedValues != state.usedValues) use(pos, state) else pour(pos, state, scaffold)
             !actual.canBeReplaced() && !dig(pos, forDrops = false) -> false
             else -> state.isAir || place(pos, state, scaffold)
         }
         if (done) waiting.clear()
     }
+    scaffold.props.clear()
     scaffold.clear()
     val left = wanted.filter { (pos, state) -> !isBuilt(level, pos, state) }
     return BuildResult(missing(left), left.keys, left.keys.any { it in scaffold.lacking })
 }
+
+/**
+ * The 26 cells around [pos].
+ *
+ * @agent claude-opus-5-5
+ */
+private fun around(pos: BlockPos): Sequence<BlockPos> =
+    (-1..1).asSequence().flatMap { x -> (-1..1).flatMap { y -> (-1..1).map { z -> pos.offset(x, y, z) } } }.filter { it != pos }
 
 /**
  * Whether [state] comes about from another block of the build rather than being placed: the head of a piston, the

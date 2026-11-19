@@ -30,7 +30,6 @@ import net.ccbluex.agent.skills.Agent
 import net.ccbluex.agent.skills.BLOCK_REACH
 import net.ccbluex.agent.skills.ItemMatch
 import net.ccbluex.agent.skills.hold
-import net.ccbluex.agent.skills.reach
 import net.ccbluex.agent.skills.sentHit
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.tick.tickConditional
@@ -75,10 +74,10 @@ internal fun isPlaced(level: BlockGetter, pos: BlockPos, actual: BlockState, wan
 }
 
 /**
- * A right-click on [face] of [against] at [point], which gives the wanted block when made from [stand] or null for
- * nowhere to stand; [needsScaffold] when the stand is over air.
+ * A right-click on [face] of [against] at [point], made from [stand] or, for null, from where the player is;
+ * [needsScaffold] when the stand is over air.
  */
-private class Click(val against: BlockPos, val face: Direction, val point: Vec3, val stand: Vec3?, val needsScaffold: Boolean)
+internal class Click(val against: BlockPos, val face: Direction, val point: Vec3, val stand: Vec3?, val needsScaffold: Boolean)
 
 /**
  * Places the carried block [wanted] at [pos] as it is wanted: from where the player is when a click from there gives
@@ -91,7 +90,9 @@ internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Sc
     val slot = body.player.inventory.slotOf(ItemMatch.of(wanted.block.asItem()))
     if (slot < 0) return false
     val stack = body.player.inventory.getItem(slot).copy()
-    val clicks = clicks(pos, wanted, stack, scaffold)
+    val clicks = clicks(pos, scaffold) { click, rotation ->
+        predict(stack, click.against, click.face, click.point, rotation)?.let { isPlaced(body.level, pos, it, wanted) } == true
+    }
     val usable = if (scaffold.hasSpare()) clicks else clicks.filter { !it.needsScaffold }
     if (usable.size < clicks.size) scaffold.lacking += pos
     for ((stand, group) in usable.groupBy { it.stand }.entries.take(3)) {
@@ -99,10 +100,11 @@ internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Sc
             if (stand == null) continue
             // Scaffold put up for another spot comes down first, so its block can go under this one
             scaffold.clear(BlockPos.containing(stand).below())
-            stepTo(stand, scaffold)
+            stepTo(stand, pos, scaffold)
+            if (group.none { fits(it, pos, wanted, stack) }) scaffold.walkTo(stand, 0.2)
         }
         for (click in group) {
-            if (!reach(click.against, click.face) || !fits(click, pos, wanted, stack)) continue
+            if (!fits(click, pos, wanted, stack)) continue
             // Looked up anew each time, as holding it moves it into the hotbar
             val held = body.player.inventory.slotOf(ItemMatch.of(wanted.block.asItem()))
             if (held < 0) return false
@@ -121,55 +123,70 @@ internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Sc
  */
 internal fun Agent.hasClick(pos: BlockPos, wanted: BlockState, scaffold: Scaffold): Boolean {
     val slot = body.player.inventory.slotOf(ItemMatch.of(wanted.block.asItem()))
-    return slot >= 0 && clicks(pos, wanted, body.player.inventory.getItem(slot), scaffold).isNotEmpty()
+    if (slot < 0) return false
+    val stack = body.player.inventory.getItem(slot)
+    return clicks(pos, scaffold) { click, rotation ->
+        predict(stack, click.against, click.face, click.point, rotation)?.let { isPlaced(body.level, pos, it, wanted) } == true
+    }.isNotEmpty()
 }
 
 /**
  * Walks onto [stand], closer than `walkNear` goes: from a block off, the player could still stand where the block
- * goes, on the edge of the layer below. Over air, a spare block from [scaffold] goes under it first.
+ * goes at [pos], on the edge of the layer below. Over air, a spare block from [scaffold] goes under it first.
  *
  * @agent claude-opus-5-5
  */
-private suspend fun Agent.stepTo(stand: Vec3, scaffold: Scaffold) {
+internal suspend fun Agent.stepTo(stand: Vec3, pos: BlockPos, scaffold: Scaffold) {
     val support = BlockPos.containing(stand).below()
     // From beside it rather than by the walk's own pillar up, which fails when it starts on or next to the spot
     if (body.level.getBlockState(support).canBeReplaced() && !scaffold.put(support)) return
     // Within 0.8: on the low half of a stair the feet are half a block under the spot
     scaffold.walkTo(stand, 0.8)
+    // Nearer when that left the player partly in the cell to fill
+    if (body.player.boundingBox.intersects(AABB(pos))) scaffold.walkTo(stand, 0.3)
 }
 
 /**
- * The clicks that place [stack] at [pos] as [wanted], against each solid neighbour and from each side, nearest first
- * and those that need [scaffold] last.
+ * The clicks on a face of a solid neighbour of [pos], or with [onItself] of the block at [pos], that [gives] what is
+ * wanted there with the rotation from the eyes to the click, from spots on each side at one to three blocks or from
+ * here; from spots nothing of the build covers first, then nearest, those that need [scaffold] last.
  *
  * @agent claude-opus-5-5
  */
-private fun Agent.clicks(pos: BlockPos, wanted: BlockState, stack: ItemStack, scaffold: Scaffold): List<Click> {
+internal fun Agent.clicks(
+    pos: BlockPos,
+    scaffold: Scaffold,
+    onItself: Boolean = false,
+    gives: (Click, ViewRotation) -> Boolean,
+): List<Click> {
     val level = body.level
+    val eyeHeight = body.player.eyeHeight.toDouble()
     val clicks = ArrayList<Click>()
     for (side in Direction.entries) {
-        val against = pos.relative(side)
+        val against = if (onItself) pos else pos.relative(side)
         val state = level.getBlockState(against)
         if (state.getCollisionShape(level, against).isEmpty) continue
-        val face = side.opposite
-        val points = facePoints(state.getShape(level, against).bounds(), against, face)
-        for (point in points) {
+        val face = if (onItself) side else side.opposite
+        fun add(point: Vec3, stand: Vec3?) {
+            val eye = stand?.add(0.0, eyeHeight, 0.0) ?: body.player.eyePosition
+            val needsScaffold = stand != null && level.getBlockState(BlockPos.containing(stand).below()).canBeReplaced()
+            val click = Click(against, face, point, stand, needsScaffold)
+            if (gives(click, ViewRotation.fromVector(point.subtract(eye)))) clicks += click
+        }
+        for (point in facePoints(state.getShape(level, against).bounds(), against, face)) {
+            if (canSee(body.player.eyePosition, point, against, face)) add(point, null)
             for (looking in Direction.Plane.HORIZONTAL) {
-                val eyeHeight = body.player.eyeHeight.toDouble()
-                // The lowest spot on that side the face shows from, else here if it shows from here
-                val stand = standSpots(point.relative(looking, -2.5), pos, scaffold)
-                    .firstOrNull { canSee(it.add(0.0, eyeHeight, 0.0), point, against, face) }
-                val eye = stand?.add(0.0, eyeHeight, 0.0) ?: body.player.eyePosition
-                if (stand == null && !canSee(eye, point, against, face)) continue
-                val placed = predict(stack, against, face, point, ViewRotation.fromVector(point.subtract(eye))) ?: continue
-                if (!isPlaced(body.level, pos, placed, wanted)) continue
-                val needsScaffold = stand != null && level.getBlockState(BlockPos.containing(stand).below()).canBeReplaced()
-                clicks += Click(against, face, point, stand, needsScaffold)
+                // Also from right beside it, as over a wall or a ledge the face shows only from near
+                for (distance in doubleArrayOf(1.5, 2.5, 3.5)) {
+                    standSpots(point.relative(looking, -distance), pos, scaffold)
+                        .firstOrNull { canSee(it.add(0.0, eyeHeight, 0.0), point, against, face) }
+                        ?.let { add(point, it) }
+                }
             }
         }
     }
     val position = body.player.position()
-    // From here first, then from spots with nothing of the build over them, as a player under it gets walled in
+    // From spots with nothing of the build over them first, as a player under it gets walled in
     return clicks.sortedWith(
         compareBy({ it.needsScaffold }, { it.stand?.let { stand -> scaffold.isCovered(stand) } }, { it.stand?.distanceToSqr(position) ?: -1.0 }),
     )
@@ -177,8 +194,9 @@ private fun Agent.clicks(pos: BlockPos, wanted: BlockState, stack: ItemStack, sc
 
 /**
  * Points to click on [face] of the outline [bounds] of the block at [against]: its middle and, on a side, its upper
- * and lower half, as slabs and stairs take their half from it. On the outline rather than the block's edge, as a
- * look at the edge of a chest or a hopper passes in front of it.
+ * and lower half, as slabs and stairs take their half from it; on the top or bottom also beside each edge, as the
+ * top of a hopper or a composter is a rim around a hollow. On the outline rather than the block's edge, as a look at
+ * the edge of a chest or a hopper passes in front of it.
  *
  * @agent claude-opus-5-5
  */
@@ -188,7 +206,11 @@ internal fun facePoints(bounds: AABB, against: BlockPos, face: Direction): List<
         else -> (bounds.min(axis) + bounds.max(axis)) / 2
     }
     val centre = Vec3(against.x + middle(Direction.Axis.X), against.y + middle(Direction.Axis.Y), against.z + middle(Direction.Axis.Z))
-    if (face.axis.isVertical) return listOf(centre)
+    if (face.axis.isVertical) {
+        val x = (bounds.maxX - bounds.minX) / 2 - 1.0 / 16
+        val z = (bounds.maxZ - bounds.minZ) / 2 - 1.0 / 16
+        return listOf(centre, centre.add(x, 0.0, 0.0), centre.add(-x, 0.0, 0.0), centre.add(0.0, 0.0, z), centre.add(0.0, 0.0, -z))
+    }
     val halves = listOf(0.25, -0.25).map { centre.add(0.0, it, 0.0) }
         .filter { it.y - against.y in bounds.minY + 0.05..bounds.maxY - 0.05 }
     return listOf(centre) + halves
@@ -196,18 +218,21 @@ internal fun facePoints(bounds: AABB, against: BlockPos, face: Direction): List<
 
 /**
  * Where the player can stand in the column of [near], lowest first from a little under [pos] up, as the ground is
- * easier to walk to than the top of what is built; never in [pos] itself, and over air only where [scaffold] can
- * fill it.
+ * easier to walk to than the top of what is built; never in [pos] itself nor in a liquid, never on a block hollow in
+ * the middle such as a composter, and over air only where [scaffold] can fill it.
  *
  * @agent claude-opus-5-5
  */
 private fun Agent.standSpots(near: Vec3, pos: BlockPos, scaffold: Scaffold): Sequence<Vec3> {
     val level = body.level
     val column = BlockPos.containing(near.x, pos.y.toDouble(), near.z)
-    fun isEmpty(at: BlockPos) = at != pos && level.getBlockState(at).getCollisionShape(level, at).isEmpty
+    fun isEmpty(at: BlockPos) = level.getBlockState(at).getCollisionShape(level, at).isEmpty
+    fun isFree(at: BlockPos) = at != pos && isEmpty(at) && level.getBlockState(at).fluidState.isEmpty
+    fun isFooting(at: BlockPos) = level.getBlockState(at).getCollisionShape(level, at).toAabbs()
+        .any { it.minX <= 0.5 && it.maxX >= 0.5 && it.minZ <= 0.5 && it.maxZ >= 0.5 && it.maxY >= 0.5 }
     return (-3..1).asSequence()
         .map { column.above(it) }
-        .filter { isEmpty(it) && isEmpty(it.above()) && (!isEmpty(it.below()) || scaffold.canPlace(it.below())) }
+        .filter { isFree(it) && isFree(it.above()) && (isFooting(it.below()) || isEmpty(it.below()) && scaffold.canPlace(it.below())) }
         .map(Vec3::atBottomCenterOf)
 }
 
@@ -268,12 +293,37 @@ private suspend fun Agent.placeWith(slot: Int, click: Click, pos: BlockPos, want
 }
 
 /**
- * Whether a look from [eye] at [point] hits [face] of [against] first: a click never goes through another block.
+ * Whether a look from [eye] at [point] hits [face] of [against] first, from well in front of the face rather than
+ * along it: a click never goes through another block, and one past the edge of the face may miss it.
  *
  * @agent claude-opus-5-5
  */
 private fun Agent.canSee(eye: Vec3, point: Vec3, against: BlockPos, face: Direction): Boolean =
-    body.level.isSeen(eye, point, against, face, body.player)
+    eye.subtract(point).dot(face.unitVec3) > 0.2 && body.level.isSeen(eye, point, against, face, body.player)
+
+/**
+ * Whether a block at [cell] would take away every spot to place the carried block [wanted] at [pos] from: each
+ * click from there looks through it or stands in it. False when there is none anyway, or the block is not carried.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Agent.wouldShut(cell: BlockPos, pos: BlockPos, wanted: BlockState, scaffold: Scaffold): Boolean {
+    val slot = body.player.inventory.slotOf(ItemMatch.of(wanted.block.asItem()))
+    if (slot < 0) return false
+    val stack = body.player.inventory.getItem(slot)
+    val clicks = clicks(pos, scaffold) { click, rotation ->
+        click.stand != null &&
+            predict(stack, click.against, click.face, click.point, rotation)?.let { isPlaced(body.level, pos, it, wanted) } == true
+    }
+    if (clicks.isEmpty()) return false
+    val box = AABB(cell)
+    val player = body.player
+    return clicks.all { click ->
+        val feet = click.stand ?: return@all true
+        box.clip(feet.add(0.0, player.eyeHeight.toDouble(), 0.0), click.point) != null ||
+            player.boundingBox.move(feet.subtract(player.position())).intersects(box)
+    }
+}
 
 /**
  * The block [stack] places with a click on [face] of [against] at [point] while looking with [rotation]; null when

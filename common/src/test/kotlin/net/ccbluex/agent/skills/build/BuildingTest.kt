@@ -129,4 +129,18 @@ class BuildingTest {
         val comparator = Blocks.COMPARATOR.defaultBlockState().agent()
         assertTrue(facePoints(comparator.getShape(ground(), at).bounds(), at, net.ccbluex.agent.math.Direction.EAST).size == 1)
     }
+
+    @Test
+    fun `the top of a hopper is clicked on its rim`() {
+        val world = ground().put(at, Blocks.HOPPER.defaultBlockState())
+        val hopper = Blocks.HOPPER.defaultBlockState().agent()
+        val points = facePoints(hopper.getShape(world, at).bounds(), at, net.ccbluex.agent.math.Direction.UP)
+        // The middle of its top is the hollow of the funnel; a point beside each edge lies on the rim
+        assertTrue(points.size == 5)
+        assertTrue(points.drop(1).all { point ->
+            val x = point.x - at.x
+            val z = point.z - at.z
+            point.y == at.y + 1.0 && (x == 1.0 / 16 || x == 15.0 / 16 || z == 1.0 / 16 || z == 15.0 / 16)
+        })
+    }
 }

@@ -112,6 +112,27 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     }
 
     /**
+     * Spare blocks put up beside a block of the build with nothing else to place it against, by the block they hold
+     * out a face to; they stay up until it stands.
+     */
+    val props = HashMap<BlockPos, BlockPos>()
+
+    /**
+     * Puts a spare block next to [pos], under it where it can, so the block has a face to go against; false when no
+     * cell beside it outside the build has something to put one against, or none could be put.
+     */
+    suspend fun prop(pos: BlockPos): Boolean {
+        val level = agent.body.level
+        val cell = (listOf(Direction.DOWN) + Direction.Plane.HORIZONTAL + Direction.UP).map(pos::relative).firstOrNull { cell ->
+            cell !in blueprint && level.getBlockState(cell).canBeReplaced() &&
+                Direction.entries.any { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty }
+        } ?: return false
+        if (!put(cell)) return false
+        props[cell] = pos
+        return true
+    }
+
+    /**
      * Walks to [spot], within [radius]; the walk may pillar or bridge on spare blocks, and [placed] keeps where.
      */
     suspend fun walkTo(spot: Vec3, radius: Double) {
@@ -133,14 +154,16 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     }
 
     /**
-     * Digs out what was put up outside the build but [keep], top down as a pillar comes down, and picks the blocks up
-     * again for the next spot.
+     * Digs out what was put up outside the build but [keep] and the [props] whose block is still missing, top down
+     * as a pillar comes down, and picks the blocks up again for the next spot.
      */
     suspend fun clear(keep: BlockPos? = null) {
         val level = agent.body.level
         val inventory = agent.body.player.inventory
         for (pos in placed.sortedByDescending { it.y }) {
             if (pos in blueprint || pos == keep) continue
+            if (props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } == true) continue
+            props -= pos
             val state = level.getBlockState(pos)
             if (!state.canBeReplaced()) {
                 val item = ItemMatch.of(state.block.asItem())

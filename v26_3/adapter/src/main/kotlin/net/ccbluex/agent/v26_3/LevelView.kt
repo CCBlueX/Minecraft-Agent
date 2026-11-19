@@ -57,6 +57,7 @@ import net.minecraft.core.Direction as McDirection
 import net.minecraft.world.item.ItemStack as McItemStack
 import net.minecraft.world.level.ClipContext as McClipContext
 import net.minecraft.world.level.Level as McLevel
+import net.minecraft.world.level.block.state.BlockState as McBlockState
 import net.minecraft.world.phys.BlockHitResult as McBlockHitResult
 
 /**
@@ -166,7 +167,10 @@ internal class LevelView(val handle: McLevel) : Level, GameBlocks {
         val game = stack.toMinecraft()
         val item = game.item as? BlockItem ?: return null
         val context = item.updatePlacementContext(LookingContext(handle, game, hit.toMinecraft(), rotation)) ?: return null
-        return item.block.getStateForPlacement(context)?.toAgent()
+        // Items such as signs and torches pick between blocks themselves; for a plain block that would also count
+        // the player in the way, who may stand there while it predicts a click from elsewhere
+        if (item.javaClass != BlockItem::class.java) return (getPlacementState.invoke(item, context) as McBlockState?)?.toAgent()
+        return item.block.getStateForPlacement(context)?.takeIf { it.canSurvive(handle, context.clickedPos) }?.toAgent()
     }
 
     override val respawnPos: BlockPos get() = handle.levelData.respawnData.pos().toAgent()
@@ -216,6 +220,10 @@ private fun BlockEntity.type(): BlockEntityType = when (this) {
     is Container -> BlockEntityType.CONTAINER
     else -> BlockEntityType.OTHER
 }
+
+// Protected in the game: the state an item places for a context, as its own subclass decides
+private val getPlacementState = BlockItem::class.java.getDeclaredMethod("getPlacementState", BlockPlaceContext::class.java)
+    .apply { isAccessible = true }
 
 private val levels: ConcurrentMap<McLevel, Level> = MapMaker().weakKeys().makeMap()
 
