@@ -143,4 +143,14 @@ class BuildingTest {
             point.y == at.y + 1.0 && (x == 1.0 / 16 || x == 15.0 / 16 || z == 1.0 / 16 || z == 15.0 / 16)
         })
     }
+
+    @Test
+    fun `scaffold in the way is the cell and the stand columns straight out`() {
+        assertTrue(isInStand(at, at))
+        assertTrue(isInStand(at.offset(3, -3, 0), at))
+        assertTrue(isInStand(at.offset(0, 2, -2), at))
+        assertFalse(isInStand(at.offset(1, 0, 1), at))
+        assertFalse(isInStand(at.offset(4, 0, 0), at))
+        assertFalse(isInStand(at.offset(0, -4, 1), at))
+    }
 }

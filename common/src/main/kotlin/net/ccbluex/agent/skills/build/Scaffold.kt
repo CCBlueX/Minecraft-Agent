@@ -35,12 +35,14 @@ import net.ccbluex.agent.skills.placeBlock
 import net.ccbluex.agent.tick.tickConditional
 import net.ccbluex.agent.tick.tickUntil
 import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.BlockStateProperties
 import net.ccbluex.agent.world.entity.ItemEntity
 import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * The spare blocks of a build, those carried beyond what is left to place, which the player stands on where no face
- * shows from the ground; [placed] keeps where they went, so they come down again once the walk goes on elsewhere.
+ * shows from the ground; [placed] keeps where they went, so one comes down again when a spot needs it and none is
+ * carried, and all of them once the build is done.
  *
  * @agent claude-opus-5-5
  */
@@ -128,12 +130,17 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     val props = HashMap<BlockPos, BlockPos>()
 
     /**
-     * Puts a spare block next to [pos], under it where it can, so the block has a face to go against; false when no
+     * Puts a spare block next to [pos], first where the block faces, as a stair or hopper takes its facing from the
+     * face it is placed against, then under it where it can, so the block has a face to go against; false when no
      * cell beside it outside the build has something to put one against, or none could be put.
      */
     suspend fun prop(pos: BlockPos): Boolean {
         val level = agent.body.level
-        val cell = (listOf(Direction.DOWN) + Direction.Plane.HORIZONTAL + Direction.UP).map(pos::relative).firstOrNull { cell ->
+        val facing = blueprint[pos]?.let {
+            it.getOptionalValue(BlockStateProperties.FACING) ?: it.getOptionalValue(BlockStateProperties.HORIZONTAL_FACING)
+        }
+        val sides = listOfNotNull(facing) + Direction.DOWN + Direction.Plane.HORIZONTAL + Direction.UP
+        val cell = sides.distinct().map(pos::relative).firstOrNull { cell ->
             cell !in blueprint && level.getBlockState(cell).canBeReplaced() &&
                 Direction.entries.any { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty }
         } ?: return false
@@ -164,29 +171,77 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     }
 
     /**
-     * Digs out what was put up outside the build but [keep] and the [props] whose block is still missing, top down
-     * as a pillar comes down, and picks the blocks up again for the next spot.
+     * Digs out what was put up outside the build but the [props] whose block is still missing, nearest first and
+     * each pillar top down, and picks the blocks up again; with [around], only what stands in the cell of one of
+     * these blocks or where the player would stand to place it.
      */
-    suspend fun clear(keep: BlockPos? = null) {
-        val level = agent.body.level
-        val inventory = agent.body.player.inventory
-        for (pos in placed.sortedByDescending { it.y }) {
-            if (pos in blueprint || pos == keep) continue
-            if (props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } == true) continue
-            props -= pos
-            val state = level.getBlockState(pos)
-            if (!state.canBeReplaced()) {
-                val item = ItemMatch.of(state.block.asItem())
-                val carried = inventory.count(item)
-                if (!agent.dig(pos, forDrops = false)) continue
-                val around = Vec3.atCenterOf(pos)
-                // The drop shows a tick or more after the block went, unless the player stood on it and took it at once
-                tickConditional(20) {
-                    inventory.count(item) > carried || level.getEntitiesOfClass(ItemEntity::class.java, AABB.ofSize(around, 3.0, 3.0, 3.0)).isNotEmpty()
-                }
-                agent.pickUpItems(around, 1.5, 100)
-            }
-            placed -= pos
+    suspend fun clear(around: Collection<BlockPos>? = null) {
+        val failed = HashSet<BlockPos>()
+        while (true) {
+            val pos = nearest(null) { pos ->
+                pos !in failed && (around == null || around.any { isInStand(pos, it) })
+            } ?: return
+            if (!take(pos)) failed += pos
         }
     }
+
+    /**
+     * Takes back the spare block nearest the player but [keep], not the one it stands on, when a spot needs one and
+     * none is carried; digging all of them would cost seconds each. False when none is left.
+     */
+    suspend fun free(keep: BlockPos?): Boolean {
+        val level = agent.body.level
+        val player = agent.body.player
+        val pos = nearest(keep) {
+            !level.getBlockState(it).canBeReplaced() && !player.boundingBox.intersects(AABB(it.above()))
+        } ?: return false
+        return take(pos)
+    }
+
+    /**
+     * The spare block nearest the player that may come down and [matches]: the top of its pillar, neither [keep] nor
+     * a prop whose block is still missing.
+     */
+    private fun nearest(keep: BlockPos?, matches: (BlockPos) -> Boolean): BlockPos? {
+        val level = agent.body.level
+        val position = agent.body.player.position()
+        return placed.filter { pos ->
+            pos !in blueprint && pos != keep && pos.above() !in placed && matches(pos) &&
+                props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } != true
+        }.minByOrNull { it.distToCenterSqr(position) }
+    }
+
+    /**
+     * Digs the spare block at [pos] and picks it up; false when the dig failed.
+     */
+    private suspend fun take(pos: BlockPos): Boolean {
+        val level = agent.body.level
+        val inventory = agent.body.player.inventory
+        val state = level.getBlockState(pos)
+        if (!state.canBeReplaced()) {
+            val item = ItemMatch.of(state.block.asItem())
+            val carried = inventory.count(item)
+            if (!agent.dig(pos, forDrops = false)) return false
+            val center = Vec3.atCenterOf(pos)
+            // The drop shows a tick or more after the block went, unless the player stood on it and took it at once
+            tickConditional(20) {
+                inventory.count(item) > carried || level.getEntitiesOfClass(ItemEntity::class.java, AABB.ofSize(center, 3.0, 3.0, 3.0)).isNotEmpty()
+            }
+            if (inventory.count(item) <= carried) agent.pickUpItems(center, 1.5, 100)
+        }
+        props -= pos
+        placed -= pos
+        return true
+    }
+}
+
+/**
+ * Whether [cell] is [pos] or in a column [clicks] takes stand spots from to place [pos], feet to head.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun isInStand(cell: BlockPos, pos: BlockPos): Boolean {
+    val x = cell.x - pos.x
+    val z = cell.z - pos.z
+    return (x == 0 && z in -3..3 || z == 0 && x in -3..3) && cell.y - pos.y in -3..2
 }

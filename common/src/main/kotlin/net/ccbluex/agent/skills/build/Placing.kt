@@ -98,9 +98,8 @@ internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Sc
     for ((stand, group) in usable.groupBy { it.stand }.entries.take(3)) {
         if (group.none { fits(it, pos, wanted, stack) }) {
             if (stand == null) continue
-            // Scaffold put up for another spot comes down once no spare is left, so its block can go under this one;
-            // while one is carried, a pillar stays for the next spot rather than being dug and put up again
-            if (!scaffold.carriesSpare()) scaffold.clear(BlockPos.containing(stand).below())
+            // A spot over air takes a spare block; with none carried, the nearest one put up before comes down for it
+            if (group.first().needsScaffold && !scaffold.carriesSpare()) scaffold.free(BlockPos.containing(stand).below())
             stepTo(stand, pos, scaffold)
             if (group.none { fits(it, pos, wanted, stack) }) scaffold.walkTo(stand, 0.2)
         }
@@ -166,7 +165,9 @@ internal fun Agent.clicks(
     for (side in Direction.entries) {
         val against = if (onItself) pos else pos.relative(side)
         val state = level.getBlockState(against)
-        if (state.getCollisionShape(level, against).isEmpty) continue
+        val shape = state.getShape(level, against)
+        // A moving piston collides but has no outline to click
+        if (state.getCollisionShape(level, against).isEmpty || shape.isEmpty) continue
         val face = if (onItself) side else side.opposite
         fun add(point: Vec3, stand: Vec3?): Boolean {
             val eye = stand?.add(0.0, eyeHeight, 0.0) ?: body.player.eyePosition
@@ -174,7 +175,7 @@ internal fun Agent.clicks(
             val click = Click(against, face, point, stand, needsScaffold)
             return gives(click, ViewRotation.fromVector(point.subtract(eye))).also { if (it) clicks += click }
         }
-        for (point in facePoints(state.getShape(level, against).bounds(), against, face)) {
+        for (point in facePoints(shape.bounds(), against, face)) {
             if (canSee(body.player.eyePosition, point, against, face)) add(point, null)
             for (looking in Direction.Plane.HORIZONTAL) {
                 // Also from right beside it, as over a wall or a ledge the face shows only from near, and a block

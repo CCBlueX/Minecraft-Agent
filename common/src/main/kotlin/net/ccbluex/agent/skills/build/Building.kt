@@ -44,8 +44,8 @@ import net.ccbluex.agent.world.item.Items
  * poured from buckets. Blocks already right stay, and with [canBreak] wrong ones are dug out first. Piston heads,
  * upper halves and flowing liquids are left to the blocks they come from. A block with nothing to place it against
  * waits for its neighbours, an observer for the block it watches, and a liquid for the blocks beside and under it;
- * one tried three times is given up. Where no face shows from the ground, the player pillars up on a spare block it
- * carries and digs it out again once it walks on elsewhere.
+ * one that failed three times is given up. Where no face shows from the ground, the player pillars up on a spare
+ * block it carries, takes one back when it has none left, and digs them all out at the end.
  *
  * @agent claude-opus-5-5
  */
@@ -57,8 +57,13 @@ public suspend fun Agent.build(
     supplies: Collection<BlockPos> = emptyList(),
 ): BuildResult {
     val level = body.level
+    // Failed tries and all steps per block: a block takes a few steps (placed, opened, filled with water), and one
+    // that keeps coming undone, such as a trapdoor redstone closes, is given up as well
     val tries = HashMap<BlockPos, Int>()
-    // Blocks no click places yet, as what they go against is missing; they wait until something else is built
+    val steps = HashMap<BlockPos, Int>()
+    fun isGivenUp(pos: BlockPos) = tries.getOrDefault(pos, 0) >= 3 || steps.getOrDefault(pos, 0) >= 8
+    // Blocks no click places yet, as what they go against is missing, and blocks that just failed; they wait until
+    // something else is built, rather than using up their tries at once
     val waiting = HashSet<BlockPos>()
     val scaffold = Scaffold(this, blocks)
     val stock = Supplies(this, supplies, scaffold)
@@ -66,7 +71,7 @@ public suspend fun Agent.build(
     // Blocks that would leave the neighbour named no spot to be placed from; they go after it
     val shutting = HashMap<BlockPos, BlockPos>()
     fun isShutting(pos: BlockPos) = shutting[pos]?.let { other ->
-        tries.getOrDefault(other, 0) < 3 && wanted[other]?.let { !isBuilt(level, other, it) } == true
+        !isGivenUp(other) && wanted[other]?.let { !isBuilt(level, other, it) } == true
     } == true
     // Blocks that had a spare block put up beside them to go against
     val propped = HashSet<BlockPos>()
@@ -84,17 +89,18 @@ public suspend fun Agent.build(
         )
         val open = wanted.entries
             .filter { (pos, state) ->
-                pos !in waiting && tries.getOrDefault(pos, 0) < 3 && canBuild(pos, state, canBreak || pos in scaffold.placed)
+                pos !in waiting && !isGivenUp(pos) && canBuild(pos, state, canBreak || pos in scaffold.placed)
             }
             .filter { (pos, state) -> itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false }
         val free = open.filter { !isShutting(it.key) }.ifEmpty { open }
         val ready = free.filter { (pos, state) -> isReady(level, wanted, pos, state) }.ifEmpty { free }
         val next = ready.minWithOrNull(order)
         if (next == null) {
-            // Scaffold left up may hide the faces of what is left: it comes down once before anything is propped
+            // Scaffold left up may hide the faces of what is left: what stands in their way comes down once before
+            // anything is propped
             if (!cleared && scaffold.placed.isNotEmpty()) {
                 cleared = true
-                scaffold.clear()
+                scaffold.clear(around = wanted.keys.filter { !isGivenUp(it) && !isBuilt(level, it, wanted.getValue(it)) })
                 waiting.clear()
                 continue
             }
@@ -102,7 +108,7 @@ public suspend fun Agent.build(
             val held = wanted.entries
                 .filter { (pos, state) ->
                     pos !in propped && !isLiquid(state) && !state.isAir && level.getBlockState(pos).canBeReplaced() &&
-                        tries.getOrDefault(pos, 0) < 3 && itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false
+                        !isGivenUp(pos) && itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false
                 }
                 .sortedWith(order)
                 .firstOrNull { propped += it.key; scaffold.prop(it.key) }
@@ -136,7 +142,7 @@ public suspend fun Agent.build(
                 continue
             }
         }
-        tries.merge(pos, 1, Int::plus)
+        steps.merge(pos, 1, Int::plus)
         val done = when {
             isLiquid -> (actual.canBeReplaced() || dig(pos, forDrops = false)) && pour(pos, state, scaffold)
             isPlaced(level, pos, actual, state) -> if (actual.usedValues != state.usedValues) use(pos, state) else pour(pos, state, scaffold)
@@ -146,6 +152,9 @@ public suspend fun Agent.build(
         if (done) {
             waiting.clear()
             cleared = false
+        } else {
+            tries.merge(pos, 1, Int::plus)
+            waiting += pos
         }
     }
     scaffold.props.clear()
