@@ -55,6 +55,14 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     private val items = blueprint.values.mapTo(HashSet()) { it.block.asItem() }
 
     /**
+     * Whether part of the build goes over [stand], up to a few blocks above the head.
+     */
+    fun isCovered(stand: Vec3): Boolean {
+        val feet = BlockPos.containing(stand)
+        return (2..6).any { feet.above(it) in blueprint }
+    }
+
+    /**
      * Whether [stack] is a block no part of the build takes.
      */
     fun isSpare(stack: ItemStack): Boolean = PlaceableBlocks.DEFAULT.isPlaceable(stack) && stack.item !in items

@@ -169,7 +169,10 @@ private fun Agent.clicks(pos: BlockPos, wanted: BlockState, stack: ItemStack, sc
         }
     }
     val position = body.player.position()
-    return clicks.sortedWith(compareBy({ it.needsScaffold }, { it.stand?.distanceToSqr(position) ?: Double.MAX_VALUE }))
+    // From here first, then from spots with nothing of the build over them, as a player under it gets walled in
+    return clicks.sortedWith(
+        compareBy({ it.needsScaffold }, { it.stand?.let { stand -> scaffold.isCovered(stand) } }, { it.stand?.distanceToSqr(position) ?: -1.0 }),
+    )
 }
 
 /**
@@ -235,6 +238,7 @@ private fun Agent.fits(click: Click, pos: BlockPos, wanted: BlockState, stack: I
  */
 private suspend fun Agent.placeWith(slot: Int, click: Click, pos: BlockPos, wanted: BlockState, stack: ItemStack): Boolean {
     val level = body.level
+    if (body.containerMenu != null) body.closeContainer()
     try {
         val hotbar = body.hold(slot)
         var sent: BlockHitResult? = null

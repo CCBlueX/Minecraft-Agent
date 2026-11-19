@@ -64,6 +64,8 @@ public suspend fun Agent.build(
     val stock = Supplies(this, supplies, scaffold)
     val wanted = blocks.filterValues { !follows(it) }
     while (body.player.isAlive) {
+        // A click of the walk's own scaffold on a hopper or chest opens it, and an open menu stops every inventory click
+        if (body.containerMenu != null) body.closeContainer()
         val player = body.player.position()
         // Inside out within a layer: a block its neighbours would close in shows no face once they stand
         fun unbuiltNeighbours(pos: BlockPos) = Direction.Plane.HORIZONTAL.count { side ->

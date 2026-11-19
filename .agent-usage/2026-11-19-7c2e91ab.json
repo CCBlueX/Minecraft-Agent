@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-19",
+  "change": "fix(build): no stray menus, stand clear of the build",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 298, "cachedInput": 56821129, "cacheWrite": 179017, "output": 95270 },
+      "usd": 14.70
+    }
+  ]
+}
