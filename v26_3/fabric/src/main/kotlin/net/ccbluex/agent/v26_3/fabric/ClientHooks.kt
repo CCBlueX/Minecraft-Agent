@@ -213,11 +213,13 @@ internal fun keepUsing(body: ClientBody, keep: Boolean) {
 }
 
 /**
- * Whether `Minecraft.handleKeybinds` must not release the item a body uses while the use key is up.
+ * Whether `Minecraft.handleKeybinds` must not release the item a body uses while the use key is up. The library's own
+ * mixin asks it; a host that releases the item itself in that method asks it before.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
-internal fun keepsUsing(): Boolean {
+public fun keepsUsing(): Boolean {
     val account = currentAccount()
     if (Minecraft.getInstance().player?.isUsingItem != true) {
         usingBodies.values.removeIf { it == account }

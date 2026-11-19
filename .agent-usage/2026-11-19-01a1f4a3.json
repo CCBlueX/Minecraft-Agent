@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-19",
+  "change": "fix(fabric): public keepsUsing hook",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 222, "cachedInput": 17222802, "cacheWrite": 262287, "output": 64514 },
+      "usd": 3.42
+    }
+  ]
+}

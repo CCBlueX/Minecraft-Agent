@@ -49,6 +49,10 @@ public class net/ccbluex/agent/v26_3/fabric/ClientBody : net/ccbluex/agent/skill
 	public fun useItemOn (Lnet/ccbluex/agent/world/InteractionHand;Lnet/ccbluex/agent/world/BlockHitResult;)Z
 }
 
+public final class net/ccbluex/agent/v26_3/fabric/ClientHooks {
+	public static final fun keepsUsing ()Z
+}
+
 public final class net/ccbluex/agent/v26_3/fabric/ClientNavigation {
 	public fun <init> ()V
 	public fun <init> (Lnet/ccbluex/agent/v26_3/fabric/ClientBody;)V
