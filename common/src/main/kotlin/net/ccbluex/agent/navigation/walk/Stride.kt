@@ -51,6 +51,11 @@ internal class Stride {
     private var lastPosition: Vec3? = null
     private var carried = Vec3.ZERO
     private var wasOnGround = false
+
+    /**
+     * Crouching slows the move of the tick after, as [net.ccbluex.agent.simulation.PlayerMotion] has it.
+     */
+    private var wasCrouching = false
     private var lastTick = 0
 
     /**
@@ -60,7 +65,7 @@ internal class Stride {
         val position = player.position()
         val last = lastPosition
         moved = if (last != null && player.tickCount == lastTick + 1) position.subtract(last) else Vec3.ZERO
-        if (last != null && player.tickCount == lastTick + 1 && wasOnGround && walksPlainly(player)) {
+        if (last != null && player.tickCount == lastTick + 1 && wasOnGround && !wasCrouching && walksPlainly(player)) {
             val pushed = Mth.length(position.x - last.x - carried.x, position.z - last.z - carried.z)
             val vanilla = player.getAttributeValue(Attributes.MOVEMENT_SPEED) * INPUT_SCALE
             if (vanilla > 0.0 && pushed > vanilla * MIN_SHARE) {
@@ -70,6 +75,7 @@ internal class Stride {
         lastPosition = position
         carried = player.deltaMovement
         wasOnGround = player.onGround()
+        wasCrouching = player.isCrouching
         lastTick = player.tickCount
     }
 

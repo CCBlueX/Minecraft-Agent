@@ -40,10 +40,12 @@ import net.ccbluex.agent.simulation.MotionTraits
 import net.ccbluex.agent.simulation.PlayerMotion
 import net.ccbluex.agent.v26_3.toAgent
 import net.ccbluex.agent.v26_3.toMinecraft
+import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.player.Player
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.util.Random
 import kotlin.test.assertTrue
 
 /**
@@ -99,6 +101,7 @@ internal class FollowerTest {
             player.setOnGround(motion.onGround)
             player.horizontalCollision = motion.horizontalCollision
             player.isSprinting = motion.isSprinting
+            player.pose = if (motion.crouching) Pose.CROUCHING else Pose.STANDING
             player.tickCount++
         }
     }
@@ -155,5 +158,29 @@ internal class FollowerTest {
         val host = Host(level.player(start, 180f), world, 1.0, turn = 3f)
 
         follow(world, host, start, BlockPos(8, 1, 12), floor = 0.5)
+    }
+
+    @Test
+    fun `a chain of small islands at changing heights is jumped across`() {
+        // Fourteen 2x2 islands, gaps of one to three blocks, each up to a block higher or lower than the one before. The
+        // run-ups are short, so the walk brakes by sneaking before most jumps.
+        val world = TestWorld()
+        val random = Random(5)
+        var x = 0
+        var y = 10
+        var z = 0
+        repeat(14) { index ->
+            val gap = 1 + random.nextInt(3)
+            if (index > 0) {
+                x += 2 + gap
+                z = (z + random.nextInt(3) - 1).coerceIn(-8, 8)
+                y = (y + random.nextInt(3) - 1).coerceIn(9, 12)
+            }
+            world.fill(x, y, z, x + 1, y, z + 1)
+        }
+        val start = Vec3(0.5, 11.0, 0.5)
+        val host = Host(TestLevel(world).player(start, -90f), world, 1.0, turn = 180f)
+
+        follow(world, host, start, BlockPos(x, y + 1, z), floor = 8.0)
     }
 }

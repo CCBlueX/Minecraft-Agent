@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-19",
+  "change": "fix(navigation): no slow stride after sneaking",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 190, "cachedInput": 13649300, "cacheWrite": 198750, "output": 59569 },
+      "usd": 5.51
+    }
+  ]
+}
