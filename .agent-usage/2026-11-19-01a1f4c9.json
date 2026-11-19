@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-19",
+  "change": "perf(farm): drops after crops",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 168, "cachedInput": 34106805, "cacheWrite": 92344, "output": 40701 },
+      "usd": 4.19
+    }
+  ]
+}

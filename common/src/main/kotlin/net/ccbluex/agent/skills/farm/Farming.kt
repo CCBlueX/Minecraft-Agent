@@ -144,10 +144,11 @@ private sealed interface Work {
 }
 
 /**
- * The work nearest the eyes on [farm], leaving out what is [skipped]; without walking, only what is in reach and
- * sight.
+ * The work nearest the eyes on [farm], leaving out what is [skipped] and drops before any crop; without walking, only
+ * what is in reach and sight.
  *
  * @agent claude-opus-5-5
+ * @agent claude-sonnet-5-5
  */
 private fun Agent.nextWork(farm: Farm, skipped: Set<Any>, canFertilize: Boolean): Work? {
     val level = body.level
@@ -185,7 +186,8 @@ private fun Agent.nextWork(farm: Farm, skipped: Set<Any>, canFertilize: Boolean)
             }
         }
     }
-    found.sortBy { it.second.distanceToSqr(eye) }
+    // Drops are walked to once the crops in sight are done: the player passes most of them and picks them up on the way
+    found.sortBy { it.second.distanceToSqr(eye) + if (it.first is Work.PickUp) PICK_UP_LAST else 0.0 }
     fun isInReach(work: Work) = when (work) {
         is Work.Harvest -> seenPoint(work.pos, null) != null
         is Work.Sow -> seenPoint(work.soil, Direction.UP) != null
@@ -360,3 +362,8 @@ private suspend fun Agent.deposit(chest: BlockPos): Boolean {
     body.closeContainer()
     return !isInventoryFull()
 }
+
+/**
+ * Added to the squared distance of a drop, so that any block of work within 20 blocks comes first.
+ */
+private const val PICK_UP_LAST = 400.0
