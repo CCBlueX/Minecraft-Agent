@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-19",
+  "change": "fix(navigation): stand still for inventory clicks",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 154, "cachedInput": 24330360, "cacheWrite": 115452, "output": 57723 },
+      "usd": 3.47
+    }
+  ]
+}

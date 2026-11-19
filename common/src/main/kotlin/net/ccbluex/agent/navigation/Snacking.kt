@@ -37,6 +37,11 @@ internal class Snacking(private val context: NavigationContext) {
     private var hotbar = -1
     private var feeding = false
 
+    /**
+     * One tick of eating; food outside the hotbar is swapped in once the player stands still.
+     *
+     * @agent claude-sonnet-5-5
+     */
     fun tick(isBuilding: Boolean) {
         val body = context.body
         val player = body.player
@@ -56,6 +61,10 @@ internal class Snacking(private val context: NavigationContext) {
         if (slot < 0) return
         if (slot == Inventory.SLOT_OFFHAND) {
             if (body.useItem(InteractionHand.OFF_HAND)) feeding = true
+            return
+        }
+        if (!Inventory.isHotbarSlot(slot) && !context.canClickInventory) {
+            context.shouldStand = true
             return
         }
         val held = if (Inventory.isHotbarSlot(slot)) {

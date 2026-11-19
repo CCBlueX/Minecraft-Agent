@@ -38,7 +38,25 @@ internal class NavigationContext(
     val options: () -> Options,
     val listener: Listener,
     val logger: Logger,
-)
+) {
+
+    /**
+     * Whether the keys of the last tick moved the player, or it sprints.
+     */
+    var isMoving = false
+
+    /**
+     * Set by a part waiting for [canClickInventory]: the navigator presses no key this tick.
+     */
+    var shouldStand = false
+
+    /**
+     * Whether the player stands still enough for a click in its inventory; moving or sprinting at the click is what
+     * anticheats flag, as a player has to open the inventory, which stops them.
+     */
+    val canClickInventory: Boolean
+        get() = !isMoving && !body.player.isSprinting
+}
 
 /**
  * [host] with [press] held back until [takePressed], and the one way to the host's clicks on blocks: a click goes out

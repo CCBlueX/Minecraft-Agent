@@ -64,7 +64,9 @@ internal class Boating(private val context: NavigationContext) {
 
     /**
      * One tick of a crossing of the swim [follower] has ahead; true when it takes the tick, so the walk only goes to
-     * [walkTarget].
+     * [walkTarget]. A boat outside the hotbar is swapped in once the player stands still.
+     *
+     * @agent claude-sonnet-5-5
      */
     fun tick(follower: Follower): Boolean {
         val player = context.body.player
@@ -75,6 +77,10 @@ internal class Boating(private val context: NavigationContext) {
                 val water = spot(follower) ?: return false
                 val slot = boatSlot()
                 if (slot < 0) return false
+                if (!Inventory.isHotbarSlot(slot) && !context.canClickInventory) {
+                    context.shouldStand = true
+                    return true
+                }
                 enter(Phase.Placing(water, hold(slot)))
                 true
             }

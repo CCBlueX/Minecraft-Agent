@@ -182,6 +182,8 @@ public class Navigator @JvmOverloads constructor(
     /**
      * Moves one tick towards [goal], within [radius]; true if the movement is a plain walk other features may add
      * to, such as an extra jump.
+     *
+     * @agent claude-sonnet-5-5
      */
     public fun navigate(goal: Vec3, radius: Double): Boolean {
         startTick()
@@ -190,7 +192,7 @@ public class Navigator @JvmOverloads constructor(
         snacking.tick(isBuilding)
         strandedTicks = if (isStranded) strandedTicks + 1 else 0
         val pressed = tickBody.takePressed()
-        val input = pressed ?: keys.toInput(sprint = false)
+        val input = if (context.shouldStand) Input.EMPTY else pressed ?: keys.toInput(sprint = false)
         val sprint = heading.sprint && input.isMoving
         finishTick(
             if (sprint) input.withKeys(input.jump, input.shift, sprint = true) else input,
@@ -409,6 +411,7 @@ public class Navigator @JvmOverloads constructor(
      */
     private fun startTick() {
         ticks++
+        context.shouldStand = false
         tickStart = player.position()
         if (!viewTurned) {
             lookAhead.tick()
@@ -428,6 +431,7 @@ public class Navigator @JvmOverloads constructor(
         body.safeWalk = follower.path != null && follower.safeWalk
         val guarded = guard?.invoke(timed) ?: timed
         lastInput = guarded
+        context.isMoving = guarded.isMoving
         body.press(guarded, exact || guarded != timed)
     }
 
