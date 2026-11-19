@@ -34,8 +34,8 @@ private const val FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto S
  *
  * @agent claude-opus-5-5
  */
-fun card(usages: List<Usage>, theme: Theme): String {
-    val models = totals(usages)
+fun card(summary: Summary, theme: Theme): String {
+    val models = summary.models
     val total = models.sumOf { it.usd }
     val body = StringBuilder()
     body.text(PAD, 34, "AI usage", theme.text, size = 14, weight = 600)
@@ -84,9 +84,9 @@ fun card(usages: List<Usage>, theme: Theme): String {
         }
 
         body.append("<line x1=\"$PAD\" y1=\"${y + 14}\" x2=\"${WIDTH - PAD}\" y2=\"${y + 14}\" stroke=\"${theme.border}\"/>\n")
-        val first = usages.minOf { it.date }
-        val last = usages.maxOf { it.date }
-        val changes = if (usages.size == 1) "1 change" else "${usages.size} changes"
+        val first = summary.first
+        val last = summary.last
+        val changes = if (summary.changes == 1) "1 change" else "${summary.changes} changes"
         body.text(PAD, y + 36, if (first == last) "$changes, $first" else "$changes, $first to $last", theme.muted, size = 12)
         y + 52
     }

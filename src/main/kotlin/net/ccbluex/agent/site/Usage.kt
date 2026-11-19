@@ -41,12 +41,22 @@ data class Usage(val date: String, val change: String, val tool: String, val mod
 }
 
 /**
- * The content of `/ai-usage.json`, for scripts.
+ * The content of `/ai-usage.json`, for scripts. [changes] includes the [relatedChanges] made in other repositories,
+ * whose usage counts towards the totals without being listed.
  *
  * @agent claude-opus-5-5
  */
 @Serializable
-data class Summary(val usd: Double, val changes: Int, val first: String?, val last: String?, val models: List<ModelUsage>)
+data class Summary(
+    val usd: Double,
+    val changes: Int,
+    val relatedChanges: Int = 0,
+    val first: String?,
+    val last: String?,
+    val models: List<ModelUsage>,
+) {
+    fun toJson() = json.encodeToString(this) + "\n"
+}
 
 private val json = Json {
     ignoreUnknownKeys = true
@@ -61,7 +71,7 @@ private val json = Json {
 fun readUsages(dir: Path): List<Usage> {
     if (!dir.isDirectory()) return emptyList()
     return dir.listDirectoryEntries("*.json")
-        .filter { it.name != "schema.json" }
+        .filter { it.name != "schema.json" && it.name != "config.json" }
         .sortedByDescending { it.name }
         .map { json.decodeFromString<Usage>(it.readText()) }
         .sortedByDescending { it.date }
@@ -82,16 +92,25 @@ fun totals(usages: List<Usage>): List<ModelUsage> =
         .sortedByDescending { it.usd }
 
 /** @agent claude-opus-5-5 */
-fun summary(usages: List<Usage>): String {
+fun summary(usages: List<Usage>): Summary {
     val models = totals(usages)
-    val summary = Summary(
+    return Summary(
         usd = cents(models.sumOf { it.usd }),
         changes = usages.size,
         first = usages.minOfOrNull { it.date },
         last = usages.maxOfOrNull { it.date },
         models = models,
     )
-    return json.encodeToString(summary) + "\n"
+}
+
+/**
+ * The totals `agent-usage summary --json` wrote to [file], without the models that cost nothing.
+ *
+ * @agent claude-opus-5-5
+ */
+fun readSummary(file: Path): Summary {
+    val summary = json.decodeFromString<Summary>(file.readText())
+    return summary.copy(models = summary.models.filter { it.usd > 0 })
 }
 
 /** @agent claude-opus-5-5 */

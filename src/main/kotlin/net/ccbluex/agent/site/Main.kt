@@ -16,7 +16,7 @@ import kotlin.io.path.writeText
 import kotlin.system.exitProcess
 
 private const val USAGE = "Usage: --main <main checkout> --api <Dokka HTML folder or none> --out <folder> " +
-    "[--static <folder copied as is, such as clips/>]"
+    "[--static <folder copied as is, such as clips/>] [--usage <agent-usage summary --json output>]"
 private const val SKILL = "SKILL.md"
 
 /**
@@ -26,7 +26,7 @@ private const val SKILL = "SKILL.md"
  */
 fun main(args: Array<String>) {
     val options = args.toList().chunked(2).associate { it.first() to it.getOrNull(1) }
-    if (options.keys.any { it !in setOf("--main", "--api", "--out", "--static") } || null in options.values) usage()
+    if (options.keys.any { it !in setOf("--main", "--api", "--out", "--static", "--usage") } || null in options.values) usage()
     val main = Path(options["--main"] ?: usage())
     val out = Path(options["--out"] ?: usage())
     val api = options["--api"]?.takeIf { it != "none" }?.let(::Path)
@@ -34,7 +34,7 @@ fun main(args: Array<String>) {
     writeHome(main, out)
     writeApi(api, out)
     writeSkill(main, out)
-    writeAiUsage(main, out)
+    writeAiUsage(main, out, options["--usage"]?.let(::Path))
     options["--static"]?.let { copyStatic(Path(it), out) }
 }
 
@@ -91,15 +91,21 @@ private fun writeSkill(main: Path, out: Path) {
     write(out / "skill" / "index.html", page("Skill", 1, body))
 }
 
-/** @agent claude-opus-5-5 */
-private fun writeAiUsage(main: Path, out: Path) {
+/**
+ * The AI usage page and card. The totals come from [summaryFile], written by `agent-usage summary --json` with the
+ * related repositories, when given; the table lists this repository's changes only.
+ *
+ * @agent claude-opus-5-5
+ */
+private fun writeAiUsage(main: Path, out: Path, summaryFile: Path?) {
     val usages = readUsages(main / ".agent-usage")
-    write(out / "ai-usage-dark.svg", card(usages, Theme.DARK))
-    write(out / "ai-usage-light.svg", card(usages, Theme.LIGHT))
-    write(out / "ai-usage.json", summary(usages))
+    val summary = summaryFile?.let(::readSummary) ?: summary(usages)
+    write(out / "ai-usage-dark.svg", card(summary, Theme.DARK))
+    write(out / "ai-usage-light.svg", card(summary, Theme.LIGHT))
+    write(out / "ai-usage.json", summary.toJson())
 
     val body = StringBuilder("<h1>AI usage</h1>\n")
-    if (usages.isEmpty()) {
+    if (summary.models.isEmpty()) {
         body.append("<p>No AI usage recorded yet.</p>\n")
     } else {
         body.append("<p><picture>\n")
@@ -113,6 +119,9 @@ private fun writeAiUsage(main: Path, out: Path) {
             body.append("<td>${models.escaped()}</td><td>${dollars(usage.usd)}</td></tr>\n")
         }
         body.append("</tbody>\n</table>\n")
+        if (summary.relatedChanges > 0) {
+            body.append("<p>The totals also count ${summary.relatedChanges} changes in related projects that are not public.</p>\n")
+        }
         body.append("<p>Totals per model as JSON: <a href=\"../ai-usage.json\">ai-usage.json</a></p>\n")
     }
     write(out / "ai-usage" / "index.html", page("AI usage", 1, body.toString()))
