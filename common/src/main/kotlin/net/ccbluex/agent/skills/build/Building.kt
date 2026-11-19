@@ -70,6 +70,7 @@ public suspend fun Agent.build(
     } == true
     // Blocks that had a spare block put up beside them to go against
     val propped = HashSet<BlockPos>()
+    var cleared = false
     while (body.player.isAlive) {
         // A click of the walk's own scaffold on a hopper or chest opens it, and an open menu stops every inventory click
         if (body.containerMenu != null) body.closeContainer()
@@ -90,6 +91,13 @@ public suspend fun Agent.build(
         val ready = free.filter { (pos, state) -> isReady(level, wanted, pos, state) }.ifEmpty { free }
         val next = ready.minWithOrNull(order)
         if (next == null) {
+            // Scaffold left up may hide the faces of what is left: it comes down once before anything is propped
+            if (!cleared && scaffold.placed.isNotEmpty()) {
+                cleared = true
+                scaffold.clear()
+                waiting.clear()
+                continue
+            }
             // What is left has nothing to go against: a spare block beside the lowest gives it a face
             val held = wanted.entries
                 .filter { (pos, state) ->
@@ -135,7 +143,10 @@ public suspend fun Agent.build(
             !actual.canBeReplaced() && !dig(pos, forDrops = false) -> false
             else -> state.isAir || place(pos, state, scaffold)
         }
-        if (done) waiting.clear()
+        if (done) {
+            waiting.clear()
+            cleared = false
+        }
     }
     scaffold.props.clear()
     scaffold.clear()

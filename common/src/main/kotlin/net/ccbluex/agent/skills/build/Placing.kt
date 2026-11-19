@@ -98,8 +98,9 @@ internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Sc
     for ((stand, group) in usable.groupBy { it.stand }.entries.take(3)) {
         if (group.none { fits(it, pos, wanted, stack) }) {
             if (stand == null) continue
-            // Scaffold put up for another spot comes down first, so its block can go under this one
-            scaffold.clear(BlockPos.containing(stand).below())
+            // Scaffold put up for another spot comes down once no spare is left, so its block can go under this one;
+            // while one is carried, a pillar stays for the next spot rather than being dug and put up again
+            if (!scaffold.carriesSpare()) scaffold.clear(BlockPos.containing(stand).below())
             stepTo(stand, pos, scaffold)
             if (group.none { fits(it, pos, wanted, stack) }) scaffold.walkTo(stand, 0.2)
         }
@@ -167,28 +168,34 @@ internal fun Agent.clicks(
         val state = level.getBlockState(against)
         if (state.getCollisionShape(level, against).isEmpty) continue
         val face = if (onItself) side else side.opposite
-        fun add(point: Vec3, stand: Vec3?) {
+        fun add(point: Vec3, stand: Vec3?): Boolean {
             val eye = stand?.add(0.0, eyeHeight, 0.0) ?: body.player.eyePosition
             val needsScaffold = stand != null && level.getBlockState(BlockPos.containing(stand).below()).canBeReplaced()
             val click = Click(against, face, point, stand, needsScaffold)
-            if (gives(click, ViewRotation.fromVector(point.subtract(eye)))) clicks += click
+            return gives(click, ViewRotation.fromVector(point.subtract(eye))).also { if (it) clicks += click }
         }
         for (point in facePoints(state.getShape(level, against).bounds(), against, face)) {
             if (canSee(body.player.eyePosition, point, against, face)) add(point, null)
             for (looking in Direction.Plane.HORIZONTAL) {
-                // Also from right beside it, as over a wall or a ledge the face shows only from near
-                for (distance in doubleArrayOf(1.5, 2.5, 3.5)) {
-                    standSpots(point.relative(looking, -distance), pos, scaffold)
-                        .firstOrNull { canSee(it.add(0.0, eyeHeight, 0.0), point, against, face) }
-                        ?.let { add(point, it) }
+                // Also from right beside it, as over a wall or a ledge the face shows only from near, and a block
+                // facing up or down takes a steep look
+                for (distance in 1..3) {
+                    standSpots(Vec3.atCenterOf(pos).relative(looking, -distance.toDouble()), pos, scaffold)
+                        .firstOrNull { canSee(it.add(0.0, eyeHeight, 0.0), point, against, face) && add(point, it) }
                 }
             }
         }
     }
     val position = body.player.position()
-    // From spots with nothing of the build over them first, as a player under it gets walled in
+    // From spots with nothing of the build over them first, as a player under it gets walled in, then from the ground
+    // or a spare block beside the build rather than on top of it, where the walk is narrow
     return clicks.sortedWith(
-        compareBy({ it.needsScaffold }, { it.stand?.let { stand -> scaffold.isCovered(stand) } }, { it.stand?.distanceToSqr(position) ?: -1.0 }),
+        compareBy(
+            { it.stand?.let { stand -> scaffold.isCovered(stand) } },
+            { it.stand?.let { stand -> scaffold.isOnBuild(stand) } },
+            { it.needsScaffold },
+            { it.stand?.distanceToSqr(position) ?: -1.0 },
+        ),
     )
 }
 

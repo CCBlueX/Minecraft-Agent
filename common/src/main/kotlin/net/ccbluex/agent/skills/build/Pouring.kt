@@ -65,7 +65,7 @@ internal suspend fun Agent.pour(pos: BlockPos, wanted: BlockState, scaffold: Sca
     val usable = if (scaffold.hasSpare()) clicks else clicks.filter { !it.needsScaffold }
     for ((stand, group) in usable.groupBy { it.stand }.entries.take(3)) {
         if (stand != null) {
-            scaffold.clear(BlockPos.containing(stand).below())
+            if (!scaffold.carriesSpare()) scaffold.clear(BlockPos.containing(stand).below())
             stepTo(stand, pos, scaffold)
         }
         if (!isDry(body.player.position())) continue

@@ -63,6 +63,11 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     }
 
     /**
+     * Whether [stand] is on top of a block of the build, where the walk to it is narrower than on the ground.
+     */
+    fun isOnBuild(stand: Vec3): Boolean = BlockPos.containing(stand).below() in blueprint
+
+    /**
      * Whether [stack] is a block no part of the build takes.
      */
     fun isSpare(stack: ItemStack): Boolean = PlaceableBlocks.DEFAULT.isPlaceable(stack) && stack.item !in items
@@ -77,13 +82,18 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     }
 
     /**
+     * Whether a spare block is carried.
+     */
+    fun carriesSpare(): Boolean {
+        val inventory = agent.body.player.inventory
+        return (0 until INVENTORY_SLOTS).any { isPlaceable(inventory.getItem(it)) }
+    }
+
+    /**
      * Whether a spare block is carried, or put up and free to come down again.
      */
-    fun hasSpare(): Boolean {
-        val inventory = agent.body.player.inventory
-        return (0 until INVENTORY_SLOTS).any { isPlaceable(inventory.getItem(it)) } ||
-            placed.any { it !in blueprint && !agent.body.level.getBlockState(it).canBeReplaced() }
-    }
+    fun hasSpare(): Boolean =
+        carriesSpare() || placed.any { it !in blueprint && !agent.body.level.getBlockState(it).canBeReplaced() }
 
     /**
      * Whether a spare block could go at [pos] to stand on: on solid ground, and nowhere the build places a block.
