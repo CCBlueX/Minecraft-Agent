@@ -107,6 +107,9 @@ public object Blocks {
     public val MELON: Block = Block.of("melon")
 
     @JvmField
+    public val OBSERVER: Block = Block.of("observer")
+
+    @JvmField
     public val OBSIDIAN: Block = Block.of("obsidian")
 
     @JvmField

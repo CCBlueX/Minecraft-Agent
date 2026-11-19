@@ -35,19 +35,43 @@ import net.ccbluex.agent.skills.sentHit
 import net.ccbluex.agent.skills.slotOf
 import net.ccbluex.agent.tick.tickConditional
 import net.ccbluex.agent.tick.tickUntil
+import net.ccbluex.agent.world.BlockGetter
 import net.ccbluex.agent.world.BlockHitResult
+import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.BlockStateProperties
+import net.ccbluex.agent.world.block.ChestType
 import net.ccbluex.agent.world.item.ItemStack
 
 /**
- * Whether [actual] is the block of [wanted], placed the same way; air is built where anything replaceable is.
+ * Whether the block at [pos] is [wanted] as built: placed the same way, clicked the same way and holding the same
+ * liquid; for a liquid, its source; air is built where anything replaceable is.
  *
  * @agent claude-opus-5-5
  */
-internal fun isBuilt(actual: BlockState, wanted: BlockState): Boolean {
+internal fun isBuilt(level: BlockGetter, pos: BlockPos, wanted: BlockState): Boolean {
+    val actual = level.getBlockState(pos)
     if (wanted.isAir) return actual.canBeReplaced()
-    return actual.block == wanted.block && actual.placedValues == wanted.placedValues
+    if (isLiquid(wanted)) return actual.block == wanted.block && actual.fluidState.isSource
+    return isPlaced(level, pos, actual, wanted) && actual.usedValues == wanted.usedValues &&
+        actual.fluidState.type == wanted.fluidState.type
+}
+
+/**
+ * Whether [actual] at [pos] is the block of [wanted], placed the same way. Half of a double chest is placed right as
+ * a single one while its other half is not there yet.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun isPlaced(level: BlockGetter, pos: BlockPos, actual: BlockState, wanted: BlockState): Boolean {
+    if (actual.block != wanted.block) return false
+    val type = wanted.getOptionalValue(BlockStateProperties.CHEST_TYPE)
+    if (type == null || type == ChestType.SINGLE) return actual.placedValues == wanted.placedValues
+    val facing = wanted.getValue(BlockStateProperties.HORIZONTAL_FACING)
+    val partner = pos.relative(if (type == ChestType.LEFT) facing.getClockWise() else facing.getCounterClockWise())
+    val expected = if (level.getBlockState(partner).block == wanted.block) wanted else wanted.setValue(BlockStateProperties.CHEST_TYPE, ChestType.SINGLE)
+    return actual.placedValues == expected.placedValues
 }
 
 /**
@@ -79,11 +103,25 @@ internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Sc
         }
         for (click in group) {
             if (!reach(click.against, click.face) || !fits(click, pos, wanted, stack)) continue
-            val ok = placeWith(slot, click, pos, wanted, stack)
+            // Looked up anew each time, as holding it moves it into the hotbar
+            val held = body.player.inventory.slotOf(ItemMatch.of(wanted.block.asItem()))
+            if (held < 0) return false
+            val ok = placeWith(held, click, pos, wanted, stack)
             if (ok) return true
         }
     }
     return false
+}
+
+/**
+ * Whether some click places the carried block [wanted] at [pos] as it is wanted, from here or from a spot to stand;
+ * false while the neighbours it has to be placed against are missing.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Agent.hasClick(pos: BlockPos, wanted: BlockState, scaffold: Scaffold): Boolean {
+    val slot = body.player.inventory.slotOf(ItemMatch.of(wanted.block.asItem()))
+    return slot >= 0 && clicks(pos, wanted, body.player.inventory.getItem(slot), scaffold).isNotEmpty()
 }
 
 /**
@@ -111,11 +149,10 @@ private fun Agent.clicks(pos: BlockPos, wanted: BlockState, stack: ItemStack, sc
     val clicks = ArrayList<Click>()
     for (side in Direction.entries) {
         val against = pos.relative(side)
-        if (level.getBlockState(against).getCollisionShape(level, against).isEmpty) continue
+        val state = level.getBlockState(against)
+        if (state.getCollisionShape(level, against).isEmpty) continue
         val face = side.opposite
-        val centre = Vec3.atCenterOf(against).relative(face, 0.5)
-        // The upper or lower half of a side, as slabs and stairs take their half from it
-        val points = if (face.axis.isVertical) listOf(centre) else listOf(centre, centre.add(0.0, 0.25, 0.0), centre.add(0.0, -0.25, 0.0))
+        val points = facePoints(state.getShape(level, against).bounds(), against, face)
         for (point in points) {
             for (looking in Direction.Plane.HORIZONTAL) {
                 val eyeHeight = body.player.eyeHeight.toDouble()
@@ -125,7 +162,7 @@ private fun Agent.clicks(pos: BlockPos, wanted: BlockState, stack: ItemStack, sc
                 val eye = stand?.add(0.0, eyeHeight, 0.0) ?: body.player.eyePosition
                 if (stand == null && !canSee(eye, point, against, face)) continue
                 val placed = predict(stack, against, face, point, ViewRotation.fromVector(point.subtract(eye))) ?: continue
-                if (!isBuilt(placed, wanted)) continue
+                if (!isPlaced(body.level, pos, placed, wanted)) continue
                 val needsScaffold = stand != null && level.getBlockState(BlockPos.containing(stand).below()).canBeReplaced()
                 clicks += Click(against, face, point, stand, needsScaffold)
             }
@@ -133,6 +170,25 @@ private fun Agent.clicks(pos: BlockPos, wanted: BlockState, stack: ItemStack, sc
     }
     val position = body.player.position()
     return clicks.sortedWith(compareBy({ it.needsScaffold }, { it.stand?.distanceToSqr(position) ?: Double.MAX_VALUE }))
+}
+
+/**
+ * Points to click on [face] of the outline [bounds] of the block at [against]: its middle and, on a side, its upper
+ * and lower half, as slabs and stairs take their half from it. On the outline rather than the block's edge, as a
+ * look at the edge of a chest or a hopper passes in front of it.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun facePoints(bounds: AABB, against: BlockPos, face: Direction): List<Vec3> {
+    fun middle(axis: Direction.Axis) = when (axis) {
+        face.axis -> if (face.isPositive) bounds.max(axis) else bounds.min(axis)
+        else -> (bounds.min(axis) + bounds.max(axis)) / 2
+    }
+    val centre = Vec3(against.x + middle(Direction.Axis.X), against.y + middle(Direction.Axis.Y), against.z + middle(Direction.Axis.Z))
+    if (face.axis.isVertical) return listOf(centre)
+    val halves = listOf(0.25, -0.25).map { centre.add(0.0, it, 0.0) }
+        .filter { it.y - against.y in bounds.minY + 0.05..bounds.maxY - 0.05 }
+    return listOf(centre) + halves
 }
 
 /**
@@ -166,7 +222,7 @@ private fun Agent.fits(click: Click, pos: BlockPos, wanted: BlockState, stack: I
     val aim = ViewRotation.fromVector(click.point.subtract(eye))
     return floatArrayOf(-8f, 0f, 8f).all { turn ->
         val placed = predict(stack, click.against, click.face, click.point, ViewRotation(aim.yRot + turn, aim.xRot))
-        placed != null && isBuilt(placed, wanted)
+        placed != null && isPlaced(body.level, pos, placed, wanted)
     }
 }
 
@@ -182,22 +238,26 @@ private suspend fun Agent.placeWith(slot: Int, click: Click, pos: BlockPos, want
     try {
         val hotbar = body.hold(slot)
         var sent: BlockHitResult? = null
+        var crouched = 0
         tickUntil { ticks ->
-            takeMovement()
+            // Sneaking, so a block clicked on, such as a chest or a repeater, does not take the click itself
+            press(SNEAKING, true)
+            crouched = if (body.player.isShiftKeyDown) crouched + 1 else 0
             body.selectHotbarSlot(hotbar)
             sent = sentHit(click.against, click.face)
             // At the click's own point rather than aimAt's least turn, as the half of a side gives slabs and stairs
             // their half; from the eyes of this tick, since the player may still be landing on a block it pillared
             if (sent == null) body.look(ViewRotation.fromVector(click.point.subtract(body.player.eyePosition)), LookPurpose.AIM)
-            sent != null || ticks >= 20
+            // The server learns of the sneak a tick after the client
+            sent != null && crouched >= 2 || ticks >= 20
         }
-        val hit = sent ?: return false
+        val hit = sent?.takeIf { crouched >= 2 } ?: return false
         val placed = predict(stack, click.against, click.face, hit.location, body.sentRotation)
-        if (placed == null || !isBuilt(placed, wanted)) return false
+        if (placed == null || !isPlaced(body.level, pos, placed, wanted)) return false
         if (!navigator.useItemOn(InteractionHand.MAIN_HAND, hit)) return false
         body.swing(InteractionHand.MAIN_HAND)
-        tickConditional(20) { takeMovement(); !level.getBlockState(pos).canBeReplaced() }
-        return isBuilt(level.getBlockState(pos), wanted)
+        tickConditional(20) { press(SNEAKING, true); !level.getBlockState(pos).canBeReplaced() }
+        return isPlaced(level, pos, level.getBlockState(pos), wanted)
     } finally {
         body.releaseHotbarSlot()
     }
@@ -219,3 +279,5 @@ private fun Agent.canSee(eye: Vec3, point: Vec3, against: BlockPos, face: Direct
  */
 private fun Agent.predict(stack: ItemStack, against: BlockPos, face: Direction, point: Vec3, rotation: ViewRotation): BlockState? =
     body.level.placedState(stack, BlockHitResult(point, face, against, false), rotation)
+
+private val SNEAKING = Input(false, false, false, false, false, true, false)

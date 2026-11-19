@@ -2059,8 +2059,9 @@ public final class net/ccbluex/agent/skills/build/BuildResult {
 
 public final class net/ccbluex/agent/skills/build/BuildingKt {
 	public static final fun build (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun build (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;ZLjava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun build (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun build$default (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun build$default (Lnet/ccbluex/agent/skills/Agent;Ljava/util/Map;ZLjava/util/Collection;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class net/ccbluex/agent/skills/craft/CraftingKt {
@@ -3708,6 +3709,7 @@ public abstract class net/ccbluex/agent/world/block/BlockState {
 	public abstract fun getOptionalValue (Lnet/ccbluex/agent/world/block/Property;)Ljava/lang/Object;
 	public fun getPlacedValues ()Ljava/util/List;
 	public abstract fun getShape (Lnet/ccbluex/agent/world/BlockGetter;Lnet/ccbluex/agent/math/BlockPos;)Lnet/ccbluex/agent/world/block/VoxelShape;
+	public fun getUsedValues ()Ljava/util/List;
 	public final fun getValue (Lnet/ccbluex/agent/world/block/Property;)Ljava/lang/Object;
 	public abstract fun hasBlockEntity ()Z
 	public final fun hasProperty (Lnet/ccbluex/agent/world/block/Property;)Z
@@ -3727,12 +3729,15 @@ public abstract class net/ccbluex/agent/world/block/BlockState {
 
 public final class net/ccbluex/agent/world/block/BlockStateProperties {
 	public static final field BED_PART Lnet/ccbluex/agent/world/block/Property;
+	public static final field CHEST_TYPE Lnet/ccbluex/agent/world/block/Property;
 	public static final field DOUBLE_BLOCK_HALF Lnet/ccbluex/agent/world/block/Property;
+	public static final field FACING Lnet/ccbluex/agent/world/block/Property;
 	public static final field HALF Lnet/ccbluex/agent/world/block/Property;
 	public static final field HORIZONTAL_FACING Lnet/ccbluex/agent/world/block/Property;
 	public static final field INSTANCE Lnet/ccbluex/agent/world/block/BlockStateProperties;
 	public static final field OPEN Lnet/ccbluex/agent/world/block/Property;
 	public static final field SLAB_TYPE Lnet/ccbluex/agent/world/block/Property;
+	public static final field WATERLOGGED Lnet/ccbluex/agent/world/block/Property;
 }
 
 public final class net/ccbluex/agent/world/block/BlockTags {
@@ -3784,6 +3789,7 @@ public final class net/ccbluex/agent/world/block/Blocks {
 	public static final field LAVA Lnet/ccbluex/agent/world/block/Block;
 	public static final field MAGMA_BLOCK Lnet/ccbluex/agent/world/block/Block;
 	public static final field MELON Lnet/ccbluex/agent/world/block/Block;
+	public static final field OBSERVER Lnet/ccbluex/agent/world/block/Block;
 	public static final field OBSIDIAN Lnet/ccbluex/agent/world/block/Block;
 	public static final field POWDER_SNOW Lnet/ccbluex/agent/world/block/Block;
 	public static final field PUMPKIN Lnet/ccbluex/agent/world/block/Block;
@@ -3803,6 +3809,15 @@ public final class net/ccbluex/agent/world/block/Blocks {
 	public static final field WEEPING_VINES Lnet/ccbluex/agent/world/block/Block;
 	public static final field WEEPING_VINES_PLANT Lnet/ccbluex/agent/world/block/Block;
 	public static final field WITHER_ROSE Lnet/ccbluex/agent/world/block/Block;
+}
+
+public final class net/ccbluex/agent/world/block/ChestType : java/lang/Enum {
+	public static final field LEFT Lnet/ccbluex/agent/world/block/ChestType;
+	public static final field RIGHT Lnet/ccbluex/agent/world/block/ChestType;
+	public static final field SINGLE Lnet/ccbluex/agent/world/block/ChestType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/ccbluex/agent/world/block/ChestType;
+	public static fun values ()[Lnet/ccbluex/agent/world/block/ChestType;
 }
 
 public final class net/ccbluex/agent/world/block/DoubleBlockHalf : java/lang/Enum {

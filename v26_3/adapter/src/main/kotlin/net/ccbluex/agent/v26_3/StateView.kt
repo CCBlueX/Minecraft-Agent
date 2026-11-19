@@ -26,6 +26,7 @@ import net.ccbluex.agent.world.Level
 import net.ccbluex.agent.world.block.BedPart
 import net.ccbluex.agent.world.block.BlockState
 import net.ccbluex.agent.world.block.BlockStateProperties
+import net.ccbluex.agent.world.block.ChestType
 import net.ccbluex.agent.world.block.DoubleBlockHalf
 import net.ccbluex.agent.world.block.Fluid
 import net.ccbluex.agent.world.block.FluidState
@@ -100,6 +101,10 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
         handle.values.filter { it.property() in PLACED_PROPERTIES }.toList()
     }
 
+    override val usedValues: List<Any> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        handle.values.filter { it.property() in USED_PROPERTIES }.toList()
+    }
+
     override fun requiresCorrectToolForDrops(): Boolean = handle.requiresCorrectToolForDrops()
 
     override fun hasBlockEntity(): Boolean = handle.hasBlockEntity()
@@ -129,8 +134,10 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
             McProperties.FACING, McProperties.HORIZONTAL_FACING, McProperties.FACING_HOPPER,
             McProperties.VERTICAL_DIRECTION, McProperties.AXIS, McProperties.HORIZONTAL_AXIS, McProperties.HALF,
             McProperties.DOUBLE_BLOCK_HALF, McProperties.SLAB_TYPE, McProperties.ROTATION_16,
-            McProperties.ATTACH_FACE, McProperties.DOOR_HINGE, McProperties.ORIENTATION,
+            McProperties.ATTACH_FACE, McProperties.DOOR_HINGE, McProperties.ORIENTATION, McProperties.CHEST_TYPE,
         )
+
+        val USED_PROPERTIES: Set<McProperty<*>> = setOf(McProperties.OPEN, McProperties.DELAY, McProperties.MODE_COMPARATOR)
 
         fun Property<*>.toMinecraft(): McProperty<*>? = when (this) {
             BlockStateProperties.OPEN -> McProperties.OPEN
@@ -139,6 +146,9 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
             BlockStateProperties.HORIZONTAL_FACING -> McProperties.HORIZONTAL_FACING
             BlockStateProperties.SLAB_TYPE -> McProperties.SLAB_TYPE
             BlockStateProperties.BED_PART -> McProperties.BED_PART
+            BlockStateProperties.FACING -> McProperties.FACING
+            BlockStateProperties.WATERLOGGED -> McProperties.WATERLOGGED
+            BlockStateProperties.CHEST_TYPE -> McProperties.CHEST_TYPE
             else -> null
         }
 
@@ -148,6 +158,7 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
             is net.minecraft.world.level.block.state.properties.Half -> Half.valueOf(value.name)
             is net.minecraft.world.level.block.state.properties.SlabType -> SlabType.valueOf(value.name)
             is net.minecraft.world.level.block.state.properties.BedPart -> BedPart.valueOf(value.name)
+            is net.minecraft.world.level.block.state.properties.ChestType -> ChestType.valueOf(value.name)
             else -> value
         }
 
@@ -157,6 +168,7 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
             is Half -> net.minecraft.world.level.block.state.properties.Half.valueOf(value.name)
             is SlabType -> net.minecraft.world.level.block.state.properties.SlabType.valueOf(value.name)
             is BedPart -> net.minecraft.world.level.block.state.properties.BedPart.valueOf(value.name)
+            is ChestType -> net.minecraft.world.level.block.state.properties.ChestType.valueOf(value.name)
             else -> value
         }
     }

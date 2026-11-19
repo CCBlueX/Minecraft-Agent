@@ -105,10 +105,6 @@ public class Agent @JvmOverloads constructor(
 
     public fun tick() {
         ticks++
-        walkGoal = null
-        movementTaken = false
-        pressed = null
-
         game?.tick(this)
         skills.voidRescue?.tick(this)
         // A fall into the void owns the hotbar and the keys: eating or swapping weapons then drops the blocks
@@ -131,6 +127,10 @@ public class Agent @JvmOverloads constructor(
             }
         } finally {
             navigator.guard = null
+            // Cleared after use, so what a skill on the host's TickScope asked for before this tick counts in it
+            walkGoal = null
+            movementTaken = false
+            this.pressed = null
         }
         idleKeys(navigator.input, guard)?.let { body.press(it, true) }
     }

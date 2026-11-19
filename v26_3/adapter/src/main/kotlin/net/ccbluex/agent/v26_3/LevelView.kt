@@ -178,7 +178,7 @@ internal class LevelView(val handle: McLevel) : Level, GameBlocks {
 }
 
 /**
- * A placement as a player looking with [rotation] makes it, without moving anyone.
+ * A placement as a sneaking player looking with [rotation] makes it, without moving anyone.
  *
  * @agent claude-opus-5-5
  */
@@ -188,6 +188,8 @@ private class LookingContext(level: McLevel, stack: McItemStack, hit: McBlockHit
     override fun getHorizontalDirection(): McDirection = McDirection.fromYRot(rotation.yRot.toDouble())
 
     override fun getRotation(): Float = rotation.yRot
+
+    override fun isSecondaryUseActive(): Boolean = true
 
     override fun getNearestLookingVerticalDirection(): McDirection =
         if (rotation.xRot < 0f) McDirection.UP else McDirection.DOWN

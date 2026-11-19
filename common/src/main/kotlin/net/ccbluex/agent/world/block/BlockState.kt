@@ -124,6 +124,12 @@ public abstract class BlockState(public val block: Block) {
      */
     public open val placedValues: List<Any> get() = emptyList()
 
+    /**
+     * What right-clicks on the placed block change, such as whether a trapdoor or gate is open, a repeater's delay and
+     * a comparator's mode; empty where an adapter does not tell.
+     */
+    public open val usedValues: List<Any> get() = emptyList()
+
     public fun `is`(block: Block): Boolean = this.block === block
 
     public fun `is`(tag: TagKey<Block>): Boolean = block.`is`(tag)
@@ -166,6 +172,16 @@ public object BlockStateProperties {
 
     @JvmField
     public val BED_PART: Property<BedPart> = Property("part", BedPart::class.java)
+
+    @JvmField
+    public val FACING: Property<net.ccbluex.agent.math.Direction> =
+        Property("facing", net.ccbluex.agent.math.Direction::class.java)
+
+    @JvmField
+    public val WATERLOGGED: Property<Boolean> = Property("waterlogged", Boolean::class.javaObjectType)
+
+    @JvmField
+    public val CHEST_TYPE: Property<ChestType> = Property("type", ChestType::class.java)
 }
 
 /**
@@ -187,6 +203,11 @@ public enum class SlabType { TOP, BOTTOM, DOUBLE }
  * @agent claude-opus-5-5
  */
 public enum class BedPart { HEAD, FOOT }
+
+/**
+ * @agent claude-opus-5-5
+ */
+public enum class ChestType { SINGLE, LEFT, RIGHT }
 
 /**
  * @agent claude-opus-5-5

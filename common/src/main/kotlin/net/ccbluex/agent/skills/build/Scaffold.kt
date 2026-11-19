@@ -54,12 +54,16 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     val lacking = HashSet<BlockPos>()
     private val items = blueprint.values.mapTo(HashSet()) { it.block.asItem() }
 
+    /**
+     * Whether [stack] is a block no part of the build takes.
+     */
+    fun isSpare(stack: ItemStack): Boolean = PlaceableBlocks.DEFAULT.isPlaceable(stack) && stack.item !in items
+
     override fun isPlaceable(stack: ItemStack): Boolean {
         if (!PlaceableBlocks.DEFAULT.isPlaceable(stack)) return false
         if (stack.item !in items) return true
-        val level = agent.body.level
         val needed = blueprint.count { (pos, state) ->
-            state.block.asItem() == stack.item && !isBuilt(level.getBlockState(pos), state)
+            state.block.asItem() == stack.item && !isBuilt(agent.body.level, pos, state)
         }
         return agent.body.player.inventory.count(ItemMatch.of(stack.item)) > needed
     }

@@ -262,8 +262,8 @@ public interface Level : BlockGetter {
     public fun signs(chunkX: Int, chunkZ: Int): Map<BlockPos, List<String>>
 
     /**
-     * The state [stack] places when clicked on [hit] by a player looking with [rotation], as the game decides it; null
-     * where it places no block or the adapter does not tell.
+     * The state [stack] places when clicked on [hit] by a sneaking player looking with [rotation], as the game decides
+     * it, so no block clicked on takes the click instead; null where it places no block or the adapter does not tell.
      */
     public fun placedState(stack: ItemStack, hit: BlockHitResult, rotation: ViewRotation): BlockState? = null
 
