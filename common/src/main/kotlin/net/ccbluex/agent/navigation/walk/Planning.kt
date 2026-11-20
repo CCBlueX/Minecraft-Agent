@@ -35,7 +35,6 @@ import net.ccbluex.agent.pathfinder.terrain.Terrain
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.RouteSearch
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
 import kotlin.math.min
 
 /**
@@ -163,29 +162,13 @@ internal class Planning(
         }
 
         // The player moved on while searching; the next search starts where the player is now.
-        val startIndex = joinIndex(path, position) ?: return routes.forget()
+        val startIndex = path.joinIndex(position) ?: return routes.forget()
 
         routes.routeEnds(path.steps.last().to)
         settledAt = null
         follower.follow(path, startIndex)
         context.logger.debug("Following a path of {} steps to {}", path.steps.size, path.end)
         context.listener.routeFound(path)
-    }
-
-    private fun joinIndex(path: Route, position: Vec3): Int? {
-        val points = path.points
-        var best: Int? = null
-        var bestDistance = Double.MAX_VALUE
-        for (index in 0 until min(points.size, JOIN_POINTS)) {
-            val point = points[index]
-            val horizontal = position.horizontalDistanceTo(point)
-            val near = horizontal <= JOIN_DISTANCE && abs(position.y - point.y) <= JOIN_DISTANCE
-            if (near && horizontal < bestDistance) {
-                best = index
-                bestDistance = horizontal
-            }
-        }
-        return best
     }
 
     fun planIfNeeded(goal: Vec3, radius: Double, position: Vec3) {
@@ -245,8 +228,6 @@ internal class Planning(
     private companion object {
         const val VERTICAL_MARGIN = 16
         const val SETTLE_TICKS = 100
-        const val JOIN_POINTS = 8
-        const val JOIN_DISTANCE = 1.0
         const val PARKOUR_EXPANSIONS = 40_000
         const val SLICE_EXPANSIONS = 5_000
         const val MAX_WIDENING = 2

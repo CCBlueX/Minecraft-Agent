@@ -54,6 +54,8 @@ private const val MIN_SEGMENT = 0.3
 private const val PASS_BESIDE = 0.6
 private const val PASS_VERTICAL = 1.25
 private const val OFF_PATH = 1.5
+private const val JOIN_POINTS = 8
+private const val JOIN_DISTANCE = 1.0
 
 /**
  * A block down from the path counts as off it.
@@ -237,6 +239,33 @@ internal fun Route.isOffPath(index: Int, position: Vec3): Boolean {
         }
     }
     return true
+}
+
+/**
+ * The point among the first ones closest to [position], which the player moved to while the route was searched; null
+ * when none is near. A point past a step that places or breaks blocks is never joined: the player near it got there
+ * another way, and those blocks are not done.
+ *
+ * From LiquidBounce: [Navigator.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/Navigator.kt#L481-L575)
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Route.joinIndex(position: Vec3): Int? {
+    var best: Int? = null
+    var bestDistance = Double.MAX_VALUE
+    for (index in 0 until min(points.size, JOIN_POINTS)) {
+        if (index > 0 && steps[index - 1].builds) {
+            break
+        }
+        val point = points[index]
+        val horizontal = position.horizontalDistanceTo(point)
+        val near = horizontal <= JOIN_DISTANCE && abs(position.y - point.y) <= JOIN_DISTANCE
+        if (near && horizontal < bestDistance) {
+            best = index
+            bestDistance = horizontal
+        }
+    }
+    return best
 }
 
 /**
