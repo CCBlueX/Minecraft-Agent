@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-20",
+  "change": "fix(navigation): no wait for blocks on the ground",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 18, "cachedInput": 2834538, "cacheWrite": 11059, "output": 5009 },
+      "usd": 0.76
+    }
+  ]
+}

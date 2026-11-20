@@ -258,8 +258,9 @@ internal class Follower(
                 act(pendingPlace, step)
             }
 
-            // The server may still take the block back, and the player with it into the void.
-            unconfirmedPlace != null -> {
+            // The server may still take the block back, and the player with it into the void. A block on the ground
+            // taken back is a step down at worst, so the walk goes on.
+            unconfirmedPlace != null && check.isCleared(unconfirmedPlace.below()) -> {
                 actions.idle()
                 standStill(keys)
                 if (unconfirmedPlace.y < step.from.y) {
