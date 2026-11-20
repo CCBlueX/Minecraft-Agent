@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-20",
+  "change": "fix(navigation): no sprint off a one-stack edge",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 246, "cachedInput": 18244712, "cacheWrite": 148960, "output": 56625 },
+      "usd": 5.97
+    }
+  ]
+}

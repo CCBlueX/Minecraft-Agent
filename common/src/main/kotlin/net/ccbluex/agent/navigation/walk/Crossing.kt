@@ -71,6 +71,14 @@ internal class Crossing(
     private var placed = 0
     private var lastPlacement: PlacedBlock? = null
     private var hopTicks = -1
+
+    /**
+     * Ticks left in which forward pressed again after the edge stop let go of the keys is a double tap, which the game
+     * starts sprinting with.
+     *
+     * @agent claude-opus-5-5
+     */
+    private var doubleTapTicks = 0
     private var isHopping = false
     private var nudge: ViewRotation? = null
     private var nudgedFloor: BlockPos? = null
@@ -128,6 +136,7 @@ internal class Crossing(
     }
 
     fun clear() {
+        doubleTapTicks = 0
         bridge = null
         method = null
         view = null
@@ -141,6 +150,7 @@ internal class Crossing(
         val bridge = checkNotNull(bridge)
         val method = checkNotNull(method)
         countPlacement(method)
+        if (doubleTapTicks > 0) doubleTapTicks--
         acting = null
         if (method == Bridging.TELLY) {
             return telly.tick(keys, frameYRot, steps, bridge, method.xRot).also {
@@ -279,12 +289,15 @@ internal class Crossing(
     /**
      * Whether the player sneaks at the edge of [step]: a tick on without sneaking passes it, and the method does not
      * click past the edge, or cannot from where that tick ends, still on the ground, with the rotation aimed this tick.
+     * Within [doubleTapTicks], that tick is a sprinting one.
+     *
+     * @agent claude-opus-5-5
      */
     private fun sneaksAtEdge(keys: MovementKeys, step: Step, floor: BlockPos?, method: Bridging): Boolean {
         if (!player.onGround()) {
             return false
         }
-        val next = body.simulateTick(keys.toInput(sprint = false))
+        val next = body.simulateTick(keys.toInput(sprint = doubleTapTicks > 0))
         if (!next.hasBackedOffEdge) {
             // Grim flags a sneak holding the player at the edge right after a walking tick (over 0.1 a tick) ended
             // there, within 0.05 of leaving the floor; without keys for that tick, the sneak stops it short instead.
@@ -292,6 +305,7 @@ internal class Crossing(
             val walking = player.deltaMovement.horizontalDistance() > 0.1
             if (stops && walking && next.player.onGround() && step.pastEdge(next.player.position()) > 0.25) {
                 keys.directionalInput = Input.EMPTY
+                doubleTapTicks = DOUBLE_TAP_TICKS
             }
             return false
         }
@@ -396,6 +410,11 @@ internal class Crossing(
 
     private companion object {
         const val HALF_TURN = 180f
+
+        /**
+         * LocalPlayer.sprintTriggerTime set on pressing forward.
+         */
+        const val DOUBLE_TAP_TICKS = 7
 
         /**
          * Degrees off the view held within which the rotation sent counts as there.
