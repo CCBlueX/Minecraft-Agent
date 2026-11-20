@@ -72,10 +72,32 @@ internal suspend fun Agent.pour(pos: BlockPos, wanted: BlockState, scaffold: Sca
         for (click in group) {
             val eye = body.player.eyePosition
             if (eye.distanceTo(click.point) > BLOCK_REACH || !level.isSeen(eye, click.point, click.against, click.face, body.player)) continue
-            if (pourOn(bucket, click.against, click.face, pos, wanted)) return true
+            if (pourOn(bucket, click.against, click.face, pos, wanted)) {
+                if (fluid == Fluid.LAVA) awaitSettled(pos)
+                return true
+            }
         }
     }
     return isBuilt(level, pos, wanted)
+}
+
+/**
+ * Ticks until the lava poured at [pos] stops spreading, a block every 30 ticks, as a walk plans over the cells it has
+ * yet to reach and runs into it there.
+ *
+ * @agent claude-opus-5-5
+ */
+private suspend fun Agent.awaitSettled(pos: BlockPos) {
+    val level = body.level
+    fun lava() = BlockPos.betweenClosed(pos.offset(-4, -4, -4), pos.offset(4, 0, 4)).count { level.getBlockState(it).fluidState.type == Fluid.LAVA }
+    var count = lava()
+    var still = 0
+    tickUntil { ticks ->
+        val now = lava()
+        still = if (now == count) still + 1 else 0
+        count = now
+        still >= 40 || ticks >= 200
+    }
 }
 
 /**

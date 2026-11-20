@@ -151,10 +151,12 @@ internal class Scaffold(
     val props = HashMap<BlockPos, BlockPos>()
 
     /**
-     * Puts a spare block in the [propCell] of [pos]; false when it has none or none could be put.
+     * Puts a spare block in the [propCell] of [pos], taking one put up elsewhere back first when none is carried;
+     * false when it has none or none could be put.
      */
     suspend fun prop(pos: BlockPos): Boolean {
         val cell = propCell(pos) ?: return false
+        if (!carriesSpare() && !free(cell)) return false
         if (!put(cell)) return false
         props[cell] = pos
         return true
@@ -163,8 +165,8 @@ internal class Scaffold(
     /**
      * Where a spare block next to [pos] gives it a face to go against: first where the block faces, as a stair or
      * hopper takes its facing from the face it is placed against, then under it; outside the build first, else in a
-     * cell of the build whose block comes later, such as a wire beside a piston walled in all round. Null when no
-     * such cell has something to put one against.
+     * cell of the build whose block comes later, such as a wire beside a piston walled in all round, never one below,
+     * whose block comes first and gives the face itself. Null when no such cell has something to put one against.
      */
     fun propCell(pos: BlockPos): BlockPos? {
         val level = agent.body.level
@@ -174,19 +176,46 @@ internal class Scaffold(
         val sides = (listOfNotNull(facing) + Direction.DOWN + Direction.Plane.HORIZONTAL + Direction.UP).distinct().map(pos::relative)
         fun canHold(cell: BlockPos) = level.getBlockState(cell).canBeReplaced() &&
             Direction.entries.any { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty }
-        fun isLater(cell: BlockPos) = blueprint[cell]?.let { !follows(it) && it.fluidState.isEmpty } == true
+        fun isLater(cell: BlockPos) = cell.y >= pos.y && blueprint[cell]?.let { !follows(it) && it.fluidState.isEmpty } == true
         return sides.firstOrNull { it.asLong() !in reserved && canHold(it) } ?: sides.firstOrNull { isLater(it) && canHold(it) }
     }
 
     /**
-     * Walks to [spot], within [radius]; the walk may pillar or bridge on spare blocks, and [placed] keeps where.
+     * Walks to [spot], within [radius]; the walk may pillar or bridge on spare blocks, and [placed] keeps where. With
+     * no way there, the spare blocks walls the player in with come down, and from under the build, where the nearest
+     * the walk gets may be a pocket right below the spot, it walks out first; then it tries once more.
      */
     suspend fun walkTo(spot: Vec3, radius: Double) {
+        if (walk(spot, radius) != Ending.UNREACHABLE || escaping) return
+        escaping = true
+        try {
+            val feet = BlockPos.containing(agent.body.player.position())
+            val walls = Direction.Plane.HORIZONTAL.flatMap { listOf(feet.relative(it).above(), feet.relative(it)) }
+                .filter { isOwn(it) && mayComeDown(it) }
+            walls.forEach { take(it) }
+            val covered = isCovered(agent.body.player.position())
+            if (walls.isEmpty() && !covered) return
+            if (covered) outside()?.let { walk(Vec3.atBottomCenterOf(it), 0.5) }
+            walk(spot, radius)
+        } finally {
+            escaping = false
+        }
+    }
+
+    private var escaping = false
+
+    /**
+     * One walk to [spot]; one that got nowhere in eight seconds counts as [Ending.UNREACHABLE], as a jump the player
+     * cannot make is tried again and again.
+     */
+    private suspend fun walk(spot: Vec3, radius: Double): Ending? {
         val navigator = agent.navigator
         val options = navigator.options
         val before = navigator.placement
+        val start = agent.body.player.position()
         navigator.options = options.copy(canPlace = true, placeableBlocks = this)
         var ending: Ending? = null
+        var stalled = false
         navigator.moveTo(spot, radius) { ending = it }
         try {
             tickUntil { ticks ->
@@ -196,10 +225,29 @@ internal class Scaffold(
                 }
                 ending != null || ticks >= 160 || !agent.body.player.isAlive
             }
+            stalled = ending == null && agent.body.player.position().distanceTo(start) < 1.0
         } finally {
             if (ending == null) navigator.stop()
             navigator.options = options
         }
+        return if (stalled) Ending.UNREACHABLE else ending
+    }
+
+    /**
+     * The free spot on the ground right outside the build's bottom layer nearest the player, if any.
+     */
+    private fun outside(): BlockPos? {
+        val level = agent.body.level
+        val keys = blueprint.keys
+        val minX = keys.minOf { it.x } - 1
+        val maxX = keys.maxOf { it.x } + 1
+        val minZ = keys.minOf { it.z } - 1
+        val maxZ = keys.maxOf { it.z } + 1
+        val y = keys.minOf { it.y }
+        return BlockPos.betweenClosed(BlockPos(minX, y, minZ), BlockPos(maxX, y, maxZ)).map { it.immutable() }
+            .filter { it.x == minX || it.x == maxX || it.z == minZ || it.z == maxZ }
+            .filter { level.getBlockState(it).canBeReplaced() && level.getBlockState(it.above()).canBeReplaced() && !level.getBlockState(it.below()).canBeReplaced() }
+            .minByOrNull { it.distToCenterSqr(agent.body.player.position()) }
     }
 
     /**
@@ -231,18 +279,22 @@ internal class Scaffold(
     }
 
     /**
-     * The spare block nearest the player that may come down and [matches]: the top of its pillar, neither [keep] nor
-     * a prop whose block is still missing, nor one holding back a liquid, which would flow where the player stands;
-     * the water in a waterlogged block stays in it.
+     * The spare block nearest the player that may come down and [matches]: the top of its pillar, not [keep].
      */
     private fun nearest(keep: BlockPos?, matches: (BlockPos) -> Boolean): BlockPos? {
-        val level = agent.body.level
         val position = agent.body.player.position()
-        return placed.filter { pos ->
-            pos !in blueprint && pos != keep && pos.above() !in placed && matches(pos) &&
-                props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } != true &&
-                Direction.entries.none { it != Direction.DOWN && isLiquid(level.getBlockState(pos.relative(it))) }
-        }.minByOrNull { it.distToCenterSqr(position) }
+        return placed.filter { pos -> pos != keep && pos.above() !in placed && matches(pos) && mayComeDown(pos) }
+            .minByOrNull { it.distToCenterSqr(position) }
+    }
+
+    /**
+     * Whether the spare block at [pos] may come down: neither a prop whose block is still missing, nor one holding
+     * back a liquid, which would flow where the player stands; the water in a waterlogged block stays in it.
+     */
+    private fun mayComeDown(pos: BlockPos): Boolean {
+        val level = agent.body.level
+        return pos !in blueprint && props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } != true &&
+            Direction.entries.none { it != Direction.DOWN && isLiquid(level.getBlockState(pos.relative(it))) }
     }
 
     /**

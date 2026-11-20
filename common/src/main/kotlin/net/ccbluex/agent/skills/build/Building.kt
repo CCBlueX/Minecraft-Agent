@@ -158,17 +158,19 @@ private suspend fun Agent.buildBlocks(
             continue
         }
         val (pos, state) = next
-        // The lowest block with nothing to go against, not even one to wait for being built; full blocks first, as
-        // torches and wires hang on them
+        // The lowest block with nothing to go against, not even one to wait for being built, that a prop can go
+        // beside; full blocks first, as torches and wires hang on them
         val low = wanted.entries.asSequence()
             .filter { (cell, wants) ->
                 cell !in propped && !isLiquid(wants) && !wants.isAir && !isGivenUp(cell) && level.getBlockState(cell).canBeReplaced() &&
-                    (cell in faceless || Direction.entries.none { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty })
+                    (cell in faceless || Direction.entries.none { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty }) &&
+                    scaffold.propCell(cell) != null
             }
             .minWithOrNull(compareBy({ it.key.y }, { !it.value.isCollisionShapeFullBlock(level, it.key) }, { it.key.distManhattan(pos) != 1 }))?.key
         // It gets its prop before anything above its layer goes up, or the block whose cell is the only one left for
-        // the prop, such as a wire beside a piston walled in all round
-        if (low != null && (pos.y > low.y || pos == scaffold.propCell(low)) && !hasClick(low, wanted.getValue(low), scaffold)) {
+        // the prop, such as a wire beside a piston walled in all round; once a spare block is at hand, as one may come
+        // only with the next restock
+        if (low != null && scaffold.hasSpare() && (pos.y > low.y || pos == scaffold.propCell(low)) && !hasClick(low, wanted.getValue(low), scaffold)) {
             propped += low
             if (scaffold.prop(low)) {
                 waiting.clear()
@@ -191,11 +193,18 @@ private suspend fun Agent.buildBlocks(
             continue
         }
         if (toPlace && pos !in shutting) {
-            val shut = around(pos).firstOrNull { other ->
-                val wants = wanted[other] ?: return@firstOrNull false
-                !isLiquid(wants) && !wants.isAir && !isPlaced(level, other, level.getBlockState(other), wants) &&
-                    wouldShut(pos, other, wants, scaffold)
+            fun isMissing(other: BlockPos) = wanted[other]?.let { wants ->
+                !isLiquid(wants) && !wants.isAir && !isPlaced(level, other, level.getBlockState(other), wants)
+            } == true
+            // A piston of the build that stands extended fills its head cell once powered, which may be the only way
+            // to see a block beside that cell
+            val head = if (state.`is`(Blocks.PISTON) || state.`is`(Blocks.STICKY_PISTON)) {
+                pos.relative(state.getValue(BlockStateProperties.FACING)).takeIf { blocks[it]?.let(::follows) == true }
+            } else {
+                null
             }
+            val shut = around(pos).firstOrNull { other -> isMissing(other) && wouldShut(pos, other, wanted.getValue(other), scaffold) }
+                ?: head?.let { Direction.Plane.HORIZONTAL.map(it::relative).firstOrNull { other -> other != pos && isMissing(other) } }
             if (shut != null) {
                 shutting[pos] = shut
                 continue
