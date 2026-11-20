@@ -219,14 +219,15 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
 
     /**
      * The spare block nearest the player that may come down and [matches]: the top of its pillar, neither [keep] nor
-     * a prop whose block is still missing.
+     * a prop whose block is still missing, nor one holding back a liquid, which would flow where the player stands.
      */
     private fun nearest(keep: BlockPos?, matches: (BlockPos) -> Boolean): BlockPos? {
         val level = agent.body.level
         val position = agent.body.player.position()
         return placed.filter { pos ->
             pos !in blueprint && pos != keep && pos.above() !in placed && matches(pos) &&
-                props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } != true
+                props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } != true &&
+                Direction.entries.none { it != Direction.DOWN && !level.getBlockState(pos.relative(it)).fluidState.isEmpty }
         }.minByOrNull { it.distToCenterSqr(position) }
     }
 
@@ -262,5 +263,5 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
 internal fun isInStand(cell: BlockPos, pos: BlockPos): Boolean {
     val x = cell.x - pos.x
     val z = cell.z - pos.z
-    return (x == 0 && z in -3..3 || z == 0 && x in -3..3) && cell.y - pos.y in -3..2
+    return (x == 0 && z in -3..3 || z == 0 && x in -3..3) && cell.y - pos.y in -3..3
 }

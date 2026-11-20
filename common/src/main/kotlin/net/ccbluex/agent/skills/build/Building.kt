@@ -109,7 +109,9 @@ private suspend fun Agent.buildBlocks(blocks: Map<BlockPos, BlockState>, canBrea
             }
             .filter { (pos, state) -> itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false }
         val free = open.filter { !isShutting(it.key) }.ifEmpty { open }
-        val ready = free.filter { (pos, state) -> isReady(level, wanted, pos, state) }.ifEmpty { free }
+        // A liquid poured before its walls stand flows onto the build and the player
+        val ready = free.filter { (pos, state) -> isReady(level, wanted, pos, state) }
+            .ifEmpty { free.filter { !isLiquid(it.value) } }
         val next = ready.minWithOrNull(order)
         if (next == null) {
             // Scaffold left up may hide the faces of what is left: what stands in their way comes down once before
@@ -259,9 +261,9 @@ private fun Agent.canBuild(pos: BlockPos, state: BlockState, canBreak: Boolean):
 
 /**
  * Whether [state] at [pos] goes before what is left of [wanted] around it: an observer once the block it watches
- * stands, as that block coming later would make it pulse; a liquid once the blocks beside and under it stand, so it
- * flows nowhere else, and water into a placed block once all around it stand; any other block not over a liquid
- * still to pour, whose cell it would close.
+ * stands, as that block coming later would make it pulse; a liquid, or water into a placed block, once the blocks
+ * beside and under it stand, so it flows nowhere else; any other block not over a liquid or a block still to fill
+ * with water, whose cell it would close.
  *
  * @agent claude-opus-5-5
  */
@@ -271,10 +273,12 @@ internal fun isReady(level: BlockGetter, wanted: Map<BlockPos, BlockState>, pos:
     val actual = level.getBlockState(pos)
     if (isPlaced(level, pos, actual, state)) {
         // An observer next to it waits for the water instead, which would make it pulse
-        return actual.usedValues != state.usedValues ||
-            Direction.entries.all { wanted[pos.relative(it)]?.`is`(Blocks.OBSERVER) == true || stands(pos.relative(it)) }
+        return actual.usedValues != state.usedValues || Direction.entries.all {
+            it == Direction.UP || wanted[pos.relative(it)]?.`is`(Blocks.OBSERVER) == true || stands(pos.relative(it))
+        }
     }
-    wanted[pos.below()]?.let { if (isLiquid(it) && !isBuilt(level, pos.below(), it)) return false }
+    // Also over a block still to be filled with water, such as a waterlogged trapdoor, poured from above
+    wanted[pos.below()]?.let { if (!it.fluidState.isEmpty && !isBuilt(level, pos.below(), it)) return false }
     if (!state.`is`(Blocks.OBSERVER)) return true
     val watched = pos.relative(state.getValue(BlockStateProperties.FACING))
     return wanted[watched]?.let { isBuilt(level, watched, it) } != false

@@ -274,6 +274,18 @@ class WalkRoutingTest {
         assertTrue(path.steps.none { it.to == BlockPos(1, 1, 0) }, "${path.steps}")
     }
 
+    /**
+     * small14: a build walk ended standing in the top of a hopper and every walk from there was unreachable, as the
+     * rim a step high counted as a wall.
+     *
+     * @agent claude-opus-5-5
+     */
+    @Test
+    fun `the rim of a hopper stood in is stepped over`() {
+        val world = TestWorld.flat().set(0, 1, 0, Blocks.HOPPER.defaultBlockState())
+        completePath(search(world, Vec3(0.5, 1.6875, 0.5), BlockPos(4, 1, 0), abilities()))
+    }
+
     @Test
     fun `leaning over the corner of a bridge, the path starts on the block holding the player`() {
         // A bridge eight blocks up ending at x 5; the feet hang past its corner, held by the last block.

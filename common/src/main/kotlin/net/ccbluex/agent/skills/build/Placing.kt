@@ -79,6 +79,10 @@ internal fun isPlaced(level: BlockGetter, pos: BlockPos, actual: BlockState, wan
  */
 internal class Click(val against: BlockPos, val face: Direction, val point: Vec3, val stand: Vec3?, val needsScaffold: Boolean)
 
+// Every click is made sneaking, with the eyes this high over the feet; from standing height a piston or observer
+// clicked from below or above would face another way
+private const val SNEAK_EYE = 1.27
+
 /**
  * Places the carried block [wanted] at [pos] as it is wanted: from where the player is when a click from there gives
  * it, else from the nearest spots on the side it has to be placed from, up on [scaffold] where the ground shows no
@@ -164,7 +168,7 @@ internal fun Agent.clicks(
     gives: (Click, ViewRotation) -> Boolean,
 ): List<Click> {
     val level = body.level
-    val eyeHeight = body.player.eyeHeight.toDouble()
+    val eyeHeight = SNEAK_EYE
     val clicks = ArrayList<Click>()
     for (side in Direction.entries) {
         val against = if (onItself) pos else pos.relative(side)
@@ -174,13 +178,13 @@ internal fun Agent.clicks(
         if (state.getCollisionShape(level, against).isEmpty || shape.isEmpty) continue
         val face = if (onItself) side else side.opposite
         fun add(point: Vec3, stand: Vec3?): Boolean {
-            val eye = stand?.add(0.0, eyeHeight, 0.0) ?: body.player.eyePosition
+            val eye = (stand ?: body.player.position()).add(0.0, eyeHeight, 0.0)
             val needsScaffold = stand != null && level.getBlockState(BlockPos.containing(stand).below()).canBeReplaced()
             val click = Click(against, face, point, stand, needsScaffold)
             return gives(click, ViewRotation.fromVector(point.subtract(eye))).also { if (it) clicks += click }
         }
         for (point in facePoints(shape.bounds(), against, face)) {
-            if (canSee(body.player.eyePosition, point, against, face)) add(point, null)
+            if (canSee(body.player.position().add(0.0, eyeHeight, 0.0), point, against, face)) add(point, null)
             for (looking in Direction.Plane.HORIZONTAL) {
                 // Also from right beside it, as over a wall or a ledge the face shows only from near, and a block
                 // facing up or down takes a steep look
@@ -242,7 +246,8 @@ private fun Agent.standSpots(near: Vec3, pos: BlockPos, scaffold: Scaffold): Seq
     fun isFree(at: BlockPos) = at != pos && isEmpty(at) && level.getBlockState(at).fluidState.isEmpty
     fun isFooting(at: BlockPos) = level.getBlockState(at).getCollisionShape(level, at).toAabbs()
         .any { it.minX <= 0.5 && it.maxX >= 0.5 && it.minZ <= 0.5 && it.maxZ >= 0.5 && it.maxY >= 0.5 }
-    return (-3..1).asSequence()
+    // Up to two above it: a piston facing up is clicked looking steeply down, from the top of the layer over it
+    return (-3..2).asSequence()
         .map { column.above(it) }
         .filter { isFree(it) && isFree(it.above()) && (isFooting(it.below()) || isEmpty(it.below()) && scaffold.canPlace(it.below())) }
         .map(Vec3::atBottomCenterOf)
@@ -256,7 +261,7 @@ private fun Agent.standSpots(near: Vec3, pos: BlockPos, scaffold: Scaffold): Seq
  */
 private fun Agent.fits(click: Click, pos: BlockPos, wanted: BlockState, stack: ItemStack): Boolean {
     val player = body.player
-    val eye = player.eyePosition
+    val eye = player.position().add(0.0, SNEAK_EYE, 0.0)
     if (player.boundingBox.intersects(AABB(pos)) || eye.distanceTo(click.point) > BLOCK_REACH) return false
     if (!canSee(eye, click.point, click.against, click.face)) return false
     val aim = ViewRotation.fromVector(click.point.subtract(eye))
@@ -288,9 +293,12 @@ private suspend fun Agent.placeWith(slot: Int, click: Click, pos: BlockPos, want
             sent = sentHit(click.against, click.face)
             // At the click's own point rather than aimAt's least turn, as the half of a side gives slabs and stairs
             // their half; from the eyes of this tick, since the player may still be landing on a block it pillared
-            if (sent == null) body.look(ViewRotation.fromVector(click.point.subtract(body.player.eyePosition)), LookPurpose.AIM)
-            // The server learns of the sneak a tick after the client
-            sent != null && crouched >= 2 || ticks >= 20
+            if (sent == null || crouched < 2 || !body.player.onGround()) {
+                body.look(ViewRotation.fromVector(click.point.subtract(body.player.eyePosition)), LookPurpose.AIM)
+            }
+            // The server learns of the sneak a tick after the client; a walk may end while still falling onto the
+            // stand, and a look from there turns a piston or observer elsewhere
+            sent != null && crouched >= 2 && body.player.onGround() || ticks >= 20
         }
         val hit = sent?.takeIf { crouched >= 2 } ?: return false
         val placed = predict(stack, click.against, click.face, hit.location, body.sentRotation)
@@ -332,7 +340,7 @@ internal fun Agent.wouldShut(cell: BlockPos, pos: BlockPos, wanted: BlockState, 
     val player = body.player
     return clicks.all { click ->
         val feet = click.stand ?: return@all true
-        box.clip(feet.add(0.0, player.eyeHeight.toDouble(), 0.0), click.point) != null ||
+        box.clip(feet.add(0.0, SNEAK_EYE, 0.0), click.point) != null ||
             player.boundingBox.move(feet.subtract(player.position())).intersects(box)
     }
 }

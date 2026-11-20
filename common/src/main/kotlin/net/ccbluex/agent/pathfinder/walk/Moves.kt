@@ -439,10 +439,15 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
         terrain.isPassable(from.x, from.y + 2, from.z) && terrain.isPassable(tx, from.y + 2, tz)
 
     /**
-     * Whether no thin block on the edge to [tx] [tz], such as a closed door, is in the way of a body at [height].
+     * Whether no thin block on the edge to [tx] [tz], such as a closed door, is in the way of a body at [height], or
+     * only one it steps over, as the rim of a hopper stood in.
      */
-    private fun canCross(tx: Int, tz: Int, height: Double) = !fromStands ||
-        terrain.isClear(terrain.box((from.x + tx) / 2.0 + 0.5, height, (from.z + tz) / 2.0 + 0.5))
+    private fun canCross(tx: Int, tz: Int, height: Double): Boolean {
+        if (!fromStands) return true
+        val x = (from.x + tx) / 2.0 + 0.5
+        val z = (from.z + tz) / 2.0 + 0.5
+        return terrain.isClear(terrain.box(x, height, z)) || terrain.isClear(terrain.box(x, height + Terrain.STEP_HEIGHT, z))
+    }
 
     /**
      * Feet height on the floor of [x] [y] [z]; without one the block below is placed if [hasSupport]. NaN if not.
