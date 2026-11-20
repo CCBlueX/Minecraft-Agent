@@ -26,10 +26,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Runs navigation between reading the keys and moving, so its keys and rotation move the player this tick.
+ * Runs navigation between reading the keys and moving, so its keys and rotation move the player this tick, and sends
+ * the position of a tick a ledge sneak stopped the player in.
+ *
+ * @agent claude-opus-5-5
  */
 @Mixin(LocalPlayer.class)
 abstract class LocalPlayerMixin {
@@ -43,6 +47,16 @@ abstract class LocalPlayerMixin {
     )
     private void agent$navigate(CallbackInfo info) {
         ClientHooks.afterInputTick((LocalPlayer) (Object) this, input);
+    }
+
+    /**
+     * A sneak holding the player at a ledge can take its whole move while the player keeps its speed. Grim takes a
+     * tick without a position for one the player hardly moved in and predicts the next move without that speed.
+     */
+    @ModifyVariable(method = "sendPosition", at = @At("STORE"), name = "move")
+    private boolean agent$sendPositionHeldAtLedge(boolean move) {
+        var player = (LocalPlayer) (Object) this;
+        return move || player.onGround() && player.isShiftKeyDown() && player.getDeltaMovement().horizontalDistanceSqr() > 0.0;
     }
 
 }
