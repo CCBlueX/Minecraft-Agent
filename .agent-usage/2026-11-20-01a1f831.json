@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-20",
+  "change": "fix(navigation): bounce on past elytra opens",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 128, "cachedInput": 10453495, "cacheWrite": 85445, "output": 18999 },
+      "usd": 3.15
+    }
+  ]
+}

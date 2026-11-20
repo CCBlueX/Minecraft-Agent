@@ -78,6 +78,8 @@ internal class Travel(
      */
     fun fly(goal: Vec3, radius: Double, straight: Boolean): Boolean =
         fly(goal, radius, straight, context.body.inputYRot) ||
+            // Each hop of a bounce opens the elytra, which the glide would otherwise take over as a fall
+            (bounce.isActive && bounce(goal, context.body.inputYRot)) ||
             glide(goal, radius, straight, context.body.inputYRot) ||
             bounce(goal, context.body.inputYRot)
 
