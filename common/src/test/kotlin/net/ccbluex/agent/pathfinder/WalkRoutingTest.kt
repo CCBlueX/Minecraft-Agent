@@ -294,6 +294,31 @@ class WalkRoutingTest {
         assertTrue(path.steps.flatMap { it.places }.isNotEmpty())
     }
 
+    /**
+     * The walk used to pillar once where it stood and then stack two blocks beside the pillar, priced as a bridge
+     * run, which from a stop takes twice as long as stepping up onto one block and pillaring there.
+     */
+    @Test
+    fun `a three block cliff is climbed with a step up and a pillar, not a stack on the ground`() {
+        val world = TestWorld.flat().fill(3, 1, -40, 40, 3, 40)
+        val abilities = WalkAbilities(
+            canBreak = false,
+            canPlace = true,
+            placeableBlocks = 64,
+            canParkour = false,
+            canSprint = true,
+            safeFall = 3,
+            waterFall = 20,
+            breakTicks = { Double.POSITIVE_INFINITY },
+            avoid = LongOpenHashSet(),
+            bridgeTicks = Costs.NINJA_BRIDGE,
+        )
+        val path = completePath(search(world, feet(0, 1, 0), BlockPos(4, 4, 0), abilities))
+
+        val climb = path.steps.map { it.move }.dropWhile { it == Move.TRAVERSE }.take(3)
+        assertEquals(listOf(Move.ASCEND, Move.PILLAR, Move.ASCEND), climb)
+    }
+
     @Test
     fun `rises over a gap are one-stacked, the floor beside first and a block on top`() {
         // A pad eight blocks up, and past a gap of five one three blocks higher.

@@ -236,7 +236,8 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
         if (jump.isNaN() || changes.breaks.size == headBreaks && changes.places.isEmpty()) {
             return
         }
-        val placeCost = if (stacked) abilities.bridgeTicks else Costs.PLACE
+        // A stack on the ground is two blocks placed from a stop, not a step of a bridge run over a gap.
+        val placeCost = if (stacked && !nodes.isSolid(tx, y - 2, tz)) abilities.bridgeTicks else Costs.PLACE
         val cost = walkCost(tx, tz, floor) + jump + changes.breakCost + changes.places.size * placeCost
         emit(tx, ty, tz, Move.ASCEND, cost)
     }
