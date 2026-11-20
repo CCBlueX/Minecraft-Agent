@@ -56,18 +56,29 @@ internal class Stride {
      * Crouching slows the move of the tick after, as [net.ccbluex.agent.simulation.PlayerMotion] has it.
      */
     private var wasCrouching = false
+
+    /**
+     * The movement speed at the last call. Sprinting may start or stop before or after the move of a tick, so a move
+     * across a change was made at a speed not known.
+     */
+    private var lastSpeed = 0.0
     private var lastTick = 0
 
     /**
      * Measures the move [player] made since the last call; once a tick, before its movement.
+     *
+     * @agent claude-opus-5-5
      */
     fun tick(player: Player) {
         val position = player.position()
         val last = lastPosition
+        val speed = player.getAttributeValue(Attributes.MOVEMENT_SPEED)
         moved = if (last != null && player.tickCount == lastTick + 1) position.subtract(last) else Vec3.ZERO
-        if (last != null && player.tickCount == lastTick + 1 && wasOnGround && !wasCrouching && walksPlainly(player)) {
+        if (last != null && player.tickCount == lastTick + 1 && wasOnGround && !wasCrouching && speed == lastSpeed &&
+            walksPlainly(player)
+        ) {
             val pushed = Mth.length(position.x - last.x - carried.x, position.z - last.z - carried.z)
-            val vanilla = player.getAttributeValue(Attributes.MOVEMENT_SPEED) * INPUT_SCALE
+            val vanilla = speed * INPUT_SCALE
             if (vanilla > 0.0 && pushed > vanilla * MIN_SHARE) {
                 factor = (factor + (pushed / vanilla - factor) * WEIGHT).coerceIn(MIN_FACTOR, MAX_FACTOR)
             }
@@ -76,6 +87,7 @@ internal class Stride {
         carried = player.deltaMovement
         wasOnGround = player.onGround()
         wasCrouching = player.isCrouching
+        lastSpeed = speed
         lastTick = player.tickCount
     }
 

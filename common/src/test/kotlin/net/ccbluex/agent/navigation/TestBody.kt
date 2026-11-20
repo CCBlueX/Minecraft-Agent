@@ -35,7 +35,8 @@ import org.slf4j.LoggerFactory
 import net.minecraft.world.entity.player.Player as McPlayer
 
 /**
- * A [Body] over a [handle] the test moves itself: it keeps the keys pressed and the rotation looked for last.
+ * A [Body] over a [handle] the test moves itself: it keeps the keys pressed, the rotation looked for last and the
+ * blocks used.
  *
  * @agent claude-opus-5-5
  */
@@ -52,6 +53,11 @@ internal class TestBody(
 
     var looked: ViewRotation? = null
         private set
+
+    /**
+     * The blocks used, in order; the uses change nothing.
+     */
+    val used = ArrayList<BlockHitResult>()
 
     override val sentRotation: ViewRotation
         get() = ViewRotation(player.yRot, player.xRot)
@@ -72,7 +78,10 @@ internal class TestBody(
     override fun startDestroy(pos: BlockPos, face: Direction) = false
     override fun continueDestroy(pos: BlockPos, face: Direction) = false
     override fun stopDestroy() = Unit
-    override fun useItemOn(hand: InteractionHand, hit: BlockHitResult) = false
+    override fun useItemOn(hand: InteractionHand, hit: BlockHitResult): Boolean {
+        used += hit
+        return false
+    }
     override fun useItem(hand: InteractionHand) = false
     override fun interact(entity: Entity, hand: InteractionHand) = false
     override fun attack(target: Entity) = Unit

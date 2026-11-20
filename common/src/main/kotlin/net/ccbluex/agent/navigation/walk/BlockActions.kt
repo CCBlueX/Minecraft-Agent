@@ -29,6 +29,8 @@ import net.ccbluex.agent.navigation.pick
 import net.ccbluex.agent.world.HitResult
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.block.BlockState
+import net.ccbluex.agent.world.block.BlockStateProperties
+import net.ccbluex.agent.world.block.DoubleBlockHalf
 
 /**
  * Mines, places and opens the blocks a walking path changes, one at a time: aims in [aim], acts in [tick] once the
@@ -161,7 +163,10 @@ internal class BlockActions(private val context: NavigationContext) {
     }
 
     /**
-     * Aims at the block of the current action; once per tick, before the walk decides on the next one.
+     * Aims at the block of the current action; once per tick, before the walk decides on the next one. A door open
+     * already is not aimed at, so the view turns back to the way on while the server confirms it.
+     *
+     * @agent claude-opus-5-5
      */
     fun aim() {
         rotation = null
@@ -172,7 +177,8 @@ internal class BlockActions(private val context: NavigationContext) {
                 action.plan?.rotation
             }
 
-            else -> targets.aimAt(action.pos)
+            is Action.Open -> if (level.getBlockState(action.pos).isOpenOrGone) null else targets.aimAt(action.pos)
+            is Action.Mine -> targets.aimAt(action.pos)
         } ?: return
 
         rotation = aim
@@ -233,7 +239,7 @@ internal class BlockActions(private val context: NavigationContext) {
         }
 
         val hit = targets.raycast(body.sentRotation, body.player.blockInteractionRange())
-        if (hit.type == HitResult.Type.BLOCK && hit.blockPos == pos) {
+        if (hit.type == HitResult.Type.BLOCK && hit.blockPos.isPartOf(pos, state)) {
             if (body.useItemOn(InteractionHand.MAIN_HAND, hit)) {
                 // The client shows it open at once; the walk goes through once the server says so too.
                 unconfirmedOpens[pos] = ticks
@@ -241,6 +247,18 @@ internal class BlockActions(private val context: NavigationContext) {
             // The server gets time to answer before another use, which would close the block again.
             useCooldown = USE_COOLDOWN_TICKS
         }
+    }
+
+    /**
+     * Whether this is [pos] or, for the door [state] at [pos], its other half: using either opens both.
+     *
+     * @agent claude-opus-5-5
+     */
+    private fun BlockPos.isPartOf(pos: BlockPos, state: BlockState): Boolean = when (this) {
+        pos -> true
+        pos.above() -> state.getOptionalValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER
+        pos.below() -> state.getOptionalValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER
+        else -> false
     }
 
     private fun placeTick(plan: BlockTargets.Plan) {

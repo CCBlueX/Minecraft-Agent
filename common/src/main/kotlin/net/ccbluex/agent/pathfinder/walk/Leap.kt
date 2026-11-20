@@ -99,10 +99,11 @@ public class Leap {
         // Away from the run-up, only a jump with room to spare beats walking back to it; a run once started goes on.
         val now = jumps.fromHere(state, yRot, step.to, step.feet.y, jump.aim)
             ?.takeIf { ready || running || it.margin >= LIVE_MARGIN }
-        // The run is simulated facing the aim from its second tick on; a body turning at its own pace turns there first.
+        // The run is simulated facing the aim from its second tick on; a body turning at its own pace turns first,
+        // staying where the jump works rather than walking back to the run-up.
         if (now != null && !running && !faces(state, yRot, now.aim)) {
             target = now.aim
-            return approach(state, yRot, stop(jump), now.aim)
+            return approach(state, yRot, state.position, now.aim)
         }
         running = now != null
         if (now != null) {
