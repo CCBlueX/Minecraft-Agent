@@ -46,6 +46,21 @@ internal fun Terrain.computeStandHeight(x: Int, y: Int, z: Int, bodyHeight: Doub
 }
 
 /**
+ * Whether the block at the feet [x] [y] [z] carries them on its own floor inside walls higher than a step, as a
+ * composter or a cauldron does: the way out takes a jump, and a walk that ends in one stays there.
+ *
+ * @agent claude-opus-5-5
+ */
+internal fun Terrain.isBowl(x: Int, y: Int, z: Int): Boolean {
+    val at = shape(x, y, z)
+    if (at.isEmpty || at === FULL) {
+        return false
+    }
+    val top = standHeight(x, y, z)
+    return top > y && at.toAabbs().any { y + it.maxY > top + Terrain.STEP_HEIGHT }
+}
+
+/**
  * From LiquidBounce: [Terrain.kt](https://github.com/CCBlueX/LiquidBounce/blob/d240e1012aaaca32895a341eab69595685510175/src/main/kotlin/net/ccbluex/liquidbounce/utils/navigation/terrain/Terrain.kt#L358-L382)
  *
  * @agent claude-opus-5-5

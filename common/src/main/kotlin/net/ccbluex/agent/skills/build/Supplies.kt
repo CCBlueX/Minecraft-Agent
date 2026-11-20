@@ -82,8 +82,12 @@ internal class Supplies(private val agent: Agent, private val chests: Collection
                         it.isPlayerInventory && it.containerSlot < INVENTORY_SLOTS && !it.item.isEmpty &&
                             it.item.item !in left && !it.item.isDamageableItem && !scaffold.isSpare(it.item)
                     } ?: return
+                    val back = ItemMatch.of(unneeded.item.item)
+                    val before = inventory.count(back)
                     body.clickContainer(unneeded.index, 0, ContainerInput.QUICK_MOVE)
                     waitTicks(2)
+                    // A full chest takes nothing back; trying again would never end
+                    if (inventory.count(back) >= before) return
                     continue
                 }
                 val carried = inventory.count(ItemMatch.of(item))

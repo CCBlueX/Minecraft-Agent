@@ -73,6 +73,11 @@ public class WalkAbilities(
      * Health the walker has; a fall deeper than [safeFall] is taken only while it leaves more than half a full bar.
      */
     public val health: Float = 0f,
+
+    /**
+     * Cells the walker never places a block in, such as those a build is still to fill.
+     */
+    public val reserved: LongSet = LongSets.EMPTY_SET,
 ) {
 
     /**
@@ -80,6 +85,6 @@ public class WalkAbilities(
      */
     public fun withMotion(motion: MotionTraits): WalkAbilities = WalkAbilities(
         canBreak, canPlace, placeableBlocks, canParkour, riskyJumps, canSprint, safeFall, waterFall, breakTicks, avoid,
-        air, motion, jumpClimbs, bridgeTicks, unbreakable, health,
+        air, motion, jumpClimbs, bridgeTicks, unbreakable, health, reserved,
     )
 }

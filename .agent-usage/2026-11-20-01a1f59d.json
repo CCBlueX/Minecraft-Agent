@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-20",
+  "change": "fix(build): reserved cells, props, no stalls",
+  "tool": "omp",
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "tokens": { "input": 596, "cachedInput": 56090837, "cacheWrite": 392332, "output": 128256 },
+      "usd": 16.92
+    }
+  ]
+}

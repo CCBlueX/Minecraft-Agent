@@ -77,6 +77,7 @@ internal fun NavigationContext.captureWalk(avoid: LongSet, unbreakable: LongSet)
         },
         unbreakable = LongOpenHashSet(unbreakable),
         health = player.health,
+        reserved = options.reserved,
     )
 }
 

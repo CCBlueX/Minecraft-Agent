@@ -223,6 +223,57 @@ class WalkRoutingTest {
         assertFalse(isComplete(search(world, feet(0, 1, 0), BlockPos(8, 1, 0))))
     }
 
+    /**
+     * @agent claude-opus-5-5
+     */
+    @Test
+    fun `reserved cells, such as those a build is to fill, are bridged around`() {
+        val world = TestWorld.flat().fill(3, 0, -40, 5, 0, 40, AIR)
+        val reserved = LongOpenHashSet()
+        for (x in 3..5) for (z in -1..1) reserved.add(BlockPos.asLong(x, 0, z))
+        val abilities = WalkAbilities(
+            canBreak = false,
+            canPlace = true,
+            placeableBlocks = 64,
+            canParkour = false,
+            canSprint = true,
+            safeFall = 3,
+            waterFall = 20,
+            breakTicks = { Double.POSITIVE_INFINITY },
+            avoid = LongOpenHashSet(),
+            reserved = reserved,
+        )
+
+        val places = completePath(search(world, feet(0, 1, 0), BlockPos(8, 1, 0), abilities)).steps.flatMap { it.places }
+        assertTrue(places.isNotEmpty() && places.none { reserved.contains(it.asLong()) }, "$places")
+    }
+
+    /**
+     * A build walk fell into a composter and then pressed against its wall for minutes: the route bridged west out of
+     * it, through the rim, as only plain traverses checked the way across the edge.
+     *
+     * @agent claude-opus-5-5
+     */
+    @Test
+    fun `the rim of a composter stood in is never bridged across`() {
+        val world = TestWorld.flat().fill(-3, 0, -40, -1, 0, 40, AIR).set(0, 1, 0, Blocks.COMPOSTER.defaultBlockState())
+        val path = completePath(search(world, Vec3(0.5, 1.125, 0.5), BlockPos(-4, 1, 0), abilities(canPlace = true)))
+        val out = path.steps.first()
+        assertTrue(out.to.y > out.from.y, "${out.move} ${out.from} ${out.to} ${out.places}")
+    }
+
+    /**
+     * small12: a build walk fell into a composter on the way and then planned to pillar out of it from inside.
+     *
+     * @agent claude-opus-5-5
+     */
+    @Test
+    fun `no step ends in a composter`() {
+        val world = TestWorld.flat().fill(0, 1, 0, 0, 2, 0).set(1, 1, 0, Blocks.COMPOSTER.defaultBlockState())
+        val path = completePath(search(world, feet(0, 3, 0), BlockPos(3, 1, 0), abilities()))
+        assertTrue(path.steps.none { it.to == BlockPos(1, 1, 0) }, "${path.steps}")
+    }
+
     @Test
     fun `leaning over the corner of a bridge, the path starts on the block holding the player`() {
         // A bridge eight blocks up ending at x 5; the feet hang past its corner, held by the last block.

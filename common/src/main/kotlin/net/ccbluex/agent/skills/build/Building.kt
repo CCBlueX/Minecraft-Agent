@@ -18,6 +18,7 @@
  */
 package net.ccbluex.agent.skills.build
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
@@ -56,6 +57,18 @@ public suspend fun Agent.build(
     canBreak: Boolean = false,
     supplies: Collection<BlockPos> = emptyList(),
 ): BuildResult {
+    val options = navigator.options
+    // The walk's own scaffold never goes where the build still puts a block
+    val reserved = LongOpenHashSet(blocks.size).apply { blocks.keys.forEach { add(it.asLong()) } }
+    navigator.options = options.copy(reserved = reserved)
+    try {
+        return buildBlocks(blocks, canBreak, supplies)
+    } finally {
+        navigator.options = options
+    }
+}
+
+private suspend fun Agent.buildBlocks(blocks: Map<BlockPos, BlockState>, canBreak: Boolean, supplies: Collection<BlockPos>): BuildResult {
     val level = body.level
     // Failed tries and all steps per block: a block takes a few steps (placed, opened, filled with water), and one
     // that keeps coming undone, such as a trapdoor redstone closes, is given up as well
@@ -75,6 +88,9 @@ public suspend fun Agent.build(
     } == true
     // Blocks that had a spare block put up beside them to go against
     val propped = HashSet<BlockPos>()
+    // Blocks found with nothing to place them against; the lowest gets a prop before anything above its layer goes
+    // up, as that may take away the spots it is placed from once it has a face, such as a piston facing up
+    val faceless = HashSet<BlockPos>()
     var cleared = false
     while (body.player.isAlive) {
         // A click of the walk's own scaffold on a hopper or chest opens it, and an open menu stops every inventory click
@@ -89,7 +105,7 @@ public suspend fun Agent.build(
         )
         val open = wanted.entries
             .filter { (pos, state) ->
-                pos !in waiting && !isGivenUp(pos) && canBuild(pos, state, canBreak || pos in scaffold.placed)
+                pos !in waiting && !isGivenUp(pos) && canBuild(pos, state, canBreak || scaffold.isOwn(pos))
             }
             .filter { (pos, state) -> itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false }
         val free = open.filter { !isShutting(it.key) }.ifEmpty { open }
@@ -117,6 +133,21 @@ public suspend fun Agent.build(
             continue
         }
         val (pos, state) = next
+        // The lowest block with nothing to go against, not even one to wait for being built; full blocks first, as
+        // torches and wires hang on them
+        val low = wanted.entries.asSequence()
+            .filter { (cell, wants) ->
+                cell !in propped && !isLiquid(wants) && !wants.isAir && !isGivenUp(cell) && level.getBlockState(cell).canBeReplaced() &&
+                    (cell in faceless || Direction.entries.none { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty })
+            }
+            .minWithOrNull(compareBy({ it.key.y }, { !it.value.isCollisionShapeFullBlock(level, it.key) }))?.key
+        if (low != null && pos.y > low.y && !hasClick(low, wanted.getValue(low), scaffold)) {
+            propped += low
+            if (scaffold.prop(low)) {
+                waiting.clear()
+                continue
+            }
+        }
         val item = itemFor(pos, state)
         if (item != null && !isCarried(item)) {
             val left = wanted.entries.filter { !isBuilt(level, it.key, it.value) }.sortedWith(order)
@@ -129,6 +160,7 @@ public suspend fun Agent.build(
         val toPlace = !isLiquid && !state.isAir && actual.canBeReplaced() && !isPlaced(level, pos, actual, state)
         if (toPlace && !hasClick(pos, state, scaffold)) {
             waiting += pos
+            faceless += pos
             continue
         }
         if (toPlace && pos !in shutting) {
@@ -155,6 +187,9 @@ public suspend fun Agent.build(
         } else {
             tries.merge(pos, 1, Int::plus)
             waiting += pos
+            // Placed the wrong way, as the server had the player turned elsewhere for the click: it comes out again
+            val now = level.getBlockState(pos)
+            if (actual.canBeReplaced() && now.block == state.block && !isPlaced(level, pos, now, state)) scaffold.take(pos)
         }
     }
     scaffold.props.clear()

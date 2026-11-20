@@ -171,8 +171,8 @@ internal class Nodes(private val terrain: Terrain, private val abilities: WalkAb
 
     fun isSolid(x: Int, y: Int, z: Int) = isHarmless(x, y, z) && !terrain.isPassable(x, y, z)
 
-    fun isPlaceable(x: Int, y: Int, z: Int) =
-        canPlace && isHarmless(x, y, z) && terrain.state(x, y, z).canBeReplaced()
+    fun isPlaceable(x: Int, y: Int, z: Int) = canPlace && isHarmless(x, y, z) &&
+        terrain.state(x, y, z).canBeReplaced() && !abilities.reserved.contains(BlockPos.asLong(x, y, z))
 
     fun isDry(x: Int, y: Int, z: Int): Boolean {
         if (!terrain.state(x, y, z).fluidState.isEmpty || !terrain.state(x, y + 1, z).fluidState.isEmpty) {

@@ -26,6 +26,7 @@ import net.ccbluex.agent.math.component2
 import net.ccbluex.agent.math.component3
 import net.ccbluex.agent.math.ifNaN
 import net.ccbluex.agent.pathfinder.terrain.Terrain
+import net.ccbluex.agent.pathfinder.terrain.isBowl
 import net.ccbluex.agent.pathfinder.terrain.isOpen
 import net.ccbluex.agent.pathfinder.walk.Nodes.Companion.DX
 import net.ccbluex.agent.pathfinder.walk.Nodes.Companion.DZ
@@ -177,6 +178,10 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
         val breaks = changes.breaks
         val places = changes.places
         if (breaks.isEmpty() && places.isEmpty() || jump.isNaN() || jump > 0.0 && !hasJumpRoom(tx, tz)) {
+            return
+        }
+        // Over a placed floor as over any other: the rim of a composter or cauldron stood in walls the way out
+        if (breaks.isEmpty() && !canCross(tx, tz, max(fromHeight, floor))) {
             return
         }
         val placeCost = if (breaks.isEmpty()) abilities.bridgeTicks else Costs.PLACE
@@ -399,6 +404,9 @@ internal class Moves(private val terrain: Terrain, private val abilities: WalkAb
     }
 
     private fun emit(x: Int, y: Int, z: Int, move: Move, cost: Double, jump: Jump? = null) {
+        if (terrain.isBowl(x, y, z)) {
+            return
+        }
         opens.clear()
         if (terrain.canOpenDoors) {
             val body = terrain.box(from.x + 0.5, fromHeight, from.z + 0.5)

@@ -91,9 +91,10 @@ class BuildingTest {
         val repeater = Blocks.REPEATER.defaultBlockState()
         assertTrue(isPlaced(ground(), at, repeater.agent(), repeater.setValue(RepeaterBlock.DELAY, 3).agent()))
         assertFalse(isBuilt(ground().put(at, repeater), at, repeater.setValue(RepeaterBlock.DELAY, 3).agent()))
-        // A lever stays off, whichever way the schematic had it
+        // A lever is switched as the schematic had it: a farm saved running needs its pistons out while it is built
         val lever = Blocks.LEVER.defaultBlockState()
-        assertTrue(isBuilt(ground().put(at, lever), at, lever.setValue(BlockStateProperties.POWERED, true).agent()))
+        assertFalse(isBuilt(ground().put(at, lever), at, lever.setValue(BlockStateProperties.POWERED, true).agent()))
+        assertTrue(isPlaced(ground(), at, lever.agent(), lever.setValue(BlockStateProperties.POWERED, true).agent()))
     }
 
     @Test

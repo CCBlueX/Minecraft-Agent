@@ -19,6 +19,9 @@
 
 package net.ccbluex.agent.navigation
 
+import it.unimi.dsi.fastutil.longs.LongSet
+import it.unimi.dsi.fastutil.longs.LongSets
+
 /**
  * What a [Navigator] may do on its way and how it looks; read every tick, so a new copy takes effect at once.
  *
@@ -128,6 +131,12 @@ public data class Options(
      * places or digs blocks on the way.
      */
     public val canEat: Boolean = false,
+
+    /**
+     * Cells, as [net.ccbluex.agent.math.BlockPos.asLong], the walk never puts a block in while [canPlace], such as
+     * those a build is still to fill.
+     */
+    public val reserved: LongSet = LongSets.EMPTY_SET,
 ) {
 
     /**

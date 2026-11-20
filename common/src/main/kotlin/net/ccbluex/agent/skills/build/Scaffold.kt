@@ -37,6 +37,7 @@ import net.ccbluex.agent.tick.tickUntil
 import net.ccbluex.agent.world.block.BlockState
 import net.ccbluex.agent.world.block.BlockStateProperties
 import net.ccbluex.agent.world.entity.ItemEntity
+import net.ccbluex.agent.world.item.Item
 import net.ccbluex.agent.world.item.ItemStack
 
 /**
@@ -49,6 +50,13 @@ import net.ccbluex.agent.world.item.ItemStack
 internal class Scaffold(private val agent: Agent, private val blueprint: Map<BlockPos, BlockState>) : PlaceableBlocks {
 
     val placed = HashSet<BlockPos>()
+    private val spareItems = HashSet<Item>()
+
+    /**
+     * Whether the block at [pos] is one put up as a spare: one [placed] knows, or of a kind put up as one before,
+     * as walks outside [walkTo] may put one up too.
+     */
+    fun isOwn(pos: BlockPos): Boolean = pos in placed || agent.body.level.getBlockState(pos).block.asItem() in spareItems
 
     /**
      * Blocks of the build that had a spot to place them from only on a spare block, while none was carried.
@@ -113,13 +121,21 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     suspend fun put(pos: BlockPos): Boolean {
         val player = agent.body.player
         val slot = (0 until INVENTORY_SLOTS).firstOrNull { isPlaceable(player.inventory.getItem(it)) } ?: return false
-        if (player.boundingBox.intersects(AABB(pos))) {
-            val beside = Direction.Plane.HORIZONTAL.map(pos::relative)
-                .firstOrNull { canPlace(it) && agent.body.level.getBlockState(it.above()).canBeReplaced() } ?: return false
-            walkTo(Vec3.atBottomCenterOf(beside), 0.3)
-        }
+        if (!stepOff(pos)) return false
         if (!agent.placeBlock(slot, pos)) return false
         placed += pos
+        spareItems += agent.body.level.getBlockState(pos).block.asItem()
+        return true
+    }
+
+    /**
+     * Steps out of [pos] onto a cell beside it when the player is in it; false when there is none to stand on.
+     */
+    suspend fun stepOff(pos: BlockPos): Boolean {
+        if (!agent.body.player.boundingBox.intersects(AABB(pos))) return true
+        val beside = Direction.Plane.HORIZONTAL.map(pos::relative)
+            .firstOrNull { canPlace(it) && agent.body.level.getBlockState(it.above()).canBeReplaced() } ?: return false
+        walkTo(Vec3.atBottomCenterOf(beside), 0.3)
         return true
     }
 
@@ -161,7 +177,10 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
         navigator.moveTo(spot, radius) { ending = it }
         try {
             tickUntil { ticks ->
-                navigator.placement?.takeIf { it !== before }?.let { placed += it.pos }
+                navigator.placement?.takeIf { it !== before }?.let {
+                    placed += it.pos
+                    spareItems += agent.body.level.getBlockState(it.pos).block.asItem()
+                }
                 ending != null || ticks >= 160 || !agent.body.player.isAlive
             }
         } finally {
@@ -212,9 +231,9 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     }
 
     /**
-     * Digs the spare block at [pos] and picks it up; false when the dig failed.
+     * Digs the block at [pos], a spare one or one placed wrong, and picks it up; false when the dig failed.
      */
-    private suspend fun take(pos: BlockPos): Boolean {
+    suspend fun take(pos: BlockPos): Boolean {
         val level = agent.body.level
         val inventory = agent.body.player.inventory
         val state = level.getBlockState(pos)

@@ -89,6 +89,8 @@ internal class Click(val against: BlockPos, val face: Direction, val point: Vec3
 internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Scaffold): Boolean {
     val slot = body.player.inventory.slotOf(ItemMatch.of(wanted.block.asItem()))
     if (slot < 0) return false
+    // A wrong block dug from on top leaves the player in the cell, where no click fits
+    scaffold.stepOff(pos)
     val stack = body.player.inventory.getItem(slot).copy()
     val clicks = clicks(pos, scaffold) { click, rotation ->
         predict(stack, click.against, click.face, click.point, rotation)?.let { isPlaced(body.level, pos, it, wanted) } == true
@@ -98,8 +100,10 @@ internal suspend fun Agent.place(pos: BlockPos, wanted: BlockState, scaffold: Sc
     for ((stand, group) in usable.groupBy { it.stand }.entries.take(3)) {
         if (group.none { fits(it, pos, wanted, stack) }) {
             if (stand == null) continue
-            // A spot over air takes a spare block; with none carried, the nearest one put up before comes down for it
-            if (group.first().needsScaffold && !scaffold.carriesSpare()) scaffold.free(BlockPos.containing(stand).below())
+            // A spot over air takes a spare block, and one more than a step up a pillar to get there; with none
+            // carried, the nearest one put up before comes down for it
+            val climbs = stand.y > body.player.y + 1
+            if ((group.first().needsScaffold || climbs) && !scaffold.carriesSpare()) scaffold.free(BlockPos.containing(stand).below())
             stepTo(stand, pos, scaffold)
             if (group.none { fits(it, pos, wanted, stack) }) scaffold.walkTo(stand, 0.2)
         }

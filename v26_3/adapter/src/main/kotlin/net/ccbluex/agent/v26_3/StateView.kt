@@ -41,6 +41,7 @@ import net.minecraft.world.level.block.BonemealSource
 import net.minecraft.world.level.block.BonemealableBlock
 import net.minecraft.world.level.block.CocoaBlock
 import net.minecraft.world.level.block.CropBlock
+import net.minecraft.world.level.block.LeverBlock
 import net.minecraft.world.level.block.NetherWartBlock
 import net.minecraft.world.level.block.SweetBerryBushBlock
 import net.minecraft.world.level.material.Fluids
@@ -101,8 +102,11 @@ internal class StateView(val handle: McBlockState) : BlockState(handle.block.toA
         handle.values.filter { it.property() in PLACED_PROPERTIES }.toList()
     }
 
+    // A lever's state is the player's choice; a farm saved with its lever on runs its pistons into place as it is built
     override val usedValues: List<Any> by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        handle.values.filter { it.property() in USED_PROPERTIES }.toList()
+        handle.values.filter {
+            it.property() in USED_PROPERTIES || handle.block is LeverBlock && it.property() == McProperties.POWERED
+        }.toList()
     }
 
     override fun requiresCorrectToolForDrops(): Boolean = handle.requiresCorrectToolForDrops()
