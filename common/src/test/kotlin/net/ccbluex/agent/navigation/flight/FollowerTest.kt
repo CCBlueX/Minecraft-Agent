@@ -47,7 +47,7 @@ import kotlin.test.fail
  * A fly mode flies a route with a sharp corner at half and at twice the speed a host used to report, stopping at once
  * or coasting on: the player gets to the end and comes to rest there, without flying past it or back and forth. One
  * that hops by itself sinks onto the end below. One pressed against a wall below its top, or set down on its edge,
- * gets on to the platform behind it.
+ * gets on to the platform behind it. One that answers the keys a tick late gets onto a pillar.
  *
  * @agent claude-opus-5-5
  * @agent claude-sonnet-5-5
@@ -228,14 +228,17 @@ internal class FollowerTest {
 
     /**
      * LiquidBounce's Vanilla mode of Fly: the keys set the motion, 0.44 blocks a tick, before the player moves on the
-     * game's physics.
+     * game's physics; one that [lags] sets it from the keys of the tick before.
      *
      * @agent claude-opus-5-5
      */
-    private class VanillaMode(world: TestWorld, start: Vec3, onGround: Boolean) {
+    private class VanillaMode(world: TestWorld, start: Vec3, onGround: Boolean, private val lags: Boolean = false) {
         private val motion = PlayerMotion(world.terrain()).also { it.reset(start, Vec3.ZERO, onGround) }
+        private var last = Input.EMPTY
 
-        fun move(player: Player, input: Input) {
+        fun move(player: Player, pressed: Input) {
+            val input = if (lags) last else pressed
+            last = pressed
             val (forward, strafe) = axes(input)
             val length = sqrt((forward * forward + strafe * strafe).toDouble()).coerceAtLeast(1.0)
             val y = when {
@@ -270,6 +273,42 @@ internal class FollowerTest {
     @Test
     fun `a fly mode that landed on the edge of a wall flies on`() =
         flyOverWall(Vec3(21.29, 16.0, 0.5), onGround = true)
+
+    /**
+     * From the ground beside a pillar nine blocks high onto its top with a mode that answers the keys a tick late: the
+     * motion it keeps for that tick is not taken for drag, which made the route count as flown a block and more short.
+     */
+    @Test
+    fun `a fly mode that answers a tick late flies onto a pillar`() {
+        val world = TestWorld().fill(50, 0, 6, 66, 0, 16).fill(60, 1, 10, 62, 9, 12)
+        val start = TestWorld.feet(54, 1, 11)
+        val end = TestWorld.feet(61, 10, 11)
+        val handle = TestLevel(world).player(start)
+        val mode = VanillaMode(world, start, onGround = true, lags = true)
+        val body = TestBody(handle, isFlying = true)
+        val player = body.player
+        val context = body.context()
+        val handling = Handling()
+        val follower = Follower(context, handling)
+        val limits = Limits(64.0, maxVisitedNodes = 20_000, maxComputeNanos = Long.MAX_VALUE)
+        val abilities = checkNotNull(context.captureFlight(handling))
+        val search = RouteSearch(world.terrain(), start, NearDestination(end, GOAL_RADIUS), abilities, limits)
+        val route = found(search.advanceToEnd())
+        follower.follow(route)
+
+        repeat(MAX_TICKS) {
+            if (follower.tick(0f, checkNotNull(context.captureFlight(handling))) == FollowState.FINISHED) {
+                val at = player.position()
+                val left = at.distanceTo(route.end)
+                assertTrue(left <= GOAL_RADIUS, "Finished at $at, $left from ${route.end}")
+                // 0.44 a tick; the measurement blends samples, but a lag taken for drag made it 8 and more
+                assertTrue(handling.verticalSpeed < 0.88, "Measured a vertical speed of ${handling.verticalSpeed}")
+                return
+            }
+            mode.move(handle, body.pressed)
+        }
+        fail("Stopped at ${player.position()} flying ${route.points}")
+    }
 
     private fun flyOverWall(start: Vec3, onGround: Boolean) {
         // A wall too wide to fly around with its top at y 16, and a platform 19 blocks behind it

@@ -59,6 +59,7 @@ internal class Handling {
     var lastMove: Vec3? = null
         private set
     private var lastTick = 0
+    private var lastPressed: Input? = null
 
     /**
      * Share of the level motion kept a tick with no keys held.
@@ -141,13 +142,16 @@ internal class Handling {
             if (!player.horizontalCollision) {
                 measureLevel(move, before, pressed, player.yRot, player.isSprinting)
             }
-            if (!player.verticalCollision) {
+            // Only keys held a tick before as well: a fly mode that answers a tick late still moves on the old ones
+            val isHeld = lastPressed?.let { it.jump == pressed.jump && it.shift == pressed.shift } == true
+            if (!player.verticalCollision && isHeld) {
                 measureVertical(move.y, before.y, pressed)
             }
         }
         lastPosition = position
         lastMove = move
         lastTick = player.tickCount
+        lastPressed = pressed
     }
 
     /**
