@@ -146,11 +146,12 @@ class BuildingTest {
     }
 
     @Test
-    fun `scaffold in the way is the cell and the stand columns straight out`() {
+    fun `scaffold in the way is the cell and the stand columns straight out or one aside`() {
         assertTrue(isInStand(at, at))
         assertTrue(isInStand(at.offset(3, -3, 0), at))
         assertTrue(isInStand(at.offset(0, 2, -2), at))
-        assertFalse(isInStand(at.offset(1, 0, 1), at))
+        assertTrue(isInStand(at.offset(1, 0, 3), at))
+        assertFalse(isInStand(at.offset(2, 0, 2), at))
         assertFalse(isInStand(at.offset(4, 0, 0), at))
         assertFalse(isInStand(at.offset(0, -4, 1), at))
     }

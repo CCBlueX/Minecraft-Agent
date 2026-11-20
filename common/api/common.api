@@ -3793,8 +3793,10 @@ public final class net/ccbluex/agent/world/block/Blocks {
 	public static final field LAVA Lnet/ccbluex/agent/world/block/Block;
 	public static final field MAGMA_BLOCK Lnet/ccbluex/agent/world/block/Block;
 	public static final field MELON Lnet/ccbluex/agent/world/block/Block;
+	public static final field MOVING_PISTON Lnet/ccbluex/agent/world/block/Block;
 	public static final field OBSERVER Lnet/ccbluex/agent/world/block/Block;
 	public static final field OBSIDIAN Lnet/ccbluex/agent/world/block/Block;
+	public static final field PISTON Lnet/ccbluex/agent/world/block/Block;
 	public static final field POWDER_SNOW Lnet/ccbluex/agent/world/block/Block;
 	public static final field PUMPKIN Lnet/ccbluex/agent/world/block/Block;
 	public static final field RED_SANDSTONE Lnet/ccbluex/agent/world/block/Block;
@@ -3802,6 +3804,7 @@ public final class net/ccbluex/agent/world/block/Blocks {
 	public static final field SANDSTONE Lnet/ccbluex/agent/world/block/Block;
 	public static final field SLIME_BLOCK Lnet/ccbluex/agent/world/block/Block;
 	public static final field SOUL_CAMPFIRE Lnet/ccbluex/agent/world/block/Block;
+	public static final field STICKY_PISTON Lnet/ccbluex/agent/world/block/Block;
 	public static final field STONE Lnet/ccbluex/agent/world/block/Block;
 	public static final field SWEET_BERRY_BUSH Lnet/ccbluex/agent/world/block/Block;
 	public static final field TNT Lnet/ccbluex/agent/world/block/Block;

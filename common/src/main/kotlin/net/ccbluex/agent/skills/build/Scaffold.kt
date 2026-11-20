@@ -19,6 +19,7 @@
 
 package net.ccbluex.agent.skills.build
 
+import it.unimi.dsi.fastutil.longs.LongSet
 import net.ccbluex.agent.math.AABB
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
@@ -47,7 +48,11 @@ import net.ccbluex.agent.world.item.ItemStack
  *
  * @agent claude-opus-5-5
  */
-internal class Scaffold(private val agent: Agent, private val blueprint: Map<BlockPos, BlockState>) : PlaceableBlocks {
+internal class Scaffold(
+    private val agent: Agent,
+    private val blueprint: Map<BlockPos, BlockState>,
+    private val reserved: LongSet,
+) : PlaceableBlocks {
 
     val placed = HashSet<BlockPos>()
     private val spareItems = HashSet<Item>()
@@ -106,11 +111,11 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
         carriesSpare() || placed.any { it !in blueprint && !agent.body.level.getBlockState(it).canBeReplaced() }
 
     /**
-     * Whether a spare block could go at [pos] to stand on: on solid ground, and nowhere the build places a block.
+     * Whether a spare block could go at [pos] to stand on: on solid ground, and nowhere the build keeps for itself.
      */
     fun canPlace(pos: BlockPos): Boolean {
         val level = agent.body.level
-        return pos !in blueprint && level.getBlockState(pos).canBeReplaced() &&
+        return pos.asLong() !in reserved && level.getBlockState(pos).canBeReplaced() &&
             !level.getBlockState(pos.below()).getCollisionShape(level, pos.below()).isEmpty
     }
 
@@ -146,23 +151,31 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
     val props = HashMap<BlockPos, BlockPos>()
 
     /**
-     * Puts a spare block next to [pos], first where the block faces, as a stair or hopper takes its facing from the
-     * face it is placed against, then under it where it can, so the block has a face to go against; false when no
-     * cell beside it outside the build has something to put one against, or none could be put.
+     * Puts a spare block in the [propCell] of [pos]; false when it has none or none could be put.
      */
     suspend fun prop(pos: BlockPos): Boolean {
+        val cell = propCell(pos) ?: return false
+        if (!put(cell)) return false
+        props[cell] = pos
+        return true
+    }
+
+    /**
+     * Where a spare block next to [pos] gives it a face to go against: first where the block faces, as a stair or
+     * hopper takes its facing from the face it is placed against, then under it; outside the build first, else in a
+     * cell of the build whose block comes later, such as a wire beside a piston walled in all round. Null when no
+     * such cell has something to put one against.
+     */
+    fun propCell(pos: BlockPos): BlockPos? {
         val level = agent.body.level
         val facing = blueprint[pos]?.let {
             it.getOptionalValue(BlockStateProperties.FACING) ?: it.getOptionalValue(BlockStateProperties.HORIZONTAL_FACING)
         }
-        val sides = listOfNotNull(facing) + Direction.DOWN + Direction.Plane.HORIZONTAL + Direction.UP
-        val cell = sides.distinct().map(pos::relative).firstOrNull { cell ->
-            cell !in blueprint && level.getBlockState(cell).canBeReplaced() &&
-                Direction.entries.any { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty }
-        } ?: return false
-        if (!put(cell)) return false
-        props[cell] = pos
-        return true
+        val sides = (listOfNotNull(facing) + Direction.DOWN + Direction.Plane.HORIZONTAL + Direction.UP).distinct().map(pos::relative)
+        fun canHold(cell: BlockPos) = level.getBlockState(cell).canBeReplaced() &&
+            Direction.entries.any { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty }
+        fun isLater(cell: BlockPos) = blueprint[cell]?.let { !follows(it) && it.fluidState.isEmpty } == true
+        return sides.firstOrNull { it.asLong() !in reserved && canHold(it) } ?: sides.firstOrNull { isLater(it) && canHold(it) }
     }
 
     /**
@@ -219,7 +232,8 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
 
     /**
      * The spare block nearest the player that may come down and [matches]: the top of its pillar, neither [keep] nor
-     * a prop whose block is still missing, nor one holding back a liquid, which would flow where the player stands.
+     * a prop whose block is still missing, nor one holding back a liquid, which would flow where the player stands;
+     * the water in a waterlogged block stays in it.
      */
     private fun nearest(keep: BlockPos?, matches: (BlockPos) -> Boolean): BlockPos? {
         val level = agent.body.level
@@ -227,7 +241,7 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
         return placed.filter { pos ->
             pos !in blueprint && pos != keep && pos.above() !in placed && matches(pos) &&
                 props[pos]?.let { held -> blueprint[held]?.let { !isBuilt(level, held, it) } } != true &&
-                Direction.entries.none { it != Direction.DOWN && !level.getBlockState(pos.relative(it)).fluidState.isEmpty }
+                Direction.entries.none { it != Direction.DOWN && isLiquid(level.getBlockState(pos.relative(it))) }
         }.minByOrNull { it.distToCenterSqr(position) }
     }
 
@@ -241,7 +255,15 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
         if (!state.canBeReplaced()) {
             val item = ItemMatch.of(state.block.asItem())
             val carried = inventory.count(item)
-            if (!agent.dig(pos, forDrops = false)) return false
+            // One the build covered shows only from a side, where the walk to dig it may not go
+            if (!agent.dig(pos, forDrops = false)) {
+                val spot = Direction.Plane.HORIZONTAL.asSequence().map(pos::relative)
+                    .filter { level.getBlockState(it).getCollisionShape(level, it).isEmpty }
+                    .flatMap { agent.standSpots(Vec3.atCenterOf(it), pos, this) }
+                    .firstOrNull() ?: return false
+                walkTo(spot, 0.3)
+                if (!agent.dig(pos, forDrops = false)) return false
+            }
             val center = Vec3.atCenterOf(pos)
             // The drop shows a tick or more after the block went, unless the player stood on it and took it at once
             tickConditional(20) {
@@ -263,5 +285,5 @@ internal class Scaffold(private val agent: Agent, private val blueprint: Map<Blo
 internal fun isInStand(cell: BlockPos, pos: BlockPos): Boolean {
     val x = cell.x - pos.x
     val z = cell.z - pos.z
-    return (x == 0 && z in -3..3 || z == 0 && x in -3..3) && cell.y - pos.y in -3..3
+    return (x in -1..1 && z in -3..3 || z in -1..1 && x in -3..3) && cell.y - pos.y in -3..3
 }

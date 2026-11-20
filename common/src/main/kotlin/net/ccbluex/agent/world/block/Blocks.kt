@@ -107,10 +107,16 @@ public object Blocks {
     public val MELON: Block = Block.of("melon")
 
     @JvmField
+    public val MOVING_PISTON: Block = Block.of("moving_piston")
+
+    @JvmField
     public val OBSERVER: Block = Block.of("observer")
 
     @JvmField
     public val OBSIDIAN: Block = Block.of("obsidian")
+
+    @JvmField
+    public val PISTON: Block = Block.of("piston")
 
     @JvmField
     public val POWDER_SNOW: Block = Block.of("powder_snow")
@@ -132,6 +138,9 @@ public object Blocks {
 
     @JvmField
     public val STONE: Block = Block.of("stone")
+
+    @JvmField
+    public val STICKY_PISTON: Block = Block.of("sticky_piston")
 
     @JvmField
     public val SWEET_BERRY_BUSH: Block = Block.of("sweet_berry_bush")

@@ -40,17 +40,20 @@ import net.ccbluex.agent.world.Input
 import net.ccbluex.agent.world.InteractionHand
 import net.ccbluex.agent.world.block.BlockState
 import net.ccbluex.agent.world.block.BlockStateProperties
+import net.ccbluex.agent.world.block.Blocks
 import net.ccbluex.agent.world.block.ChestType
 import net.ccbluex.agent.world.item.ItemStack
 
 /**
  * Whether the block at [pos] is [wanted] as built: placed the same way, clicked the same way and holding the same
- * liquid; for a liquid, its source; air is built where anything replaceable is.
+ * liquid; for a liquid, its source; air is built where anything replaceable is; any other block while a piston moves
+ * it, as a clock of the build may fire.
  *
  * @agent claude-opus-5-5
  */
 internal fun isBuilt(level: BlockGetter, pos: BlockPos, wanted: BlockState): Boolean {
     val actual = level.getBlockState(pos)
+    if (actual.`is`(Blocks.MOVING_PISTON) && !wanted.isAir) return true
     if (wanted.isAir) return actual.canBeReplaced()
     if (isLiquid(wanted)) return actual.block == wanted.block && actual.fluidState.isSource
     return isPlaced(level, pos, actual, wanted) && actual.usedValues == wanted.usedValues &&
@@ -156,8 +159,9 @@ internal suspend fun Agent.stepTo(stand: Vec3, pos: BlockPos, scaffold: Scaffold
 
 /**
  * The clicks on a face of a solid neighbour of [pos], or with [onItself] of the block at [pos], that [gives] what is
- * wanted there with the rotation from the eyes to the click, from spots on each side at one to three blocks or from
- * here; from spots nothing of the build covers first, then nearest, those that need [scaffold] last.
+ * wanted there with the rotation from the eyes to the click, from spots on each side at one to three blocks, or one
+ * beside those, or from here; from spots nothing of the build covers first, then nearest, those that need [scaffold]
+ * last.
  *
  * @agent claude-opus-5-5
  */
@@ -187,9 +191,10 @@ internal fun Agent.clicks(
             if (canSee(body.player.position().add(0.0, eyeHeight, 0.0), point, against, face)) add(point, null)
             for (looking in Direction.Plane.HORIZONTAL) {
                 // Also from right beside it, as over a wall or a ledge the face shows only from near, and a block
-                // facing up or down takes a steep look
-                for (distance in 1..3) {
-                    standSpots(Vec3.atCenterOf(pos).relative(looking, -distance.toDouble()), pos, scaffold)
+                // facing up or down takes a steep look; and one aside, where the line itself has nowhere to stand
+                for (distance in 1..3) for (aside in -1..1) {
+                    val near = Vec3.atCenterOf(pos).relative(looking, -distance.toDouble()).relative(looking.getClockWise(), aside.toDouble())
+                    standSpots(near, pos, scaffold)
                         .firstOrNull { canSee(it.add(0.0, eyeHeight, 0.0), point, against, face) && add(point, it) }
                 }
             }
@@ -239,7 +244,7 @@ internal fun facePoints(bounds: AABB, against: BlockPos, face: Direction): List<
  *
  * @agent claude-opus-5-5
  */
-private fun Agent.standSpots(near: Vec3, pos: BlockPos, scaffold: Scaffold): Sequence<Vec3> {
+internal fun Agent.standSpots(near: Vec3, pos: BlockPos, scaffold: Scaffold): Sequence<Vec3> {
     val level = body.level
     val column = BlockPos.containing(near.x, pos.y.toDouble(), near.z)
     fun isEmpty(at: BlockPos) = level.getBlockState(at).getCollisionShape(level, at).isEmpty

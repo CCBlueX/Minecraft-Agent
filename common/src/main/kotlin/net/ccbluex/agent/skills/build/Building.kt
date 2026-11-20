@@ -19,6 +19,7 @@
 package net.ccbluex.agent.skills.build
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
+import it.unimi.dsi.fastutil.longs.LongSet
 import net.ccbluex.agent.ExperimentalAgentApi
 import net.ccbluex.agent.math.BlockPos
 import net.ccbluex.agent.math.Direction
@@ -58,18 +59,32 @@ public suspend fun Agent.build(
     supplies: Collection<BlockPos> = emptyList(),
 ): BuildResult {
     val options = navigator.options
-    // The walk's own scaffold never goes where the build still puts a block
-    val reserved = LongOpenHashSet(blocks.size).apply { blocks.keys.forEach { add(it.asLong()) } }
+    // The walk's own scaffold never goes where the build still puts a block, nor in front of a piston, which would
+    // push it into the build
+    val reserved = LongOpenHashSet(blocks.size).apply {
+        blocks.forEach { (pos, state) ->
+            add(pos.asLong())
+            if (state.`is`(Blocks.PISTON) || state.`is`(Blocks.STICKY_PISTON)) {
+                add(pos.relative(state.getValue(BlockStateProperties.FACING)).asLong())
+            }
+        }
+    }
     navigator.options = options.copy(reserved = reserved)
     try {
-        return buildBlocks(blocks, canBreak, supplies)
+        return buildBlocks(blocks, reserved, canBreak, supplies)
     } finally {
         navigator.options = options
     }
 }
 
-private suspend fun Agent.buildBlocks(blocks: Map<BlockPos, BlockState>, canBreak: Boolean, supplies: Collection<BlockPos>): BuildResult {
+private suspend fun Agent.buildBlocks(
+    blocks: Map<BlockPos, BlockState>,
+    reserved: LongSet,
+    canBreak: Boolean,
+    supplies: Collection<BlockPos>,
+): BuildResult {
     val level = body.level
+    if (blocks.isEmpty()) return BuildResult(emptyMap(), emptySet(), false)
     // Failed tries and all steps per block: a block takes a few steps (placed, opened, filled with water), and one
     // that keeps coming undone, such as a trapdoor redstone closes, is given up as well
     val tries = HashMap<BlockPos, Int>()
@@ -78,7 +93,13 @@ private suspend fun Agent.buildBlocks(blocks: Map<BlockPos, BlockState>, canBrea
     // Blocks no click places yet, as what they go against is missing, and blocks that just failed; they wait until
     // something else is built, rather than using up their tries at once
     val waiting = HashSet<BlockPos>()
-    val scaffold = Scaffold(this, blocks)
+    val scaffold = Scaffold(this, blocks, reserved)
+    // What stands around the build before it starts: anything else there but the build at the end is what walks put
+    // up, the scaffold's own and those of walks it does not see, such as one to dig or to a chest
+    val min = BlockPos(blocks.keys.minOf { it.x } - 4, blocks.keys.minOf { it.y }, blocks.keys.minOf { it.z } - 4)
+    val max = BlockPos(blocks.keys.maxOf { it.x } + 4, blocks.keys.maxOf { it.y } + 3, blocks.keys.maxOf { it.z } + 4)
+    fun standing() = BlockPos.betweenClosed(min, max).mapNotNull { pos -> pos.takeIf { !level.getBlockState(it).canBeReplaced() }?.immutable() }
+    val before = standing().toHashSet()
     val stock = Supplies(this, supplies, scaffold)
     val wanted = blocks.filterValues { !follows(it) }
     // Blocks that would leave the neighbour named no spot to be placed from; they go after it
@@ -105,7 +126,9 @@ private suspend fun Agent.buildBlocks(blocks: Map<BlockPos, BlockState>, canBrea
         )
         val open = wanted.entries
             .filter { (pos, state) ->
-                pos !in waiting && !isGivenUp(pos) && canBuild(pos, state, canBreak || scaffold.isOwn(pos))
+                pos !in waiting && !isGivenUp(pos) && canBuild(pos, state, canBreak || scaffold.isOwn(pos)) &&
+                    // A prop in a cell of the build stays until the block it holds out a face to stands or is given up
+                    scaffold.props[pos]?.let { held -> !isGivenUp(held) && wanted[held]?.let { !isBuilt(level, held, it) } == true } != true
             }
             .filter { (pos, state) -> itemFor(pos, state)?.let { isCarried(it) || stock.mayHave(it) } != false }
         val free = open.filter { !isShutting(it.key) }.ifEmpty { open }
@@ -142,8 +165,10 @@ private suspend fun Agent.buildBlocks(blocks: Map<BlockPos, BlockState>, canBrea
                 cell !in propped && !isLiquid(wants) && !wants.isAir && !isGivenUp(cell) && level.getBlockState(cell).canBeReplaced() &&
                     (cell in faceless || Direction.entries.none { !level.getBlockState(cell.relative(it)).getCollisionShape(level, cell.relative(it)).isEmpty })
             }
-            .minWithOrNull(compareBy({ it.key.y }, { !it.value.isCollisionShapeFullBlock(level, it.key) }))?.key
-        if (low != null && pos.y > low.y && !hasClick(low, wanted.getValue(low), scaffold)) {
+            .minWithOrNull(compareBy({ it.key.y }, { !it.value.isCollisionShapeFullBlock(level, it.key) }, { it.key.distManhattan(pos) != 1 }))?.key
+        // It gets its prop before anything above its layer goes up, or the block whose cell is the only one left for
+        // the prop, such as a wire beside a piston walled in all round
+        if (low != null && (pos.y > low.y || pos == scaffold.propCell(low)) && !hasClick(low, wanted.getValue(low), scaffold)) {
             propped += low
             if (scaffold.prop(low)) {
                 waiting.clear()
@@ -195,6 +220,7 @@ private suspend fun Agent.buildBlocks(blocks: Map<BlockPos, BlockState>, canBrea
         }
     }
     scaffold.props.clear()
+    scaffold.placed += standing().filter { it !in before && it !in blocks }
     scaffold.clear()
     val left = wanted.filter { (pos, state) -> !isBuilt(level, pos, state) }
     return BuildResult(missing(left), left.keys, left.keys.any { it in scaffold.lacking })
