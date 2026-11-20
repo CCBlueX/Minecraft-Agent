@@ -137,6 +137,21 @@ internal class FollowerTest {
         error("Did not get to $goal in $MAX_TICKS ticks, at ${host.position}")
     }
 
+    @Test
+    fun `jumps down single blocks take off again right after landing`() {
+        // Single blocks two to four apart, each a block lower. Running on to the edge after a landing overshoots the next
+        // block and brakes in the air, landing too slow for the jump after it: 59 ticks against 55.
+        val world = TestWorld()
+        for ((index, x) in listOf(0, 4, 8, 12, 14).withIndex()) {
+            world.set(x, 10 - index, 0, TestWorld.STONE)
+        }
+        val start = Vec3(0.5, 11.0, 0.5)
+        val host = Host(TestLevel(world).player(start, -90f), world, 1.0, turn = 180f)
+
+        val ticks = follow(world, host, start, BlockPos(14, 7, 0), floor = 5.0)
+        assertTrue(ticks <= 56, "Took $ticks ticks")
+    }
+
     @ParameterizedTest(name = "walking {0} times as fast")
     @ValueSource(doubles = [0.75, 2.5, 3.0])
     fun `a player faster or slower than vanilla lands every jump`(speedFactor: Double) {

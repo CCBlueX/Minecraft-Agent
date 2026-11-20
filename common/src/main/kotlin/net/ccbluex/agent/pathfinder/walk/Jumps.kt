@@ -132,6 +132,22 @@ public class Jumps(
     }
 
     /**
+     * The jump onto [to] that takes off this tick from where [state], a player on the ground, is, moving with [yRot];
+     * null unless it lands well. It saves the run to the take-off [fromHere] lands best from, and lands with speed.
+     *
+     * @agent claude-opus-5-5
+     */
+    public fun takingOffNow(state: PlayerMotion, yRot: Float, to: BlockPos, toHeight: Double): Jump? {
+        course.set(state.x, state.y, state.z, to, toHeight)
+        motion.copyFrom(state)
+        run.tick(yRot, jump = true)
+        if (motion.onGround) {
+            return null
+        }
+        return flight.jump(state.position, 0, jumps = true, hops = 0)?.takeIf { it.margin >= GOOD_MARGIN }
+    }
+
+    /**
      * Like [fromHere], but the jump that takes off last of those that land on [to], which gets the furthest onto it:
      * for a landing that is the next take-off.
      */

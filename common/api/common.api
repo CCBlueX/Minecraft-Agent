@@ -1557,6 +1557,7 @@ public final class net/ccbluex/agent/pathfinder/walk/Jumps {
 	public static synthetic fun plan$default (Lnet/ccbluex/agent/pathfinder/walk/Jumps;Lnet/ccbluex/agent/math/BlockPos;DLnet/ccbluex/agent/math/BlockPos;DZILjava/lang/Object;)Lnet/ccbluex/agent/pathfinder/walk/Jump;
 	public final fun refine (Lnet/ccbluex/agent/math/BlockPos;DLnet/ccbluex/agent/math/BlockPos;D)Lnet/ccbluex/agent/pathfinder/walk/Jump;
 	public final fun takeOff (Lnet/ccbluex/agent/simulation/PlayerMotion;Ljava/lang/Float;Lnet/ccbluex/agent/math/BlockPos;DLnet/ccbluex/agent/pathfinder/walk/Jump;Ljava/util/List;)Z
+	public final fun takingOffNow (Lnet/ccbluex/agent/simulation/PlayerMotion;FLnet/ccbluex/agent/math/BlockPos;D)Lnet/ccbluex/agent/pathfinder/walk/Jump;
 }
 
 public final class net/ccbluex/agent/pathfinder/walk/Jumps$AirKeys {

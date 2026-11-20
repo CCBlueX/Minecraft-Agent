@@ -96,12 +96,21 @@ public class Leap {
         val jump = refined ?: planned
         val ready = isReady(state, stop(jump))
 
+        // Over a gap only, not a hop onto the next block of the same ledge, and facing it, as the flight is simulated.
+        val acrossGap = step.feet.horizontalDistanceToSqr(state.x, state.z) > 4.0 && faces(state, yRot, step.feet)
+        val takeOff = if (acrossGap) jumps.takingOffNow(state, yRot, step.to, step.feet.y) else null
+        if (takeOff != null) {
+            target = takeOff.aim
+            return LeapInput(1, 0, jump = true, sprint = jumps.canSprint)
+        }
+
         // Away from the run-up, only a jump with room to spare beats walking back to it; a run once started goes on.
         val now = jumps.fromHere(state, yRot, step.to, step.feet.y, jump.aim)
             ?.takeIf { ready || running || it.margin >= LIVE_MARGIN }
         // The run is simulated facing the aim from its second tick on; a body turning at its own pace turns first,
-        // staying where the jump works rather than walking back to the run-up.
-        if (now != null && !running && !faces(state, yRot, now.aim)) {
+        // staying where the jump works rather than walking back to the run-up. Checked against the middle of the target,
+        // as the best aim may switch sides while the body turns.
+        if (now != null && !running && !faces(state, yRot, step.feet)) {
             target = now.aim
             return approach(state, yRot, state.position, now.aim)
         }
