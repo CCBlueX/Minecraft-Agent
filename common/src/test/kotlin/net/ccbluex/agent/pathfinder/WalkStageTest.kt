@@ -27,9 +27,12 @@ import net.ccbluex.agent.pathfinder.TestWorld.Companion.feet
 import net.ccbluex.agent.pathfinder.route.Limits
 import net.ccbluex.agent.pathfinder.route.NearDestination
 import net.ccbluex.agent.pathfinder.route.Outcome
+import net.ccbluex.agent.pathfinder.route.Replanner
 import net.ccbluex.agent.pathfinder.route.StageDestination
 import net.ccbluex.agent.pathfinder.walk.Route
 import net.ccbluex.agent.pathfinder.walk.RouteSearch
+import net.ccbluex.agent.v26_3.toAgent
+import net.ccbluex.agent.world.Level
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -128,6 +131,32 @@ class WalkStageTest {
         val path = found(stage(world, BlockPos(-150, 1, 0)))
         assertFalse(path.canReach)
         assertTrue(path.steps.last().to.x < 0, "walked away from the goal to ${path.steps.last().to}")
+    }
+
+    /**
+     * Walking stages at half the path range ended between two walls, the gap in the next one unseen; the stages over a
+     * field of such walls added up to a quarter more way than one route through it. Walking asks for stages further
+     * out.
+     *
+     * @agent claude-opus-5-5
+     */
+    @Test
+    fun `the replanner puts stages at the range asked for`() {
+        val world = field()
+        val level = object : Level by TestLevel(world).toAgent() {
+            override fun snapshot(minX: Int, minY: Int, minZ: Int, maxX: Int, maxY: Int, maxZ: Int) = world
+        }
+        val routes = Replanner<Route>({ level }, 16, executor = Runnable::run)
+        routes.request(START, NearDestination(feet(150, 1, 0), 1.0), 64.0, stageRange = 48.0) { terrain, goal ->
+            RouteSearch(terrain, START, goal, abilities, LIMITS)
+        }
+
+        var result = routes.poll()
+        repeat(MAX_SLICES) {
+            if (result == Outcome.Searching) result = routes.poll()
+        }
+        val end = found(result).steps.last().to
+        assertTrue(horizontalDistance(end, START) >= 48.0, "stage at $end is short of 48 blocks")
     }
 
 }

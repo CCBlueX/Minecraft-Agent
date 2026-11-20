@@ -230,7 +230,10 @@ internal class Planning(
             Limits(maxLength, visitedNodesPerSlice = SLICE_EXPANSIONS)
         }
 
-        routes.request(start, NearDestination(goal, radius), maxLength, stuckSpots.version) { terrain, searchGoal ->
+        // A stage further out sees past more of the walls and gaps on the way, so the stages add up to fewer detours.
+        routes.request(
+            start, NearDestination(goal, radius), maxLength, stuckSpots.version, stageRange = maxLength * 0.75,
+        ) { terrain, searchGoal ->
             RouteSearch(terrain, start, searchGoal, abilities, limits)
         }
 

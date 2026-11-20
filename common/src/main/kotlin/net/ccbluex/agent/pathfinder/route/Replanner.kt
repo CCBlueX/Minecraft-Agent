@@ -120,20 +120,21 @@ public class Replanner<T>(
         ticks >= retryAt && (urgent || !isSearching && ticks - lastRequest >= REPLAN_INTERVAL)
 
     /**
-     * Searches routes of at most [maxLength] from [start] to [goal], or to a stage on the way. A running search for
-     * the same start block, goal and [variant] goes on. Does nothing without a level.
+     * Searches routes of at most [maxLength] from [start] to [goal], or to a stage [stageRange] out on the way when
+     * the goal is further than half of [maxLength] or not loaded. A running search for the same start block, goal and
+     * [variant] goes on. Does nothing without a level.
      */
     public fun request(
         start: Vec3,
         goal: NearDestination,
         maxLength: Double,
         variant: Any? = null,
+        // A stage with its detours stays within the route length.
+        stageRange: Double = maxLength / 2.0,
         search: (terrain: Terrain, goal: Destination) -> Search<T>,
     ) {
         val level = level() ?: return
-        // A stage with its detours stays within the route length.
-        val stageRange = maxLength / 2.0
-        val staged = StageDestination.isNeeded(LiveLevel(level), start, goal.center, stageRange)
+        val staged = StageDestination.isNeeded(LiveLevel(level), start, goal.center, maxLength / 2.0)
         val region = if (staged) {
             StageDestination.region(start, stageRange, verticalMargin)
         } else {
